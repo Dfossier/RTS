@@ -36,9 +36,8 @@ namespace RTSEngine.Entities
 
         ErrorMessage SetTargetFirst(SetTargetInputData input);
 
-        //IAttackComponent AttackComponent { get; }
-
-        IReadOnlyDictionary<string, IAttackComponent> AttackComponents { get; }
+        IReadOnlyList<IAttackComponent> AttackComponents { get; }
+        IReadOnlyDictionary<string, IAttackComponent> AttackComponentsDic { get; }
         IAttackComponent FirstActiveAttackComponent { get; }
         bool CanAttack { get; }
 
@@ -55,8 +54,6 @@ namespace RTSEngine.Entities
         Sprite Icon { get; }
         bool IsFree { get; }
         float Radius { get; }
-
-        IEntityModel EntityModel { get; }
 
         bool IsInteractable { get; }
         bool IsSearchable { get; }
@@ -94,12 +91,16 @@ namespace RTSEngine.Entities
 
         int Key { get; }
         bool IsDummy { get; }
-        ModelCacheAwareTransformInput TransformInput { get; }
         IEntityTasksQueueHandler TasksQueue { get; }
         IEnumerable<IAttackComponent> ActiveAttackComponents { get; }
         IEntityMinimapIconHandler MinimapIconHandler { get; }
+        GameObject Model { get; }
+        IReadOnlyList<IPendingTaskEntityComponent> PendingTaskEntityComponents { get; }
 
         event CustomEventHandler<IEntity, FactionUpdateArgs> FactionUpdateComplete;
         event CustomEventHandler<IEntity, EntityComponentUpgradeEventArgs> EntityComponentUpgraded;
+        event CustomEventHandler<IEntity, EventArgs> EntityEnterIdle;
+        event CustomEventHandler<IEntity, EventArgs> EntityExitIdle;
+        event CustomEventHandler<IEntity, FactionUpdateArgs> FactionUpdateStart;
     }
 }

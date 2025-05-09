@@ -5,12 +5,8 @@ namespace RTSEngine.Lobby.Audio
 {
     public class LobbyAudioManager : AudioManagerBase, ILobbyAudioManager
     {
-        #region Attributes
-        protected ILobbyLoggingService logger { private set; get; }
-        #endregion
-
         #region Initializing/Terminating
-        public void Init(ILobbyManager lobbyMgr)
+        public void Init(ILobbyManagerBase lobbyMgr)
         {
             InitBase(lobbyMgr.GetService<ILobbyLoggingService>());
         }

@@ -16,7 +16,7 @@ namespace RTSEngine.EditorOnly
         advancedBuildingPlacement,
     }
 
-    public static class RTSEditorPropertiesHandler
+    public static partial class RTSEditorPropertiesHandler
     {
         private static Dictionary<RTSEditorProperties, bool> properties = new Dictionary<RTSEditorProperties, bool>();
 
@@ -65,6 +65,12 @@ namespace RTSEngine.EditorOnly
 
         static void Update()
         {
+            if (PlayerPrefs.GetInt("RTSEngineShowPopupWindow", 0) == 0)
+            {
+                PlayerPrefs.SetInt("RTSEngineShowPopupWindow", 1);
+                RTSEnginePopupWindow.Init();
+            }
+
             if (++count > 500)
             {
                 count = 0;
@@ -82,7 +88,7 @@ namespace RTSEngine.EditorOnly
         private static void ReloadRTSPrefabsAndAssetFiles()
         {
             RefreshAssetFiles(requireTest: false, testInstance: null);
-            SetEntities();
+            FetchEntityPrefabs();
 
             Debug.Log("[RTSEditorHelper] Cached RTS Engine related scriptable objects and entity prefabs.");
 
@@ -99,6 +105,11 @@ namespace RTSEngine.EditorOnly
                 object obj = getActiveFolderPath.Invoke(null, new object[0]);
                 return obj.ToString();
             }
+        }
+
+        internal static void OpenDocumentation()
+        {
+            Application.OpenURL("https://docs.gamedevspice.com/rts_engine/manual/index.html");
         }
         #endregion
 
@@ -184,19 +195,21 @@ namespace RTSEngine.EditorOnly
             return true;
         }
 
-        public static string[] GetMatchingStrings (string searchInput, string[] searchTargets, string[] exceptions, System.Func<string, bool> condition = null)
+        public static string[] GetMatchingStrings (string searchInput, IReadOnlyList<string> searchTargets, IReadOnlyList<string> exceptions, System.Func<string, bool> condition = null)
         {
             List<string> matches = new List<string>();
 
-            string sPattern = $"{searchInput}";
+            string targetPattern = $"{searchInput}";
 
-            foreach (string s in searchTargets)
+            for (int i = 0; i < searchTargets.Count; i++)
             {
-                if (!string.IsNullOrEmpty(s) 
-                    && !exceptions.Any(exception => exception == s)
-                    && System.Text.RegularExpressions.Regex.IsMatch(s, sPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase)
-                    && (condition == null || condition.Invoke(s)))
-                    matches.Add(s);
+                string currTarget = searchTargets[i];
+
+                if (!string.IsNullOrEmpty(currTarget) 
+                    && !exceptions.Any(exception => exception == currTarget)
+                    && System.Text.RegularExpressions.Regex.IsMatch(currTarget, targetPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+                    && (condition == null || condition.Invoke(currTarget)))
+                    matches.Add(currTarget);
             }
 
             return matches
@@ -218,7 +231,7 @@ namespace RTSEngine.EditorOnly
 
         private static IDictionary<string, IEnumerable<IEntity>> EntitiesPerCategory = null;
 
-        public static IDictionary<string, IEnumerable<IEntity>> GetEntitiesPerCategory()
+        public static IDictionary<string, IEnumerable<IEntity>> GetEntityPrefabsPerCategory()
         {
             if (EntitiesPerCategory == null)
                 ReloadRTSPrefabsAndAssetFiles();
@@ -226,7 +239,7 @@ namespace RTSEngine.EditorOnly
             return EntitiesPerCategory;
         }
 
-        public static void SetEntities ()
+        public static void FetchEntityPrefabs ()
         {
             bool allValid = true;
 
@@ -250,10 +263,10 @@ namespace RTSEngine.EditorOnly
 
                 foreach (string category in entity.Category)
                 {
-                    if (GetEntitiesPerCategory().ContainsKey(category))
-                        GetEntitiesPerCategory()[category] = GetEntitiesPerCategory()[category].Append(entity);
+                    if (GetEntityPrefabsPerCategory().ContainsKey(category))
+                        GetEntityPrefabsPerCategory()[category] = GetEntityPrefabsPerCategory()[category].Append(entity);
                     else
-                        GetEntitiesPerCategory().Add(category, Enumerable.Repeat(entity, 1));
+                        GetEntityPrefabsPerCategory().Add(category, Enumerable.Repeat(entity, 1));
                 }
             }
 
@@ -281,11 +294,18 @@ namespace RTSEngine.EditorOnly
 
             {23, "AirTerrain" },
             {24, "PostProcessing" },
+            {25, "A*GridObstacle" }
         };
 
-        public static bool AssignDemoLayers()
+        public static bool ImportPresetLayers()
         {
-            return DemoLayers.All(kvp => CreateLayer(kvp.Key, kvp.Value));
+            bool success =  DemoLayers.All(kvp => CreateLayer(kvp.Key, kvp.Value));
+            if(success)
+                Debug.Log("[RTSEditorHelper] Preset layers have been successfully imported!");
+            else
+                Debug.Log("[RTSEditorHelper] There was an error in importing preset layers. Please contact the developer!");
+
+            return success;
         }
 
         private static bool CreateLayer(int layerID, string layerName)

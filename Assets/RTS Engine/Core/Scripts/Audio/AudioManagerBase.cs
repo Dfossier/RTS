@@ -9,12 +9,15 @@ using System.Collections.Generic;
 
 namespace RTSEngine.Audio
 {
+    public enum MusicNextFetchType { fetcherType = 0, next, previous }
+
     public abstract class AudioManagerBase : MonoBehaviour, IAudioManager
     {
         #region Attributes 
         //Music Loops:
         [SerializeField, Tooltip("Audio clips for music to be played during the game."), Header("Music")]
         private AudioClipFetcher music = new AudioClipFetcher();
+        private MusicNextFetchType nextMusicFetchType;
 
         [SerializeField, Tooltip("Play the music audio clips as soon as the game starts.")]
         private bool playMusicOnStart = true;
@@ -76,6 +79,7 @@ namespace RTSEngine.Audio
               $"[{GetType().Name}] 'Music Audio Source' hasn't been assigned!",
               type: LoggingType.warning);
 
+            nextMusicFetchType = MusicNextFetchType.fetcherType;
             IsMusicActive = false;
             if (playMusicOnStart == true) //if we're able to start playing the music on start
                 PlayMusic();
@@ -195,7 +199,7 @@ namespace RTSEngine.Audio
             }
         }
 
-        public void PlaySFX(AudioClipFetcher fetcher, bool loop = false)
+        public void PlaySFX(AudioClipFetcher fetcher, IEntity source, bool loop = false)
         {
             PlaySFX(globalSFXAudioSource, fetcher.Fetch(), loop);
         }
@@ -205,7 +209,7 @@ namespace RTSEngine.Audio
         /// </summary>
         /// <param name="clip">AudioClip instance to be played.</param>
         /// <param name="loop">When true, the audio clip will be looped.</param>
-        public void PlaySFX(AudioClip clip, bool loop = false)
+        public void PlaySFX(AudioClip clip, IEntity source, bool loop = false)
         {
             PlaySFX(globalSFXAudioSource, clip, loop);
         }
@@ -283,8 +287,25 @@ namespace RTSEngine.Audio
             while (true)
             {
                 //get the next audio clip and play it
-                musicAudioSource.clip = music.Fetch();
+                switch(nextMusicFetchType)
+                {
+                    case MusicNextFetchType.fetcherType:
+                        musicAudioSource.clip = music.Fetch();
+                        break;
+                    case MusicNextFetchType.next:
+                        musicAudioSource.clip = music.FetchNext();
+                        break;
+                    case MusicNextFetchType.previous:
+                        musicAudioSource.clip = music.FetchPrevious();
+                        break;
+                }
+                if (!musicAudioSource.clip.IsValid())
+                {
+                    IsMusicActive = false;
+                    yield break;
+                }
                 musicAudioSource.Play();
+                nextMusicFetchType = MusicNextFetchType.fetcherType;
 
                 //wait for the current music clip to end to play the next one:
                 yield return new WaitForSeconds(musicAudioSource.clip.length);
@@ -302,6 +323,19 @@ namespace RTSEngine.Audio
             StopCoroutine(musicCoroutine);
             musicAudioSource.Stop();
             IsMusicActive = false;
+        }
+
+        public void PlayNextMusicTrack()
+        {
+            StopMusic();
+            nextMusicFetchType = MusicNextFetchType.next;
+            PlayMusic();
+        }
+        public void PlayPreviousMusicTrack()
+        {
+            StopMusic();
+            nextMusicFetchType = MusicNextFetchType.next;
+            PlayMusic();
         }
         #endregion
 

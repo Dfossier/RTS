@@ -1,14 +1,14 @@
-﻿using UnityEngine;
+﻿using System;
+
+using UnityEngine;
 
 using RTSEngine.Entities;
 using RTSEngine.Animation;
 using RTSEngine.Determinism;
 using RTSEngine.Audio;
 using RTSEngine.Effect;
-using RTSEngine.Model;
 using RTSEngine.Utilities;
 using RTSEngine.Event;
-using System;
 
 namespace RTSEngine.EntityComponent
 {
@@ -29,11 +29,14 @@ namespace RTSEngine.EntityComponent
 
         [SerializeField, Tooltip("When having an active target, how long does it take for the component to progress and affect the target?")]
         protected float progressDuration = 1.0f;
+        [SerializeField, HideInInspector]
         private TimeModifiedTimer progressTimer;
 
         [SerializeField, Tooltip("The maximum allowed distance between the faction entity and its target so that progress remains active."), Min(0.0f)]
         private float progressMaxDistance = 1.0f;
         public float ProgressMaxDistance => progressMaxDistance;
+
+        public virtual bool StopMovementOnProgressEnabled => true;
 
         /// <summary>
         /// Is the faction entity currently actively working the entity component?
@@ -43,7 +46,7 @@ namespace RTSEngine.EntityComponent
         public bool WasInProgress { get; private set; } = false;
 
         [SerializeField, Tooltip("Activated when the faction entity's component is in progress.")]
-        protected ModelCacheAwareTransformInput inProgressObject;
+        protected GameObject inProgressObject;
 
         [SerializeField, EnforceType(typeof(IEffectObject)), Tooltip("Triggered on the source faction entity when the component is in progress.")]
         protected GameObjectToEffectObjectInput sourceEffect = null;
@@ -100,7 +103,6 @@ namespace RTSEngine.EntityComponent
                 || !IsActive
                 || factionEntity.Health.IsDead) //if the faction entity is dead, do not proceed.
                 return;
-
 
             OnUpdate();
 
@@ -210,7 +212,7 @@ namespace RTSEngine.EntityComponent
             if (factionEntity.AnimatorController.IsValid())
                 factionEntity.AnimatorController.LockState = true;
 
-            if (factionEntity.CanMove())
+            if (factionEntity.CanMove() && StopMovementOnProgressEnabled)
                 factionEntity.MovementComponent.Stop();
 
             if (factionEntity.AnimatorController.IsValid())
@@ -229,7 +231,7 @@ namespace RTSEngine.EntityComponent
         protected virtual void OnInProgressEnabledEffects ()
         {
             if(inProgressObject.IsValid())
-                inProgressObject.IsActive = true;
+                inProgressObject.SetActive(true);
 
             ToggleSourceTargetEffect(true); //enable the source and target effect objects
         }
@@ -251,7 +253,7 @@ namespace RTSEngine.EntityComponent
         protected virtual void OnInProgressDisabledEffects()
         {
             if(inProgressObject.IsValid())
-                inProgressObject.IsActive = false;
+                inProgressObject.SetActive(false);
 
             ToggleSourceTargetEffect(false);
         }
@@ -370,7 +372,7 @@ namespace RTSEngine.EntityComponent
         public override bool IsTargetInRange(Vector3 sourcePosition, TargetData<IEntity> target)
         {
             return Vector3.Distance(sourcePosition, target.instance.transform.position) <= progressMaxDistance + target.instance.Radius
-                && (!factionEntity.IsUnit() || gridSearch.IsPositionReserved(transform.position, factionEntity.Radius, factionEntity.MovementComponent.AreasMask, playerCommand: false, ignoreMarker: factionEntity.MovementComponent.TargetPositionMarker) == ErrorMessage.none);
+                && (!factionEntity.IsUnit() || gridSearch.IsPositionReserved(sourcePosition, factionEntity.Radius, factionEntity.MovementComponent.AreasMask, playerCommand: false, ignoreMarker: factionEntity.MovementComponent.TargetPositionMarker) == ErrorMessage.none);
         }
 
         protected sealed override void OnTargetPreLocked(bool playerCommand, TargetData<IEntity> newTarget, bool sameTarget) 
@@ -381,18 +383,30 @@ namespace RTSEngine.EntityComponent
 
         #region Editor
 #if UNITY_EDITOR
-        private void OnDrawGizmosSelected()
+        [SerializeField, HideInInspector]
+        private bool showProgressGizmo = true;
+
+        protected override void OnDrawGizmosSelected()
         {
-            if (!HasTarget)
-                return;
+            DrawTargetGizmo();
+            DrawProgressGizmo();
+        }
 
-            // Progress Gizmos:
-            Gizmos.color = InProgress ? Color.green : Color.red;
-            Gizmos.DrawWireSphere(GetProgressCenter(), GetProgressRange());
+        protected void DrawProgressGizmo()
+        {
+            if (HasTarget && showProgressGizmo)
+            {
+                Gizmos.color = InProgress ? Color.green : Color.red;
+                Vector3 progressCenter = GetProgressCenter();
+                Gizmos.DrawWireSphere(progressCenter, GetProgressRange());
 
-            // Target Gizmos
-            Gizmos.color = Color.blue;
-            Gizmos.DrawWireSphere(Target.instance.transform.position, Target.instance.Radius);
+                Vector3 targetCenter = Target.instance.IsValid() ? Target.instance.transform.position : Target.position;
+                float targetRadius = Target.instance.IsValid() ? Target.instance.Radius : 1.0f;
+
+                Vector3 progressCenterToTarget = progressCenter - targetCenter;
+
+                Gizmos.DrawLine(progressCenter, targetCenter + progressCenterToTarget / (progressCenterToTarget.magnitude * targetRadius));
+            }
         }
 #endif
         #endregion

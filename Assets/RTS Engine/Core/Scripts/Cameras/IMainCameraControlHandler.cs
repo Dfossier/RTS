@@ -7,8 +7,11 @@ namespace RTSEngine.Cameras
 {
     public interface IMainCameraControlHandler
     {
+        bool IsActive { get; set; }
+
         void Init(IGameManager gameMgr);
 
+        void PreUpdateInput();
         void UpdateInput();
         void Apply();
     }
@@ -17,7 +20,7 @@ namespace RTSEngine.Cameras
     {
         bool IsPanning { get; }
         Vector3 LastPanDirection { get; }
-        SmoothSpeed PanningSpeed { get; }
+        float CurrPanningSpeed { get; }
 
         bool IsFollowingTarget { get; }
 
@@ -32,21 +35,23 @@ namespace RTSEngine.Cameras
 
     public interface IMainCameraZoomHandler : IMainCameraControlHandler
     {
-        bool UseFOV { get; }
+        bool UseCameraNativeZoom { get; }
 
         float InitialHeight { get; }
         float LookAtTargetMinHeight { get; }
 
-        SmoothSpeed ZoomSpeed { get; }
+        float ZoomRatio { get;}
+        float CurrZoomSpeed { get; }
+        bool IsZooming { get; }
 
-        void SetCameraFOV(float value);
+        void DisableNearMinHeightPivot(bool resetRotation);
     }
 
     public interface IMainCameraRotationHandler : IMainCameraControlHandler
     {
         bool HasInitialRotation { get; }
         Vector3 InitialEulerAngles { get; }
-        SmoothSpeed RotationSpeed { get; }
+        float CurrRotationSpeed { get; }
         bool IsRotating { get; }
 
         void ResetRotation(bool smooth);

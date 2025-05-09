@@ -16,9 +16,9 @@ namespace RTSEngine.BuildingExtension
         float Size { get; }
         float Surface { get; }
 
-        IEnumerable<IBuilding> BuildingsInRange { get; }
-        IEnumerable<IResource> ResourcesInRange { get; }
-        IEnumerable<IEntity> EntitiesInRange { get; }
+        IReadOnlyList<IBuilding> BuildingsInRange { get; }
+        IReadOnlyList<IResource> ResourcesInRange { get; }
+        IReadOnlyList<IEntity> EntitiesInRange { get; }
 
         void Init(IGameManager gameMgr, IBuilding building);
         void Disable();

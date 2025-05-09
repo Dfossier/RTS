@@ -19,7 +19,7 @@ namespace RTSEngine.Minimap.Cameras
     public class MinimapCameraController : MonoBehaviour, IMinimapCameraController
     {
         #region Attributes
-        public int Priority => 100;
+        public int ServicePriority => 100;
 
         [Header("General")]
         [SerializeField, EnforceType(sameScene: true), Tooltip("The camera used to render the minimap.")]
@@ -226,7 +226,15 @@ namespace RTSEngine.Minimap.Cameras
             List<IUnit> selectedUnits = selectionMgr.GetEntitiesList(EntityType.unit, exclusiveType: false, localPlayerFaction: true).Cast<IUnit>().ToList();
 
             if (selectedUnits.Count > 0)
-                mvtMgr.SetPathDestination(selectedUnits, hitPoint, 0.0f, null, new MovementSource { playerCommand = true, isMoveAttackRequest = attackMgr.CanAttackMoveWithKey});
+                mvtMgr.SetPathDestination(
+                    new SetPathDestinationData<IReadOnlyList<IEntity>>
+                    {
+                        source = selectedUnits,
+                        destination = hitPoint,
+                        offsetRadius = 0.0f,
+                        target = null,
+                        mvtSource = new MovementSource { playerCommand = true, isMoveAttackRequest = attackMgr.CanAttackMoveWithKey}
+                    });
         }
         #endregion
 

@@ -5,17 +5,24 @@ using UnityEngine;
 using RTSEngine.Entities;
 using RTSEngine.Game;
 using RTSEngine.Logging;
+using RTSEngine.Utilities;
 
 namespace RTSEngine.Selection
 {
     public class EntitySelectionRenderer : MonoBehaviour, IEntitySelectionMarker, IEntityPreInitializable
     {
         #region Class Attributes
+        private IEntity entity;
+
         public bool IsLocked { set; get; }
         [SerializeField, Tooltip("Renderer used to display the selection texture of an entity.")]
-        private Renderer selectionRenderer = null;
-        [SerializeField, Tooltip("Index of the material assigned to the renderer to be colored with the faction colors.")]
-        private int materialID = 0;
+        private ColoredRenderer targetRenderer = new ColoredRenderer { colorPropertyName = "_Color", materialID = 0 };
+
+        // REMOVE ME IN V > 2023.0.3
+        [SerializeField]
+        public Renderer selectionRenderer;
+        [SerializeField]
+        public int materialID;
 
         private Coroutine flashCoroutine;
 
@@ -27,11 +34,13 @@ namespace RTSEngine.Selection
         #region Initializing/Terminating
         public void OnEntityPreInit(IGameManager gameMgr, IEntity entity)
         {
+            this.entity = entity;
+
             this.logger = gameMgr.GetService<IGameLoggingService>(); 
 
             this.entitySelection = entity.Selection;
 
-            if (!logger.RequireValid(selectionRenderer,
+            if (!logger.RequireValid(targetRenderer.renderer,
                 $"[{GetType().Name} - {entity.Code}] The 'Selection Renderer' field must be assigned!"))
                 return;
 
@@ -46,8 +55,8 @@ namespace RTSEngine.Selection
             if (IsLocked)
                 return;
 
-            selectionRenderer.materials[materialID].color = color;
-            selectionRenderer.enabled = true;
+            targetRenderer.UpdateColor(color, entity);
+            targetRenderer.renderer.enabled = true;
         }
 
         public void Enable ()
@@ -55,8 +64,8 @@ namespace RTSEngine.Selection
             if (IsLocked)
                 return;
 
-            selectionRenderer.materials[materialID].color = entitySelection.Entity.SelectionColor;
-            selectionRenderer.enabled = true;
+            targetRenderer.UpdateColor(entitySelection.Entity.SelectionColor, entity);
+            targetRenderer.renderer.enabled = true;
         }
 
         public void Disable ()
@@ -64,7 +73,7 @@ namespace RTSEngine.Selection
             if (IsLocked)
                 return;
 
-            selectionRenderer.enabled = false;
+            targetRenderer.renderer.enabled = false;
         }
         #endregion
 
@@ -76,7 +85,7 @@ namespace RTSEngine.Selection
 
             StopFlash();
 
-            selectionRenderer.materials[materialID].color = flashColor;
+            targetRenderer.UpdateColor(flashColor, entity);
             flashCoroutine = StartCoroutine(Flash(totalDuration, cycleDuration));
         }
 
@@ -99,7 +108,7 @@ namespace RTSEngine.Selection
             {
                 yield return new WaitForSeconds(cycleDuration);
 
-                selectionRenderer.enabled = !selectionRenderer.enabled;
+                targetRenderer.renderer.enabled = !targetRenderer.renderer.enabled;
 
                 totalDuration -= cycleDuration;
                 if (totalDuration <= 0.0f)

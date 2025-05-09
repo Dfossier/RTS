@@ -12,9 +12,9 @@ namespace RTSEngine.BuildingExtension
         [SerializeField, Tooltip("How far can the building be from the entity it is supposed to be placed around?")]
         public FloatRange range;
 
-        public ErrorMessage IsValidType (TargetData<IEntity> entity, bool playerCommand)
+        public ErrorMessage IsValidType (SetTargetInputData data)
         {
-            return entityType.Contains(entity.instance.Code, entity.instance.Category) ? ErrorMessage.none : ErrorMessage.invalid;
+            return data.target.instance.IsValid() && entityType.Contains(data.target.instance.Code, data.target.instance.Category) ? ErrorMessage.none : ErrorMessage.invalid;
         }
     }
 }

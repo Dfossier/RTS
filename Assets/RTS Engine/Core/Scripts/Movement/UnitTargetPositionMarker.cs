@@ -53,9 +53,6 @@ namespace RTSEngine.Movement
         }
         #endregion
 
-        public bool IsIn(Vector3 testPosition)
-            => (testPosition - this.Position).sqrMagnitude <= RadiusSqrd;
-
         #region Activating/Deactivating
         /// <summary>
         /// Enables or disables the marker.
@@ -88,5 +85,11 @@ namespace RTSEngine.Movement
             }
         }
         #endregion
+
+        #region Help Functions
+        public bool IsIn(Vector3 testPosition)
+            => (testPosition - this.Position).sqrMagnitude <= RadiusSqrd;
+        #endregion
+
     }
 }

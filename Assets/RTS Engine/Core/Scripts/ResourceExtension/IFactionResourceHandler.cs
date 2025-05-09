@@ -1,4 +1,7 @@
-﻿using RTSEngine.Event;
+﻿using RTSEngine.EntityComponent;
+using RTSEngine.Event;
+using System;
+using System.Collections.Generic;
 
 namespace RTSEngine.ResourceExtension
 {
@@ -12,8 +15,13 @@ namespace RTSEngine.ResourceExtension
         int Capacity { get; }
         int ReservedCapacity { get; }
         int FreeAmount { get; }
+        IReadOnlyList<IResourceCollector> Collectors { get; }
+        IReadOnlyList<IResourceGenerator> Generators { get; }
+        int ProducerCount { get; }
+        int FactionID { get; }
 
         event CustomEventHandler<IFactionResourceHandler, ResourceUpdateEventArgs> FactionResourceAmountUpdated;
+        event CustomEventHandler<IFactionResourceHandler, EventArgs> FactionResourceProducersUpdated;
 
         void UpdateAmount(ResourceTypeValue updateValue, out int restAmount);
         void SetAmount(ResourceTypeValue setValue, out int restAmount);

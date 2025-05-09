@@ -12,6 +12,7 @@ namespace RTSEngine.EntityComponent
         DropOffState State { get; }
         IReadOnlyDictionary<ResourceTypeInfo, int> CollectedResources { get; }
         int CollectedResourcesSum { get; }
+        IUnit Unit { get; }
 
         event CustomEventHandler<IDropOffSource, EventArgs> CollectedResourcesUpdated;
         event CustomEventHandler<IDropOffSource, EventArgs> DropOffStateUpdated;

@@ -29,11 +29,14 @@ namespace RTSEngine.NPC.BuildingExtension
         private List<IBuilding> regulatedBuildingPrefabs;
 
         // Holds building centers and their corresponding active building regulators
+        private List<IBuilding> buildingCenters;
         private Dictionary<IBuilding, NPCBuildingCenterRegulatorData> buildingCenterRegulators;
 
         // Has the first building center of the NPC faction (a building with an IBorder component) been initialized?
         public bool IsFirstBuildingCenterInitialized { private set; get; }
-        public IBuilding FirstBuildingCenter => buildingCenterRegulators.Keys.FirstOrDefault();
+        public IBuilding FirstBuildingCenter => buildingCenters.Count > 0 ? buildingCenters[0] : null;
+
+        private List<BuildingPlaceAroundData> nextPlaceAroundDataSet;
 
         // NPC Components
         protected INPCUnitCreator npcUnitCreator { private set; get; }
@@ -66,15 +69,19 @@ namespace RTSEngine.NPC.BuildingExtension
             this.npcBuildingPlacer = npcMgr.GetNPCComponent<INPCBuildingPlacer>();
 
             regulatedBuildingPrefabs = new List<IBuilding>();
+            buildingCenters = new List<IBuilding>();
             buildingCenterRegulators = new Dictionary<IBuilding, NPCBuildingCenterRegulatorData>();
+            nextPlaceAroundDataSet = new List<BuildingPlaceAroundData>();
 
             IsFirstBuildingCenterInitialized = false;
         }
 
         protected override void OnPostInit()
         {
-            foreach (IBuilding buildingCenter in factionMgr.BuildingCenters)
-                AddBuildingCenterRegulator(buildingCenter);
+            for (int i = 0; i < factionMgr.BuildingCenters.Count; i++)
+            {
+                AddBuildingCenterRegulator(factionMgr.BuildingCenters[i]);
+            }
 
             globalEvent.BorderActivatedGlobal += HandleBorderActivatedGlobal;
             globalEvent.BorderDisabledGlobal += HandleBorderDisabledGlobal;
@@ -99,21 +106,27 @@ namespace RTSEngine.NPC.BuildingExtension
             NPCBuildingCenterRegulatorData newBuildingCenterRegulator = new NPCBuildingCenterRegulatorData
             {
                 buildingCenter = buildingCenter,
-                activeBuildingRegulators = new Dictionary<string, NPCActiveBuildingRegulatorData>()
+                activeBuildingRegulators = new List<NPCActiveBuildingRegulatorData>(),
+                activeBuildingRegulatorsDic = new Dictionary<string, NPCActiveBuildingRegulatorData>()
             };
 
+            buildingCenters.Add(buildingCenter);
             buildingCenterRegulators.Add(buildingCenter, newBuildingCenterRegulator);
 
             LogEvent($"{buildingCenter.Code}: Activated building center regulator. First building center? {!IsFirstBuildingCenterInitialized}");
 
             // Activate the independent building regulators for this new center regulator if it's the first building center
             // Else add all of the buildings that have been used by the NPC faction from the 'regulatedBuildingPrefabs' list.
-            IEnumerable<IBuilding> nextBuildingList = !IsFirstBuildingCenterInitialized
-                ? independentBuildings.Select(obj => obj.IsValid() ? obj.GetComponent<IBuilding>() : null)
-                : regulatedBuildingPrefabs;
-
-            foreach (IBuilding building in nextBuildingList)
-                ActivateBuildingRegulator(building, buildingCenter);
+            if(IsFirstBuildingCenterInitialized)
+            {
+                for (int i = 0; i < regulatedBuildingPrefabs.Count; i++)
+                    ActivateBuildingRegulator(regulatedBuildingPrefabs[i].GetComponent<IBuilding>(), buildingCenter);
+            }
+            else
+            {
+                for (int i = 0; i < independentBuildings.Length; i++)
+                    ActivateBuildingRegulator(independentBuildings[i].GetComponent<IBuilding>(), buildingCenter);
+            }
 
             if (!IsFirstBuildingCenterInitialized)
                 RaiseFirstBuildingCenterInitialized();
@@ -123,9 +136,10 @@ namespace RTSEngine.NPC.BuildingExtension
         {
             if (buildingCenterRegulators.TryGetValue(buildingCenter, out NPCBuildingCenterRegulatorData nextBuildingCenterRegulator))
             {
-                foreach (NPCActiveBuildingRegulatorData nextBuildingRegulator in nextBuildingCenterRegulator.activeBuildingRegulators.Values)
-                    nextBuildingRegulator.instance.Disable();
+                for (int i = 0; i < nextBuildingCenterRegulator.activeBuildingRegulators.Count; i++)
+                    nextBuildingCenterRegulator.activeBuildingRegulators[i].instance.Disable();
 
+                buildingCenters.Remove(buildingCenter);
                 buildingCenterRegulators.Remove(buildingCenter);
 
                 LogEvent($"{buildingCenter.Code}: Destroyed building center regulator.");
@@ -136,8 +150,10 @@ namespace RTSEngine.NPC.BuildingExtension
         #region Handling Building Regulators
         private void ActivateBuildingRegulator(IBuilding buildingPrefab)
         {
-            foreach (IBuilding nextBuildingCenter in buildingCenterRegulators.Keys)
-                ActivateBuildingRegulator(buildingPrefab, nextBuildingCenter);
+            for (int i = 0; i < buildingCenters.Count; i++)
+            {
+                ActivateBuildingRegulator(buildingPrefab, buildingCenters[i]);
+            }
         }
 
         public NPCBuildingRegulator ActivateBuildingRegulator(IBuilding buildingPrefab, IBuilding buildingCenter)
@@ -180,7 +196,8 @@ namespace RTSEngine.NPC.BuildingExtension
 
             newBuildingRegulator.instance.AmountUpdated += HandleBuildingRegulatorAmountUpdated;
 
-            buildingCenterRegulators[buildingCenter].activeBuildingRegulators.Add(buildingPrefab.Code, newBuildingRegulator);
+            buildingCenterRegulators[buildingCenter].activeBuildingRegulators.Add(newBuildingRegulator);
+            buildingCenterRegulators[buildingCenter].activeBuildingRegulatorsDic.Add(buildingPrefab.Code, newBuildingRegulator);
 
             if (!regulatedBuildingPrefabs.Contains(buildingPrefab))
                 regulatedBuildingPrefabs.Add(buildingPrefab);
@@ -195,7 +212,7 @@ namespace RTSEngine.NPC.BuildingExtension
         public NPCBuildingRegulator GetBuildingRegulator(string buildingCode, IBuilding buildingCenter)
         {
             if (buildingCenterRegulators.TryGetValue(buildingCenter, out NPCBuildingCenterRegulatorData nextBuildingCenterRegulator))
-                if (nextBuildingCenterRegulator.activeBuildingRegulators.TryGetValue(buildingCode, out NPCActiveBuildingRegulatorData nextBuildingRegulator))
+                if (nextBuildingCenterRegulator.activeBuildingRegulatorsDic.TryGetValue(buildingCode, out NPCActiveBuildingRegulatorData nextBuildingRegulator))
                     return nextBuildingRegulator.instance;
 
             return null;
@@ -206,24 +223,32 @@ namespace RTSEngine.NPC.BuildingExtension
             // The first creatable building regulator is the one that can be created on demand (if it is a requirement) and whose max amount has not been reached yet.
             // Therefore, we go through all building center regulators and get the first building regulator that satisfies the above two conditions
 
-            foreach (NPCBuildingCenterRegulatorData nextBuildingCenterRegulator in buildingCenterRegulators.Values)
-                if (nextBuildingCenterRegulator.activeBuildingRegulators.TryGetValue(buildingCode, out NPCActiveBuildingRegulatorData nextBuildingRegulator))
+            for (int i = 0; i < buildingCenters.Count; i++)
+            {
+                NPCBuildingCenterRegulatorData nextBuildingCenterRegulator = buildingCenterRegulators[buildingCenters[i]];
+                if (nextBuildingCenterRegulator.activeBuildingRegulatorsDic.TryGetValue(buildingCode, out NPCActiveBuildingRegulatorData nextBuildingRegulator))
                     if ((!creatableOnDemandOnly || nextBuildingRegulator.instance.Data.CanCreateOnDemand) && !nextBuildingRegulator.instance.HasReachedMaxAmount)
                         return nextBuildingRegulator.instance;
+            }
+               
 
             return null;
         }
 
         private void DestroyAllActiveRegulators()
         {
-            foreach (NPCBuildingCenterRegulatorData nextBuildingCenterRegulator in buildingCenterRegulators.Values)
-                foreach (NPCActiveBuildingRegulatorData nextBuildingRegulator in nextBuildingCenterRegulator.activeBuildingRegulators.Values)
+            for (int i = 0; i < buildingCenters.Count; i++)
+            {
+                NPCBuildingCenterRegulatorData nextBuildingCenterRegulator = buildingCenterRegulators[buildingCenters[i]];
+                for (int j = 0; j < nextBuildingCenterRegulator.activeBuildingRegulators.Count; j++)
                 {
-                    nextBuildingRegulator.instance.AmountUpdated -= HandleBuildingRegulatorAmountUpdated;
+                    nextBuildingCenterRegulator.activeBuildingRegulators[j].instance.AmountUpdated -= HandleBuildingRegulatorAmountUpdated;
 
-                    nextBuildingRegulator.instance.Disable();
+                    nextBuildingCenterRegulator.activeBuildingRegulators[j].instance.Disable();
                 }
+            }
 
+            buildingCenters.Clear();
             buildingCenterRegulators.Clear();
 
             LogEvent($"All active building regulators destroyed!");
@@ -233,9 +258,9 @@ namespace RTSEngine.NPC.BuildingExtension
         {
             regulatedBuildingPrefabs.RemoveAll(prefab => prefab.Code == buildingCode);
 
-            foreach (IBuilding nextBuildingCenter in buildingCenterRegulators.Keys)
+            for (int i = 0; i < buildingCenters.Count; i++)
             {
-                NPCBuildingRegulator nextBuildingRegulator = GetBuildingRegulator(buildingCode, nextBuildingCenter);
+                NPCBuildingRegulator nextBuildingRegulator = GetBuildingRegulator(buildingCode, buildingCenters[i]);
                 if (nextBuildingRegulator.IsValid())
                 {
                     nextBuildingRegulator.AmountUpdated -= HandleBuildingRegulatorAmountUpdated;
@@ -243,7 +268,8 @@ namespace RTSEngine.NPC.BuildingExtension
                     nextBuildingRegulator.Disable();
                 }
 
-                buildingCenterRegulators[nextBuildingCenter].activeBuildingRegulators.Remove(buildingCode);
+                buildingCenterRegulators[buildingCenters[i]].activeBuildingRegulators.Remove(buildingCenterRegulators[buildingCenters[i]].activeBuildingRegulatorsDic[buildingCode]);
+                buildingCenterRegulators[buildingCenters[i]].activeBuildingRegulatorsDic.Remove(buildingCode);
 
                 LogEvent($"{buildingCode}: Building regulator destroyed!");
             }
@@ -294,11 +320,14 @@ namespace RTSEngine.NPC.BuildingExtension
             // Assume that the building creator has finished its job with the current active building regulators.
             IsActive = false;
 
-            foreach (NPCBuildingCenterRegulatorData nextBuildingCenterRegulator in buildingCenterRegulators.Values.ToArray())
-                foreach (NPCActiveBuildingRegulatorData nextBuildingRegulator in nextBuildingCenterRegulator.activeBuildingRegulators.Values.ToArray())
+            for (int i = 0; i < buildingCenters.Count; i++)
+            {
+                NPCBuildingCenterRegulatorData nextBuildingCenterRegulator = buildingCenterRegulators[buildingCenters[i]];
+                for (int j = 0; j < buildingCenterRegulators[buildingCenters[i]].activeBuildingRegulators.Count; j++)
                 {
+                    NPCActiveBuildingRegulatorData nextBuildingRegulator = buildingCenterRegulators[buildingCenters[i]].activeBuildingRegulators[j];
                     // Buildings are only automatically created if they haven't reached their min amount and still haven't reached their max amount
-                    if (nextBuildingRegulator.instance.Data.CanAutoCreate 
+                    if (nextBuildingRegulator.instance.Data.CanAutoCreate
                         && !nextBuildingRegulator.instance.HasTargetCount)
                     {
                         // To keep this component monitoring the creation of the next buildings
@@ -312,6 +341,7 @@ namespace RTSEngine.NPC.BuildingExtension
                         }
                     }
                 }
+            }
         }
 
         public bool OnCreateBuildingRequest(string buildingCode, IBuilding buildingCenter = null)
@@ -340,9 +370,10 @@ namespace RTSEngine.NPC.BuildingExtension
                 return false;
             }
 
-            if (!npcBuildingConstructor.BuilderPlacableBuildingMapper.TryGetValue(instance.Prefab.Code, out string[] builderCodes))
+            IReadOnlyList<string> buildingCreatorCodes = npcBuildingConstructor.GetBuildingCreatorCodes(instance.Prefab.Code);
+            if (!buildingCreatorCodes.IsValid())
             {
-                LogEvent($"{instance.Prefab.Code}: Can not find valid builder types for the building prefab to start placing it!");
+                LogEvent($"{instance.Prefab.Code}: Can not find valid building creator types for the building prefab to start placing it!");
                 return false;
             }
             else if (!RTSHelper.TestFactionEntityRequirements(instance.Data.FactionEntityRequirements, factionMgr))
@@ -353,20 +384,36 @@ namespace RTSEngine.NPC.BuildingExtension
 
             // Try to get a valid building creation task from the builder units to create the provided building type
             BuildingCreationTask nextBuildingCreationTask = null;
-            foreach (string nextBuilderCode in builderCodes)
+            for (int i = 0; i < buildingCreatorCodes.Count; i++)
             {
-                NPCUnitRegulator nextBuilderRegulator;
-                if ((nextBuilderRegulator = npcUnitCreator.GetActiveUnitRegulator(nextBuilderCode)).IsValid())
-                {
-                    IBuilder nextBuilder = nextBuilderRegulator.Instances.FirstOrDefault(unitInstance => unitInstance.BuilderComponent.IsValid())?.BuilderComponent;
+                if (nextBuildingCreationTask.IsValid())
+                    break;
 
-                    if (nextBuilder.IsValid())
-                        foreach (BuildingCreationTask task in nextBuilder.CreationTasks)
-                            if (task.Prefab.Code == instance.Prefab.Code)
-                            {
-                                nextBuildingCreationTask = task;
-                                break;
-                            }
+                var nextBuildingCreatorList = factionMgr.GetFactionEntitiesListByCode(buildingCreatorCodes[i]);
+                if (nextBuildingCreatorList.Count == 0)
+                    continue;
+
+                IBuildingCreator nextBuildingCreator = null;
+                int j = 0;
+                while(j < nextBuildingCreatorList.Count)
+                {
+                    if (nextBuildingCreatorList[j].BuildingCreator.IsValid())
+                    {
+                        nextBuildingCreator = nextBuildingCreatorList[j].BuildingCreator;
+                        break;
+                    }
+                }
+
+                if (nextBuildingCreator.IsValid())
+                {
+                    for (int t = 0; t < nextBuildingCreator.CreationTasks.Count; t++)
+                    {
+                        if (nextBuildingCreator.CreationTasks[t].TargetObject.Code == instance.Prefab.Code)
+                        {
+                            nextBuildingCreationTask = nextBuildingCreator.CreationTasks[t];
+                            break;
+                        }
+                    }
                 }
             }
 
@@ -392,21 +439,22 @@ namespace RTSEngine.NPC.BuildingExtension
             }
 
             // Either take the pre defined place around data or if none exists (and we have made sure that force place around is not set), we define the place around data around the building center
-            IReadOnlyList<BuildingPlaceAroundData> nextPlaceAroundDataSet = instance.Data.AllPlaceAroundData
-                .Concat(instance.Data.ForcePlaceAround
-                    ? Enumerable.Empty<BuildingPlaceAroundData>()
-                    : Enumerable.Repeat(new BuildingPlaceAroundData
-                    {
-                        entityType = new CodeCategoryField { codes = new string[] { buildingCenter.Code } },
-                        range = new FloatRange(0.0f, buildingCenter.BorderComponent.Size)
-                    }, 1))
-                .ToArray();
+            nextPlaceAroundDataSet.Clear();
+            nextPlaceAroundDataSet.AddRange(instance.Data.AllPlaceAroundData);
+            if(instance.Data.ForcePlaceAround)
+            {
+                nextPlaceAroundDataSet.Add(new BuildingPlaceAroundData
+                {
+                    entityType = new CodeCategoryField { codes = new string[] { buildingCenter.Code } },
+                    range = new FloatRange(0.0f, buildingCenter.BorderComponent.Size)
+                });
+            }
 
             LogEvent($"{instance.Prefab.Code}: Sending building placement request");
             npcBuildingPlacer.OnBuildingPlacementRequest(
                 nextBuildingCreationTask,
                 buildingCenter,
-                nextPlaceAroundDataSet,
+                nextPlaceAroundDataSet.AsReadOnly(),
                 instance.Data.CanRotate);
 
             return true;
@@ -431,11 +479,11 @@ namespace RTSEngine.NPC.BuildingExtension
                 { 
                     center = centerRegulator.buildingCenter.gameObject,
 
-                    buildings = centerRegulator.activeBuildingRegulators.Values
+                    buildings = centerRegulator.activeBuildingRegulators
                     .Select(regulator => new NPCActiveFactionEntityRegulatorLogData(
                         regulator.instance,
                         spawnTimer: regulator.spawnTimer.CurrValue,
-                        creators: npcBuildingConstructor.BuilderPlacableBuildingMapper.ContainsKey(regulator.instance.Prefab.Code) ? npcBuildingConstructor.BuilderPlacableBuildingMapper[regulator.instance.Prefab.Code].ToArray() : new string[0]))
+                        creators: npcBuildingConstructor.GetBuildingCreatorCodes(regulator.instance.Prefab.Code)?.ToArray()))
                     .ToArray()
                 })
                 .ToList();

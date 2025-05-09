@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using UnityEngine;
 
@@ -20,10 +19,12 @@ namespace RTSEngine.EntityComponent
 
         [SerializeField, Tooltip("Defines the unit's stopping distance and movement formation when engaging in an attack.")]
         private AttackFormationSelector formation = new AttackFormationSelector();
-        public override AttackFormationSelector Formation => formation;
+        public override IAttackDistanceHandler AttackDistanceHandler => formation;
 
-        [SerializeField, Tooltip("Enable to allow the unit to engage its target while moving.")]
+        [SerializeField, Tooltip("Enable to allow the unit to engage its target while moving. When enabled and the attacker unit is moving towards a destination, it can only find a target automatically when its 'Target Finder Data' has 'Idle Only' disabled. Also make sure to have 'Stop Movement On Target In Range' to disabled in the 'Formation' field. And since movement would affect the unit's rotation, make sure that the LOS settings allow for attack while moving (or use a dedicated weapon object for LOS calculations).")]
         private bool moveOnAttack = false;
+        public override bool StopMovementOnProgressEnabled => !moveOnAttack;
+
         [SerializeField, Tooltip("If the target leaves the attack range then this represents how far is the attacker willing to follow their target before giving up on them.")]
         private float followDistance = 15.0f;
         // Holds the distance between the target and the attacker when the attacker first enters in range of the target.
@@ -71,11 +72,14 @@ namespace RTSEngine.EntityComponent
 
             if (IsAttackMoveActive)
                 mvtMgr.SetPathDestination(
-                    unit,
-                    lastAttackMoveTarget.position,
-                    0.0f,
-                    lastAttackMoveTarget.instance,
-                    lastAttackMoveSource);
+                    new SetPathDestinationData<IEntity>
+                    {
+                        source = unit,
+                        destination = lastAttackMoveTarget.position,
+                        offsetRadius = 0.0f,
+                        target = lastAttackMoveTarget.instance,
+                        mvtSource = lastAttackMoveSource
+                    });
         }
         #endregion
 
@@ -119,7 +123,7 @@ namespace RTSEngine.EntityComponent
             lastAttackMoveTarget = unit.MovementComponent.Target;
 
             // Disable idle only target search so that the attack unit can move and search for potential attack targets.
-            TargetFinder.IdleOnly = false;
+            targetFinder.IdleOnly = false;
 
             IsAttackMoveActive = true;
         }
@@ -127,7 +131,7 @@ namespace RTSEngine.EntityComponent
         private void HandleMovementStop(IMovementComponent sender, EventArgs args)
         {
             if (!IsAttackMoveActive
-                || !unit.MovementComponent.IsPositionReached(lastAttackMoveTarget.position))
+                || !mvtMgr.IsPositionReached(unit.transform.position, lastAttackMoveTarget.position))
                 return;
 
             // When the unit is stopping movement command that is the initiator of an attack-move chain (by checking if the initiator attack-move command's destination is reached)
@@ -137,7 +141,7 @@ namespace RTSEngine.EntityComponent
 
         private void DisableAttackMove()
         {
-            TargetFinder.IdleOnly = TargetFinderData.idleOnly;
+            targetFinder.IdleOnly = TargetFinderData.idleOnly;
             IsAttackMoveActive = false;
         }
         #endregion
@@ -153,7 +157,7 @@ namespace RTSEngine.EntityComponent
             {
                 // Target has already entered the attacking range but it is no longer there or it is blocked by an obstacle.
                 if (IsInTargetRange
-                    && (!IsTargetInRange(transform.position, Target)))
+                    && (!IsTargetInRange(unit.transform.position, Target)))
                     return true;
             }
             //attacker unit is movable
@@ -161,11 +165,11 @@ namespace RTSEngine.EntityComponent
             {
                 //attacker has a unit as a target (movable target) and it is currently moving.
                 if (Target.instance.IsValid()
-                    && Target.instance.CanMove())
+                    && Target.instance.CanMove() && Target.instance.MovementComponent.HasTarget)
                 {
                     //the target leaves the allowed follow distance of the attacker after the target being once in the attack range.
                     if(IsInTargetRange
-                        && Vector3.Distance(transform.position, RTSHelper.GetAttackTargetPosition(Target)) > Mathf.Max(followDistance, initialEngagementDistance))
+                        && Vector3.Distance(unit.transform.position, RTSHelper.GetAttackTargetPosition(this, Target)) > Mathf.Max(followDistance, initialEngagementDistance))
                     {
                         //stop attack as the attacker can not follow its target anymore.
                         return true;
@@ -174,9 +178,9 @@ namespace RTSEngine.EntityComponent
                     // Either attacker is not moving and it is not inside the attack range.
                     // Or target is now blocked by an obstacle
                     // Or Target might have moved but it is still inside the attacking range but it might have moved enough to trigger a re-calculation for the attack position
-                    if( (!unit.MovementComponent.HasTarget && !IsTargetInRange(transform.position, Target))
+                    if( (!unit.MovementComponent.HasTarget && !IsTargetInRange(unit.transform.position, Target))
                         || LineOfSight.IsInSight(Target) != ErrorMessage.none 
-                        || formation.MustUpdateAttackPosition(Target.opPosition, RTSHelper.GetAttackTargetPosition(Target), unit.MovementComponent.Destination, Target.instance))
+                        || formation.MustUpdateAttackPosition(Target.opPosition, RTSHelper.GetAttackTargetPosition(this, Target), unit.MovementComponent.Destination, Target.instance))
                     {
                         TargetData<IFactionEntity> lastTarget = new TargetData<IFactionEntity> { instance = Target.instance, position = Target.instance.transform.position };
 
@@ -184,7 +188,7 @@ namespace RTSEngine.EntityComponent
 
                         return false;
                     }
-                    else if(LineOfSight.IsAngleBlocked(transform.position, transform.rotation, Target.instance.transform.position))
+                    else if(LineOfSight.IsAngleBlocked(unit.transform.position, transform.rotation, Target.instance.transform.position))
                     {
                         unit.MovementComponent.UpdateRotationTarget(Target.instance, Target.instance.transform.position);
 
@@ -200,9 +204,17 @@ namespace RTSEngine.EntityComponent
         {
             if(base.CanEnableProgress())
             {
-                bool isTargetInRange = IsTargetInRange(transform.position, Target, onProgressEnableTest: unit.MovementComponent.HasTarget);
+                bool isTargetInRange = IsTargetInRange(unit.transform.position, Target, onProgressEnableTest: unit.MovementComponent.HasTarget);
                 if (isTargetInRange && formation.StopMovementOnTargetInRange && unit.MovementComponent.HasTarget)
-                    unit.MovementComponent.Stop();
+                {
+                    if(gridSearch.IsPositionReserved(unit.transform.position, unit.MovementComponent.Controller.Radius, unit.MovementComponent.AreasMask, false, ignoreMarker: unit.MovementComponent.TargetPositionMarker) == ErrorMessage.none)
+                        unit.MovementComponent.Stop();
+                }
+
+                if(!isTargetInRange && !unit.MovementComponent.HasTarget && unit.CanMove())
+                {
+                    SetTarget(Target, playerCommand: false);
+                }
 
                 return isTargetInRange && (moveOnAttack || !unit.MovementComponent.HasTarget);
             }
@@ -214,7 +226,7 @@ namespace RTSEngine.EntityComponent
         {
             base.OnEnterTargetRange();
 
-            initialEngagementDistance = Vector3.Distance(transform.position, RTSHelper.GetAttackTargetPosition(Target));
+            initialEngagementDistance = Vector3.Distance(unit.transform.position, RTSHelper.GetAttackTargetPosition(this, Target));
         }
 
         protected override void OnInProgressEnabled()
@@ -254,11 +266,30 @@ namespace RTSEngine.EntityComponent
         public bool IsTargetInRange (Vector3 attackPosition, TargetData<IEntity> target, bool onProgressEnableTest = false)
         {
             return formation.IsTargetInRange(attackPosition, target, onProgressEnableTest)
-                && !LineOfSight.IsObstacleBlocked(attackPosition, RTSHelper.GetAttackTargetPosition(target));
+                && !LineOfSight.IsObstacleBlocked(attackPosition, RTSHelper.GetAttackTargetPosition(this, target));
         }
         public override bool IsTargetInRange (Vector3 attackPosition, TargetData<IEntity> target)
         {
             return IsTargetInRange(attackPosition, target, onProgressEnableTest: false);
+        }
+
+        public override ErrorMessage IsTargetValidOnSearch(SetTargetInputData data)
+        {
+            ErrorMessage errorMsg = IsTargetValid(data);
+            if (errorMsg != ErrorMessage.none)
+                return errorMsg;
+
+            if(attackMgr.TryGetAttackPosition(
+                factionEntity,
+                this,
+                data.target.instance as IFactionEntity,
+                data.target.position,
+                data.playerCommand,
+                out Vector3 attackPosition) 
+                && formation.IsTargetInRange(attackPosition, data.target))
+                return ErrorMessage.none;
+
+            return ErrorMessage.invalid;
         }
         #endregion
 
@@ -271,7 +302,7 @@ namespace RTSEngine.EntityComponent
             // Error message on attack position out of range
 
             // Unit can already attack from its position, inform AttackManager about it (which might have called this method).
-            if (IsTargetInRange(transform.position, input.target))
+            if (IsTargetInRange(unit.transform.position, input.target))
                 errorMessage = ErrorMessage.attackAlreadyInPosition;
             else if (!IsTargetInRange(input.target.position, input.target)) //check if the attack position is outside the unit's attacking range.
             {
@@ -309,19 +340,23 @@ namespace RTSEngine.EntityComponent
             if (unit.MovementComponent.IsActive && errorMessage != ErrorMessage.attackAlreadyInPosition) //only if the current unit's position is not valid for the attack
             {
                 updateRotation = false;
-                //move towards attack position and supply attack-move mode
-                unit.MovementComponent.OnPathDestination(
-                    input.target,
-                    new MovementSource
-                    {
-                        sourceTargetComponent = this,
-                        playerCommand = input.playerCommand,
-                        isMoveAttackRequest = input.isMoveAttackRequest,
-                        inMoveAttackChain = IsAttackMoveActive
-                    }
-                );
+
+                if (!moveOnAttack || !unit.MovementComponent.HasTarget)
+                {
+                    //move towards attack position and supply attack-move mode
+                    unit.MovementComponent.OnPathDestination(
+                        input.target,
+                        new MovementSource
+                        {
+                            sourceTargetComponent = this,
+                            playerCommand = input.playerCommand,
+                            isMoveAttackRequest = input.isMoveAttackRequest,
+                            inMoveAttackChain = IsAttackMoveActive
+                        }
+                    );
+                }
             }
-            else 
+            else if(!moveOnAttack)
             {
                 // current unit position is valid for attack, do not move but stop unit from moving in case it was. 
                 // stop unit from moving in case they were already moving.
@@ -348,29 +383,25 @@ namespace RTSEngine.EntityComponent
         #endregion
 
         #region Task UI
-        public override bool OnTaskUIRequest(out IEnumerable<EntityComponentTaskUIAttributes> taskUIAttributes, out IEnumerable<string> disabledTaskCodes)
+        protected override bool OnTaskUICacheUpdate(List<EntityComponentTaskUIAttributes> taskUIAttributesCache, List<string> disabledTaskCodesCache)
         {
-            if (base.OnTaskUIRequest(out taskUIAttributes, out disabledTaskCodes))
+            if (!base.OnTaskUICacheUpdate(taskUIAttributesCache, disabledTaskCodesCache))
+                return false;
+
+            if (IsAttackMoveEnabled && attackMoveTaskUI.IsValid())
             {
-                if (IsAttackMoveEnabled && attackMoveTaskUI.IsValid())
-                {
-                    if (!IsLocked && IsActive)
-                        taskUIAttributes = taskUIAttributes
-                            .Append(new EntityComponentTaskUIAttributes
-                            {
-                                data = attackMoveTaskUI.Data,
+                if (!IsLocked && IsActive)
+                    taskUIAttributesCache.Add(new EntityComponentTaskUIAttributes
+                        {
+                            data = attackMoveTaskUI.Data,
 
-                                locked = IsCooldownActive
-                            });
-                    else
-                        disabledTaskCodes = disabledTaskCodes
-                            .Append(attackMoveTaskUI.Key);
-                }
-
-                return true;
+                            locked = IsCooldownActive
+                        });
+                else
+                    disabledTaskCodesCache.Add(attackMoveTaskUI.Key);
             }
 
-            return false;
+            return true;
         }
 
         public override bool OnTaskUIClick(EntityComponentTaskUIAttributes taskAttributes)
@@ -411,6 +442,5 @@ namespace RTSEngine.EntityComponent
             return false;
         }
         #endregion
-
     }
 }

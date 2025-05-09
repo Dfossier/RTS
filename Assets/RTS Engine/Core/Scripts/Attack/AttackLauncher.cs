@@ -4,6 +4,7 @@ using System;
 using UnityEngine;
 
 using RTSEngine.Event;
+using UnityEngine.Events;
 
 namespace RTSEngine.Attack
 {
@@ -21,18 +22,24 @@ namespace RTSEngine.Attack
         private AttackObjectSource[] sources = new AttackObjectSource[0];
         public IReadOnlyList<AttackObjectSource> Sources => sources;
 
+        private int lastCompletedLaunchLogIndex;
         // Used to log the launched coroutines and created attack objects so that they can be disabled in case the attack launch is interrupted.
         private List<AttackObjectLaunchLog> launchLog;
         public IEnumerable<AttackObjectLaunchLog> LaunchLog => launchLog;
 
         // Called when the attack launch is complete to notify the main attack component
         private Action launchCompleteCallback;
+
+        [SerializeField, Tooltip("Triggered when an iteration of the attack sequence is launched.")]
+        private UnityEvent attackIterationLaunchEvent = null;
         #endregion
 
         #region Events
         public event CustomEventHandler<AttackLauncher, AttackLaunchEventArgs> AttackLaunched;
         private void RaiseAttackLaunched(AttackLaunchEventArgs args)
         {
+            attackIterationLaunchEvent.Invoke();
+
             var handler = AttackLaunched;
             handler?.Invoke(this, args);
         }
@@ -57,10 +64,12 @@ namespace RTSEngine.Attack
             // Direct attack? apply damage to target and complete attack.
             if (!useAttackObjects)
             {
-                SourceAttackComp.Damage.Trigger(SourceAttackComp.Target.instance, RTSHelper.GetAttackTargetPosition(SourceAttackComp.Target));
+                SourceAttackComp.Damage.Trigger(SourceAttackComp.Target.instance, RTSHelper.GetAttackTargetPosition(SourceAttackComp, SourceAttackComp.Target));
                 Complete();
                 return;
             }
+
+            lastCompletedLaunchLogIndex = -1;
 
             // Pre-assigned launch log
             if (nextLaunchLogInput != null && nextLaunchLogInput.Count > 0)
@@ -101,6 +110,8 @@ namespace RTSEngine.Attack
 
             for (int launchID = 0; launchID < launchLog.Count; launchID++)
             {
+                if (launchID <= lastCompletedLaunchLogIndex)
+                    continue;
                 AttackObjectLaunchLog nextLaunch = launchLog[launchID];
 
                 if (nextLaunch.preDelayTimer.CurrValue >= 0.0f)
@@ -124,7 +135,11 @@ namespace RTSEngine.Attack
                             // Already launched the last attack object in the sources? stop here
                             // If not, move to the next one by creating a new coroutine for it.
                             if (nextLaunch.sourceIndex < sources.Length - 1)
+                            {
                                 launchLog.Add(new AttackObjectLaunchLog(sources, sourceIndex: nextLaunch.sourceIndex + 1, isLastLaunch: false));
+                                // mark as complete as soon as it the current launch adds the next launch
+                                lastCompletedLaunchLogIndex = launchID;
+                            }
                             break;
 
                         default:

@@ -11,7 +11,7 @@ namespace RTSEngine.UI
         public HoverHealthBarData data { get; }
 
         public HoverHealthBarSpawnInput(IEntity entity, HoverHealthBarData data)
-            : base(entity.transform, true, data.offset, Quaternion.identity)
+            : base(data.parent.IsValid() ? data.parent : entity.transform, true, data.offset, Quaternion.identity)
         {
             this.entity = entity;
             this.data = data;

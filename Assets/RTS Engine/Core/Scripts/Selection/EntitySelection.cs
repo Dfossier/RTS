@@ -11,17 +11,31 @@ using RTSEngine.Logging;
 using RTSEngine.UI;
 using RTSEngine.Selection;
 using RTSEngine.EntityComponent;
+using RTSEngine.Attack;
+using System.Collections.Generic;
 
 namespace RTSEngine.Event
 {
+    public class EntityDeselectionEventArgs : EventArgs
+    {
+        public DeselectedType DeselectedType { private set; get; }
+
+        public EntityDeselectionEventArgs(DeselectedType deselectedType)
+        {
+            this.DeselectedType = deselectedType;
+        }
+    }
+
     public class EntitySelectionEventArgs : EventArgs
     {
         public SelectionType Type { private set; get; }
+        public SelectedType SelectedType { private set; get; }
         public bool IsLocalPlayerClickSelection { private set; get; }
 
-        public EntitySelectionEventArgs(SelectionType type, bool isLocalPlayerClickSelection)
+        public EntitySelectionEventArgs(SelectionType type, SelectedType selectedType, bool isLocalPlayerClickSelection)
         {
             this.Type = type;
+            this.SelectedType = selectedType;
             this.IsLocalPlayerClickSelection = isLocalPlayerClickSelection;
         }
     }
@@ -62,12 +76,13 @@ namespace RTSEngine.Selection
         protected ISelectionManager selectionMgr { private set; get; }
         protected IGameAudioManager audioMgr { private set; get; }
         protected IGameLoggingService logger { private set; get; }
-        protected IGlobalEventPublisher globalEvent { private set; get; } 
+        protected IGlobalEventPublisher globalEvent { private set; get; }
+        protected IAttackManager attackMgr { private set; get; } 
         #endregion
 
         #region Raising Events
         public event CustomEventHandler<IEntity, EntitySelectionEventArgs> Selected;
-        public event CustomEventHandler<IEntity, EventArgs> Deselected;
+        public event CustomEventHandler<IEntity, EntityDeselectionEventArgs> Deselected;
 
         private void RaiseSelected (EntitySelectionEventArgs args)
         {
@@ -76,10 +91,10 @@ namespace RTSEngine.Selection
 
             globalEvent.RaiseEntitySelectedGlobal(Entity, args);
         }
-        private void RaiseDeselected ()
+        private void RaiseDeselected (EntityDeselectionEventArgs args)
         {
             var handler = Deselected;
-            handler?.Invoke(Entity, EventArgs.Empty);
+            handler?.Invoke(Entity, args);
 
             globalEvent.RaiseEntityDeselectedGlobal(Entity);
         }
@@ -91,7 +106,8 @@ namespace RTSEngine.Selection
             this.selectionMgr = gameMgr.GetService<ISelectionManager>();
             this.audioMgr = gameMgr.GetService<IGameAudioManager>();
             this.logger = gameMgr.GetService<IGameLoggingService>();
-            this.globalEvent = gameMgr.GetService<IGlobalEventPublisher>(); 
+            this.globalEvent = gameMgr.GetService<IGlobalEventPublisher>();
+            this.attackMgr = gameMgr.GetService<IAttackManager>(); 
 
             this.Entity = entity;
 
@@ -136,34 +152,54 @@ namespace RTSEngine.Selection
         #region Selection State Update
         public void OnSelected(EntitySelectionEventArgs args)
         {
-            audioMgr.PlaySFX(selectionAudio.Fetch(), false);
+            audioMgr.PlaySFX(selectionAudio.Fetch(), Entity, loop:false);
             Entity.SelectionMarker?.Enable();
 
             IsSelected = true;
             RaiseSelected(args);
         }
 
-        public void OnDeselected ()
+        public void OnDeselected (EntityDeselectionEventArgs args)
         {
             Entity.SelectionMarker?.Disable();
 
             IsSelected = false;
 
-            RaiseDeselected();
+            RaiseDeselected(args);
         }
         #endregion
 
         #region Launching Awaited Tasks
         public void OnAwaitingTaskAction(EntityComponentTaskUIAttributes taskData)
         {
-            foreach (var sourceComponent in taskData.sourceTracker.EntityTargetComponents)
-                sourceComponent.OnAwaitingTaskTargetSet(taskData, Entity.ToTargetData());
+            var entityTargetComps = taskData.sourceTracker.EntityTargetComponents;
+            if (entityTargetComps[0] is IMovementComponent
+                || entityTargetComps[0] is IAttackComponent)
+            {
+                taskData.sourceTracker.Entities
+                    .SetTargetFirstMany(new SetTargetInputData
+                    {
+                        target = Entity.ToTargetData(),
+                        playerCommand = true,
+                        includeMovement = entityTargetComps[0] is IMovementComponent
+                    });
+            }
+            else
+            {
+                foreach (var sourceComponent in entityTargetComps)
+                    sourceComponent.OnAwaitingTaskTargetSet(taskData, Entity.ToTargetData());
+            }
+
         }
         #endregion
 
         #region Launching Direct Action (Right Mouse Click)
         public void OnDirectAction()
         {
+            // Only when the selection is active is the player allowed to launch a direct action on it
+            if (!IsActive)
+                return;
+
             RTSHelper.SetTargetFirstMany(
                 selectionMgr.GetEntitiesList(EntityType.all, exclusiveType: false, localPlayerFaction: true),
                 new SetTargetInputData

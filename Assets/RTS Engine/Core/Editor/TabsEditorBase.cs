@@ -5,17 +5,9 @@ using RTSEngine.Utilities;
 
 namespace RTSEngine.EditorOnly
 {
-    public abstract class TabsEditorBase<T> : Editor where T : MonoBehaviour
+    public abstract class TabsEditorBase<T> : EditorBase<T> where T : MonoBehaviour
     {
-        protected SerializedObject SO { private set; get; }
-        protected T comp { private set; get; }
         protected abstract Int2D tabID { get; set; }
-
-        public void OnEnable()
-        {
-            comp = (T)target;
-            SO = new SerializedObject(comp);
-        }
 
         public virtual void OnInspectorGUI(string[][] toolbars)
         {

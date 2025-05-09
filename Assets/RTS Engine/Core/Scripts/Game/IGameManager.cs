@@ -19,7 +19,7 @@ namespace RTSEngine.Game
         TimeModifiedTimer PeaceTimer { get; }
         bool InPeaceTime { get; }
 
-        IEnumerable<IFactionSlot> FactionSlots { get; }
+        IReadOnlyList<IFactionSlot> FactionSlots { get; }
         IFactionSlot GetFactionSlot(int ID);
         int FactionCount { get; }
         int ActiveFactionCount { get; }
@@ -28,6 +28,7 @@ namespace RTSEngine.Game
         int LocalFactionSlotID { get; }
         bool ClearDefaultEntities { get; }
         string GameCode { get; }
+        IReadOnlyList<IFactionSlot> ActiveFactionSlots { get; }
 
         event CustomEventHandler<IGameManager, EventArgs> GameServicesInitialized;
         event CustomEventHandler<IGameManager, EventArgs> GameBuilt;

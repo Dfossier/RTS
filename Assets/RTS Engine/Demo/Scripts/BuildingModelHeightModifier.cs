@@ -75,7 +75,7 @@ namespace RTSEngine.Demo
                 return;
 
             deathTimer = destroyDelay;
-            destructionModifier.initialHeight = Model.LocalPosition.y;
+            destructionModifier.initialHeight = Model.localPosition.y;
             Activate(destructionModifier, UpdateTargetDestructionHeight);
 
             building.Health.EntityDead -= HandleEntityDead;

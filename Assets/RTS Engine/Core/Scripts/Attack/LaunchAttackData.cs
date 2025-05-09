@@ -2,6 +2,7 @@
 using UnityEngine;
 
 using RTSEngine.Entities;
+using RTSEngine.EntityComponent;
 
 namespace RTSEngine.Attack
 {
@@ -37,6 +38,42 @@ namespace RTSEngine.Attack
                 nextMask |= LaunchAttackBooleans.ignoreLOS;
 
             return nextMask;
+        }
+
+        public SetTargetInputData ToSetTargetInputData(TargetData<IFactionEntity> target)
+        {
+            return new SetTargetInputData
+            {
+                target = target,
+                playerCommand = playerCommand,
+
+                includeMovement = false,
+                isMoveAttackRequest = isMoveAttackRequest,
+
+                fromTasksQueue = false,
+                fromRallypoint = false,
+
+                ignoreLOS = ignoreLOS,
+                allowTerrainAttack = allowTerrainAttack
+            };
+        }
+
+        public SetTargetInputData ToSetTargetInputData()
+        {
+            return new SetTargetInputData
+            {
+                target = targetEntity.ToTargetData(),
+                playerCommand = playerCommand,
+
+                includeMovement = false,
+                isMoveAttackRequest = isMoveAttackRequest,
+
+                fromTasksQueue = false,
+                fromRallypoint = false,
+
+                ignoreLOS = ignoreLOS,
+                allowTerrainAttack = allowTerrainAttack
+            };
         }
     }
 

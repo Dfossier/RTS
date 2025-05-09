@@ -7,6 +7,7 @@ using RTSEngine.BuildingExtension;
 using RTSEngine.Event;
 using RTSEngine.Game;
 using RTSEngine.Health;
+using RTSEngine.Selection;
 
 namespace RTSEngine.Entities
 {
@@ -22,6 +23,7 @@ namespace RTSEngine.Entities
         public override bool IsDummy => IsPlacementInstance;
 
         public bool IsBuilt { private set; get; }
+        private bool isPlaced;
         public sealed override bool CanLaunchTask => base.CanLaunchTask && IsBuilt;
 
         // value is overriden by the init parameters
@@ -50,6 +52,7 @@ namespace RTSEngine.Entities
         {
             this.placedData = initParams.placedData;
             IsBuilt = false;
+            isPlaced = false;
             canGiveInitResources = initParams.giveInitResources;
 
             base.Init(gameMgr, initParams);
@@ -133,6 +136,9 @@ namespace RTSEngine.Entities
         #region Updating Building State: Placed, ConstructionComplete
         private void Place(bool completeConstruction, bool playerCommand)
         {
+            if (isPlaced)
+                return;
+
             // Hide the selection marker since it was used to display whether the building can be placed or not.
             SelectionMarker?.Disable(); 
 
@@ -140,6 +146,8 @@ namespace RTSEngine.Entities
             PlacerComponent.InitPlaced(placedData);
 
             globalEvent.RaiseBuildingPlacedGlobal(this);
+
+            isPlaced = true;
 
             if (completeConstruction)
                 CompleteConstruction();
@@ -159,7 +167,7 @@ namespace RTSEngine.Entities
                 if (missingWorkers <= 0)
                     break;
                 if (unit.BuilderComponent.IsValid()
-                     && unit.BuilderComponent.IsTargetValid(this.ToTargetData(), playerCommand: false) == ErrorMessage.none)
+                     && unit.BuilderComponent.IsTargetValid(this.ToSetTargetInputData(playerCommand :false)) == ErrorMessage.none)
                 {
                     if(unit.TasksQueue.IsValid() && taskMgr.IsTaskQueueEnabled)
                     {
@@ -195,7 +203,15 @@ namespace RTSEngine.Entities
                 return;
             }
 
+            bool wasSelectedOnly = selectionMgr.IsSelectedOnly(this);
+            if (wasSelectedOnly)
+                selectionMgr.Remove(this);
+
             IsBuilt = true;
+
+            // To reload the single selection UI handlers post construction that listen to selection events
+            if (wasSelectedOnly)
+                selectionMgr.Add(this, SelectionType.single, isLocalPlayerClickSelection: false);
 
             if (IsFree)
             {
@@ -224,5 +240,19 @@ namespace RTSEngine.Entities
 
         protected virtual void OnConstructionComplete() { }
         #endregion
+        protected override void OnFactionUpdated () 
+        {
+            if (!BorderComponent.IsValid())
+                return;
+
+            BorderComponent.Disable();
+
+            if (!IsFree)
+            {
+                BorderComponent.Init(gameMgr, this);
+                CurrentCenter = BorderComponent;
+            }
+        }
+
     }
 }

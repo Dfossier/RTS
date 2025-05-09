@@ -29,6 +29,7 @@ namespace RTSEngine.EditorOnly.NPC.BuildingExtension
         protected virtual void OnAttributesInspectorGUI()
         {
             EditorGUILayout.PropertyField(SO.FindProperty("builders"), true);
+            EditorGUILayout.PropertyField(SO.FindProperty("buildingCreators"), true);
 
             EditorGUILayout.Space();
 

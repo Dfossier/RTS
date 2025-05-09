@@ -1,6 +1,7 @@
 ﻿using RTSEngine.BuildingExtension;
 using RTSEngine.Determinism;
 using RTSEngine.EntityComponent;
+using RTSEngine.UnitExtension;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -108,6 +109,9 @@ namespace RTSEngine.Entities
         public bool useGotoPosition;
         public Vector3 gotoPosition;
 
+        public bool isSquad;
+        public int squadCount;
+
         public InitUnitParametersInput ToInput()
         {
             return new InitUnitParametersInput
@@ -130,6 +134,9 @@ namespace RTSEngine.Entities
                 useGotoPosition = useGotoPosition,
                 gotoPosition = gotoPosition,
 
+                isSquad = isSquad,
+                squadCount = squadCount,
+
                 playerCommand = playerCommand,
             };
         }
@@ -145,6 +152,9 @@ namespace RTSEngine.Entities
 
         public bool useGotoPosition;
         public Vector3 gotoPosition;
+
+        public bool isSquad;
+        public int squadCount;
 
         public InitUnitParameters ToParams(IInputManager inputMgr)
         {
@@ -173,6 +183,9 @@ namespace RTSEngine.Entities
 
                 useGotoPosition = useGotoPosition,
                 gotoPosition = gotoPosition,
+
+                isSquad = isSquad,
+                squadCount = squadCount,
 
                 playerCommand = playerCommand
             };

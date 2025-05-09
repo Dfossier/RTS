@@ -50,15 +50,15 @@ namespace RTSEngine.UI
             switch(args.Type)
             {
                 case MessageType.info:
-                    audioMgr.PlaySFX(infoMessageAudio);
+                    audioMgr.PlaySFX(infoMessageAudio, null);
                     break;
 
                 case MessageType.warning:
-                    audioMgr.PlaySFX(warningMessageAudio);
+                    audioMgr.PlaySFX(warningMessageAudio, null);
                     break;
 
                 case MessageType.error:
-                    audioMgr.PlaySFX(errorMessageAudio);
+                    audioMgr.PlaySFX(errorMessageAudio, null);
                     break;
             }
         }

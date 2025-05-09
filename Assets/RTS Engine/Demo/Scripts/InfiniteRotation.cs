@@ -14,7 +14,7 @@ namespace RTSEngine.Demo
         protected IBuilding building { private set; get; }
 
         [SerializeField]
-        private ModelCacheAwareTransformInput target = null;
+        private Transform target = null;
 
         [SerializeField]
         private Vector3 rotationAngles = Vector3.one;
@@ -50,7 +50,7 @@ namespace RTSEngine.Demo
                 || !target.IsValid())
                 return;
 
-            target.Rotation *= Quaternion.Euler(rotationAngles * rotationSpeed.Value * Time.deltaTime);
+            target.rotation *= Quaternion.Euler(rotationAngles * rotationSpeed.Value * Time.deltaTime);
         }
     }
 }

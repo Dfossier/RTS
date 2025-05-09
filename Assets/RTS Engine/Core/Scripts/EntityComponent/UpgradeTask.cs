@@ -4,11 +4,11 @@ using UnityEngine;
 namespace RTSEngine.EntityComponent
 {
     [System.Serializable]
-    public class UpgradeTask : EntityComponentTaskInputBase<Upgrade> {
+    public class UpgradeTask : EntityComponentTargetTaskInputBase<Upgrade> {
 
         [Space(), SerializeField, EnforceType(typeof(Upgrade)), Tooltip("Prefab that represents the task."), Header("Upgrade Task Properties")]
         protected GameObject prefabObject = null;
-        public override GameObject PrefabObject => prefabObject;
+        public override GameObject Object => prefabObject;
         [SerializeField, Tooltip("Index of the upgrade to launch.")]
         private int upgradeIndex = 0;
         public int UpgradeIndex => upgradeIndex;

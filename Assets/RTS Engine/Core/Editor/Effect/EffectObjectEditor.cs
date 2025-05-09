@@ -127,8 +127,10 @@ namespace RTSEngine.EditorOnly.Effect
 
             EditorGUILayout.Space();
 
+            EditorGUILayout.PropertyField(SO.FindProperty("initEvent"));
             EditorGUILayout.PropertyField(SO.FindProperty("enableEvent"));
             EditorGUILayout.PropertyField(SO.FindProperty("disableEvent"));
+            EditorGUILayout.PropertyField(SO.FindProperty("deactivateEvent"));
         }
 
         protected virtual void OnComponentSpecificInspectorGUI(string tabName)

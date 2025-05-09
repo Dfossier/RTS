@@ -38,7 +38,7 @@ namespace RTSEngine.BuildingExtension
 
             foreach (ColoredRenderer cr in coloredRenderers)
             {
-                cr.UpdateColor(input.border.Building.SelectionColor);
+                cr.UpdateColor(input.border.Building.SelectionColor, input.border.Building);
                 cr.renderer.sortingOrder = input.border.SortingOrder;
             }
 

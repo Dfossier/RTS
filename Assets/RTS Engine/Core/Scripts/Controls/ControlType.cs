@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using RTSEngine.Game;
+using UnityEngine;
 
 namespace RTSEngine.Controls
 {
@@ -12,5 +13,9 @@ namespace RTSEngine.Controls
         [SerializeField, Tooltip("Default key code used to trigger the control.")]
         private KeyCode defaultKeyCode = KeyCode.None;
         public KeyCode DefaultKeyCode => defaultKeyCode;
+
+        [SerializeField, Tooltip("If the key will be used for enabling a state then set the enable type to an option other than none, this way the controls manager will keep track of the enable state of the control type.")]
+        private ControlEnableType enableType = ControlEnableType.hold;
+        public ControlEnableType EnableTye => enableType;
     }
 }

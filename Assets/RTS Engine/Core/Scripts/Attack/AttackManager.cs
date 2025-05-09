@@ -28,8 +28,7 @@ namespace RTSEngine.Attack
         private bool terrainAttackEnabled = true;
         [SerializeField, Tooltip("If terrain attack is enabled, this represents the key that the player can use while selecting an attack faction entity to directly launch a terrain attack.")]
         private ControlType terrainAttackKey = null;
-        //private KeyCode terrainAttackKey = KeyCode.T;
-        public bool IsTerrainAttackKeyDown => controls.Get(terrainAttackKey);
+        public bool IsTerrainAttackKeyDown => controls.IsControlTypeEnabled(terrainAttackKey);
 
         [SerializeField, EnforceType(typeof(IEffectObject), prefabOnly: true), Tooltip("Visible to the local player when they command unit(s) to perform a terrain attack on a location.")]
         private GameObjectToEffectObjectInput terrainAttackTargetEffectPrefab = null;
@@ -39,7 +38,7 @@ namespace RTSEngine.Attack
         private bool attackMoveWithKeyEnabled = true;
         [SerializeField, Tooltip("Key that must be held down by the local player while launching a movement command into a movable unit to allow it to search for attack targets while moving."), FormerlySerializedAs("moveAttackKey")]
         private ControlType attackMoveKey = null;
-        public bool CanAttackMoveWithKey => controls.Get(attackMoveKey);
+        public bool CanAttackMoveWithKey => controls.IsControlTypeEnabled(attackMoveKey);
 
         //private KeyCode moveAttackKey = KeyCode.M;
         [SerializeField, EnforceType(typeof(IEffectObject), prefabOnly: true), Tooltip("Visible to the local player when they command unit(s) to perform a move-attack."), FormerlySerializedAs("moveAttackTargetEffectPrefab")]
@@ -60,7 +59,6 @@ namespace RTSEngine.Attack
         protected IGameAudioManager audioMgr { private set; get; }
         protected IInputManager inputMgr { private set; get; }
         protected IEffectObjectPool effectObjPool { private set; get; }
-        protected IGameLoggingService logger { private set; get; } 
         protected IPlayerMessageHandler playerMsgHandler { private set; get; }
         protected IGameControlsManager controls { private set; get; }
         #endregion
@@ -72,7 +70,6 @@ namespace RTSEngine.Attack
             this.audioMgr = gameMgr.GetService<IGameAudioManager>();
             this.inputMgr = gameMgr.GetService<IInputManager>();
             this.effectObjPool = gameMgr.GetService<IEffectObjectPool>();
-            this.logger = gameMgr.GetService<IGameLoggingService>();
             this.playerMsgHandler = gameMgr.GetService<IPlayerMessageHandler>();
             this.controls = gameMgr.GetService<IGameControlsManager>();
 
@@ -85,6 +82,9 @@ namespace RTSEngine.Attack
             // Move attack initial state
             if (!attackMoveWithKeyEnabled)
                 enabled = false;
+
+            controls.InitControlType(attackMoveKey);
+            controls.InitControlType(terrainAttackKey);
 
             OnInit();
         }
@@ -134,7 +134,12 @@ namespace RTSEngine.Attack
                         source = data.source[0],
                         targetEntity = data.targetEntity,
                         targetPosition = data.targetPosition,
-                        playerCommand = data.playerCommand
+                        playerCommand = data.playerCommand,
+                        allowTerrainAttack = data.allowTerrainAttack,
+                        ignoreLOS = data.ignoreLOS,
+                        attackTypeCode = data.attackTypeCode,
+                        isMoveAttackRequest = data.isMoveAttackRequest,
+                        mode = data.mode,
                     });
             else if (!data.targetEntity.IsValid() && !CanLaunchTerrainAttack(data))
                 return ErrorMessage.attackTerrainDisabled;
@@ -146,24 +151,28 @@ namespace RTSEngine.Attack
 
             // Sort the attack entities based on their codes, we assume that units that share the same code (which is the defining property of an entity in the RTS Engine) are identical.
             // And filter out any units that do not have an attack component.
-            ChainedSortedList<string, IEntity> sortedAttackers = RTSHelper.SortEntitiesByCode(data.source, x => x.CanAttack);
+            var sortedAttackers = RTSHelper.SortEntitiesByCode(
+                data.source,
+                x => x.CanAttack)
+                .Values
+                .OrderBy(mvtSourceSet => mvtSourceSet[0].MovementComponent.IsValid() ? mvtSourceSet[0].MovementComponent.MovementPriority : -1)
+                .ToList();
 
             // At least one attacker to get the attack order audio from.
             IEntity refAttacker = null;
 
-            foreach (IReadOnlyList<IEntity> attackerSet in sortedAttackers.Values)
+            foreach (IReadOnlyList<IEntity> attackerSet in sortedAttackers)
             {
                 // If the current unit type is unable to have the entity as the target, move to the next unit type list
-                if (attackerSet[0].FirstActiveAttackComponent.IsTargetValid(RTSHelper.ToTargetData(data.targetEntity), data.playerCommand) != ErrorMessage.none)
+                if (attackerSet[0].FirstActiveAttackComponent.IsTargetValid(data.ToSetTargetInputData()) != ErrorMessage.none)
                     continue;
 
                 // Generate movement path destinations for the current list of identical unit types:
                 mvtMgr.GeneratePathDestination(
                     attackerSet,
                     data.targetPosition,
-                    attackerSet[0].FirstActiveAttackComponent.Formation.MovementFormation,
-                    // Enabke onProgressEnableTest because if the target is a unit instance, we want the attacker unit to pick its destination based on the expected stopping distance it is gonna have when it reaches its target range
-                    attackerSet[0].FirstActiveAttackComponent.Formation.GetStoppingDistance(data.targetEntity, min: true, onProgressEnableTest: true),
+                    attackerSet[0].FirstActiveAttackComponent.AttackDistanceHandler.MovementFormation,
+                    attackerSet[0].FirstActiveAttackComponent.AttackDistanceHandler.GetStoppingDistance(data.targetEntity, min: true),
                     new MovementSource { playerCommand = data.playerCommand, isMoveAttackRequest = data.isMoveAttackRequest},
                     ref pathDestinations,
                     condition: RTSHelper.IsAttackLOSBlocked);
@@ -208,16 +217,8 @@ namespace RTSEngine.Attack
                     // If current unit is able to engage with its target using the computed path then move to the next path, if not, test the path on the next unit.
                     // The last argument of the SetTarget method is set to the playerCommand because we still want to move the units to computed attack position...
                     // ...even if it is out of the attack range because the player issued the attack/movement command.
-                    ErrorMessage setTargetErorr = attacker.FirstActiveAttackComponent.SetTargetLocal(
-                        new SetTargetInputData
-                        {
-                            target = nextTarget,
+                    ErrorMessage setTargetErorr = attacker.FirstActiveAttackComponent.SetTargetLocal(data.ToSetTargetInputData(nextTarget));
 
-                            playerCommand = data.playerCommand,
-
-                            isMoveAttackRequest = data.isMoveAttackRequest,
-                            ignoreLOS = data.ignoreLOS,
-                        });
                     if (setTargetErorr == ErrorMessage.none || setTargetErorr == ErrorMessage.attackMoveToTargetOnly)
                     {
                         // Assign the reference unit from which the attack order will be played.
@@ -240,22 +241,13 @@ namespace RTSEngine.Attack
                 if (!refAttacker.IsValid())
                     refAttacker = attacker;
 
-                attacker.FirstActiveAttackComponent?.SetTargetLocal(
-                    new SetTargetInputData
-                    {
-                        target = new TargetData<IFactionEntity>
-                        {
-                            instance = data.targetEntity,
-                            opPosition = data.targetEntity.IsValid() ? data.targetEntity.transform.position : data.targetPosition,
+                attacker.FirstActiveAttackComponent?.SetTargetLocal(data.ToSetTargetInputData(target: new TargetData<IFactionEntity>
+                {
+                    instance = data.targetEntity,
+                    opPosition = data.targetEntity.IsValid() ? data.targetEntity.transform.position : data.targetPosition,
 
-                            position = attacker.transform.position
-                        },
-
-                        playerCommand = data.playerCommand,
-
-                        isMoveAttackRequest = data.isMoveAttackRequest,
-                        ignoreLOS = data.ignoreLOS
-                    });
+                    position = attacker.transform.position
+                }));
             }
 
             if (data.playerCommand && refAttacker.IsValid() && refAttacker.IsLocalPlayerFaction())
@@ -263,7 +255,7 @@ namespace RTSEngine.Attack
                 if (!data.targetEntity.IsValid())
                     effectObjPool.Spawn(TerrainAttackTargetEffect, data.targetPosition);
 
-                audioMgr.PlaySFX(refAttacker.FirstActiveAttackComponent.OrderAudio, false);
+                audioMgr.PlaySFX(refAttacker.FirstActiveAttackComponent.OrderAudio, refAttacker, loop:false);
             }
 
             return ErrorMessage.none;
@@ -306,7 +298,7 @@ namespace RTSEngine.Attack
             switch(data.mode)
             {
                 case LaunchAttackTypeMode.specific:
-                    attackComponent = data.source.AttackComponents[data.attackTypeCode];
+                    attackComponent = data.source.AttackComponentsDic[data.attackTypeCode];
                     break;
                 // Use the first active attack component by default
                 default:
@@ -314,10 +306,9 @@ namespace RTSEngine.Attack
                     break;
             }
 
-
             ErrorMessage errorMsg;
             //check whether the new target is valid for this attack type.
-            if ((errorMsg = attackComponent.IsTargetValid(RTSHelper.ToTargetData(data.targetEntity), data.playerCommand)) != ErrorMessage.none)
+            if ((errorMsg = attackComponent.IsTargetValid(data.ToSetTargetInputData())) != ErrorMessage.none)
             {
                 if (data.playerCommand && data.source.IsLocalPlayerFaction())
                     playerMsgHandler.OnErrorMessage(new PlayerErrorMessageWrapper
@@ -336,28 +327,20 @@ namespace RTSEngine.Attack
                 if (!data.targetEntity.IsValid())
                     effectObjPool.Spawn(TerrainAttackTargetEffect, data.targetPosition);
 
-                audioMgr.PlaySFX(attackComponent.OrderAudio, false);
+                audioMgr.PlaySFX(attackComponent.OrderAudio, attackComponent.Entity, loop:false);
             }
 
             // Calculate a target attack position and attempt to set a new attack target for the source unit.
             return attackComponent.SetTargetLocal(
-                new SetTargetInputData
+                data.ToSetTargetInputData(target: new TargetData<IFactionEntity>
                 {
-                    target = new TargetData<IFactionEntity>
-                    {
-                        instance = data.targetEntity,
-                        opPosition = data.targetPosition,
+                    instance = data.targetEntity,
+                    opPosition = data.targetPosition,
 
-                        position = data.source.CanMove() && TryGetAttackPosition(data.source, attackComponent, data.targetEntity, data.targetPosition, data.playerCommand, out Vector3 attackPosition)
+                    position = data.source.CanMove() && TryGetAttackPosition(data.source, attackComponent, data.targetEntity, data.targetPosition, data.playerCommand, out Vector3 attackPosition)
                             ? attackPosition
                             : data.source.transform.position
-                    },
-
-                    playerCommand = data.playerCommand,
-
-                    isMoveAttackRequest = data.isMoveAttackRequest,
-                    ignoreLOS = data.ignoreLOS,
-                });
+                }));
         }
         #endregion
 
@@ -377,8 +360,8 @@ namespace RTSEngine.Attack
             mvtMgr.GeneratePathDestination(
                 attacker,
                 targetPosition,
-                attacker.MovementComponent.Formation,
-                attackComponent.Formation.GetStoppingDistance(target, min: true),
+                attackComponent.AttackDistanceHandler.MovementFormation,
+                attackComponent.AttackDistanceHandler.GetStoppingDistance(target, min: true),
                 new MovementSource { playerCommand = playerCommand },
                 ref pathDestinations,
                 condition: RTSHelper.IsAttackLOSBlocked);

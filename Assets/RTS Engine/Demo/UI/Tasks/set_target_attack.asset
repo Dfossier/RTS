@@ -26,4 +26,6 @@ MonoBehaviour:
     reloadTime: 0
     cursor:
       icon: {fileID: 21300000, guid: 77e1083102e229b4fa967a8f4055dc3f, type: 3}
+      texture: {fileID: 0}
       hotspot: {x: 11, y: 10}
+    controlType: {fileID: 0}

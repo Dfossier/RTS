@@ -6,6 +6,6 @@ namespace RTSEngine.Attack
 {
     public interface IAttackTargetPositionGetter : IEntityPostInitializable
     {
-        Vector3 TargetPosition { get; }
+        Vector3 GetAttackTargetPosition(IEntity source);
     }
 }

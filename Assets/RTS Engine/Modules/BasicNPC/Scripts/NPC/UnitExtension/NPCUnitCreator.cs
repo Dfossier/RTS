@@ -44,8 +44,13 @@ namespace RTSEngine.NPC.UnitExtension
         protected override void OnPostInit()
         {
             // Activate the independent unit types
-            foreach (IUnit unit in independentUnits.Select(obj => obj.IsValid() ? obj.GetComponent<IUnit>() : null))
-                ActivateUnitRegulator(unit);
+            for (int i = 0; i < independentUnits.Count; i++)
+            {
+                if (!independentUnits[i].IsValid())
+                    continue;
+
+                ActivateUnitRegulator(independentUnits[i].GetComponent<IUnit>());
+            }
 
             globalEvent.UnitUpgradedGlobal += HandleUnitUpgradeGlobal;
         }

@@ -33,14 +33,12 @@ namespace RTSEngine.UI
         private EntityType allowedEntityTypes = EntityType.all;
 
         // Game services
-        protected IGameLoggingService logger { private set; get; }
         protected IGlobalEventPublisher globalEvent { private set; get; }
         #endregion
 
         #region Initializing/Terminating
         protected override void OnObjectPoolInit()
         {
-            this.logger = gameMgr.GetService<IGameLoggingService>();
             this.globalEvent = gameMgr.GetService<IGlobalEventPublisher>();
 
             if (!isActive)

@@ -35,6 +35,7 @@ MonoBehaviour:
   - entityType:
       codes:
       - house
+      - house_fow
       categories: []
     range:
       _min: 1
@@ -42,6 +43,7 @@ MonoBehaviour:
   - entityType:
       codes:
       - town_center
+      - town_center_fow
       categories: []
     range:
       _min: 5

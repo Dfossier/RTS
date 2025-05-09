@@ -39,6 +39,7 @@ namespace RTSEngine.UI
             if(!gameMgr.InPeaceTime)
             {
                 message.Hide();
+                enabled = false;
                 return;
             }
 

@@ -96,7 +96,6 @@ namespace RTSEngine.Search
         protected IGameLoggingService logger { private set; get; }
         protected IMainCameraController mainCameraController { private set; get; }
         protected ITerrainManager terrainMgr { private set; get; }
-        protected IModelCacheManager modelCacheMgr { private set; get; } 
         #endregion
 
         #region Initializing/Terminating
@@ -111,7 +110,6 @@ namespace RTSEngine.Search
             this.globalEvent = gameMgr.GetService<IGlobalEventPublisher>();
             this.logger = gameMgr.GetService<IGameLoggingService>();
             this.terrainMgr = gameMgr.GetService<ITerrainManager>();
-            this.modelCacheMgr = gameMgr.GetService<IModelCacheManager>();
 
             posResLists = new SearchLists
             {
@@ -145,8 +143,6 @@ namespace RTSEngine.Search
             globalEvent.EntityInitiatedGlobal += HandleEntityInitiatedGlobal;
             globalEvent.EntityDeadGlobal += HandleEntityDeadGlobal;
 
-            globalEvent.CachedModelEnabledGlobal += HandleCachedModelEnabledGlobal;
-
             globalEvent.SearchObstacleEnabledGlobal += HandleSearchObstacleEnabledGlobal;
 
             mainCameraController.CameraTransformUpdated += HandleCameraPositionUpdated;
@@ -156,8 +152,6 @@ namespace RTSEngine.Search
         {
             globalEvent.EntityInitiatedGlobal -= HandleEntityInitiatedGlobal;
             globalEvent.EntityDeadGlobal -= HandleEntityDeadGlobal;
-
-            globalEvent.CachedModelEnabledGlobal -= HandleCachedModelEnabledGlobal;
 
             mainCameraController.CameraTransformUpdated -= HandleCameraPositionUpdated;
         }
@@ -242,25 +236,6 @@ namespace RTSEngine.Search
                 else //we have already gone through the allowed search radius
                     break;
             }
-
-            return ErrorMessage.none;
-        }
-        #endregion
-
-        #region Handling Cached Model Events
-        private void HandleCachedModelEnabledGlobal(ICachedModel sender, EventArgs args)
-        {
-            TryAddCachedModel(sender);
-        }
-
-        private ErrorMessage TryAddCachedModel (ICachedModel cachedModel)
-        {
-            ErrorMessage errorMessage;
-            // Only continue if a valid source search cell is found in the input position.
-            if ((errorMessage = TryGetSearchCell(cachedModel.Center, out SearchCell sourceCell)) != ErrorMessage.none)
-                return errorMessage;
-
-            sourceCell.AddCachedModel(cachedModel);
 
             return ErrorMessage.none;
         }
@@ -398,7 +373,7 @@ namespace RTSEngine.Search
             {
                 SearchCell cell = allSearchCells[i];
 
-                if (!cell.IsRenderering)
+                if (!cell.IsRendering)
                     continue;
 
                 for (int j = 0; j < cell.Entities.Count; j++)
@@ -410,7 +385,7 @@ namespace RTSEngine.Search
                         || !(entity is T))
                         continue;
 
-                    if (IsTargetValid(RTSHelper.ToTargetData(entity), playerCommand) == ErrorMessage.none)
+                    if (IsTargetValid(entity.ToSetTargetInputData(playerCommand)) == ErrorMessage.none)
                     {
                         targetsList.Add((T)entity);
                         confirmedAmount++;
@@ -526,7 +501,7 @@ namespace RTSEngine.Search
                         nextDistance = (entity.transform.position - sourcePosition).sqrMagnitude;
 
                         if ((nextDistance >= radiusSqr.min && nextDistance <= radiusSqr.max)
-                            && IsTargetValid(RTSHelper.ToTargetData(entity), playerCommand) == ErrorMessage.none)
+                            && IsTargetValid(entity.ToSetTargetInputData(playerCommand)) == ErrorMessage.none)
                         {
                             findLists.currTargetsList.Add(new KeyValuePair<float, IEntity>(nextDistance, entity));
                             confirmedAmount++;
@@ -589,7 +564,7 @@ namespace RTSEngine.Search
                         nextDistance = (entity.transform.position - sourcePosition).sqrMagnitude;
 
                         if ((nextDistance >= radiusSqr.min && nextDistance <= radiusSqr.max)
-                            && IsTargetValid(RTSHelper.ToTargetData(entity), playerCommand) == ErrorMessage.none)
+                            && IsTargetValid(entity.ToSetTargetInputData(playerCommand)) == ErrorMessage.none)
                         {
                             findLists.currTargetsList.Add(new KeyValuePair<float, IEntity>(nextDistance, entity));
                             confirmedAmount++;
@@ -701,9 +676,11 @@ namespace RTSEngine.Search
                         if (marker.Enabled
                             && marker != ignoreMarker
                             && marker.AreasMask.Intersect(areasMask)
-                            //&& marker.IsIn(testPosition))
-                            && (marker.Position - testPosition).sqrMagnitude <= sqrRadius)
+                            && marker.IsIn(testPosition))
+                            //&& (marker.Position - testPosition).sqrMagnitude <= sqrRadius)
+                        {
                             return ErrorMessage.mvtPositionMarkerReserved;
+                        }
                     }
 
                     for (int j = 0; j < cell.Obstacles.Count; j++)
@@ -816,7 +793,7 @@ namespace RTSEngine.Search
             {
                 foreach (SearchCell cell in gridDict.Values)
                 {
-                    if (cell.IsRenderering)
+                    if (cell.IsRendering)
                     {
                         Gizmos.color = renderedCellColor;
                         Gizmos.DrawWireCube(new Vector3(cell.Position.x + cellSize / 2.0f, 0.0f, cell.Position.y + cellSize / 2.0f), size);

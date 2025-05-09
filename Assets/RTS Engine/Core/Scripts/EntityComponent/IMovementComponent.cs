@@ -12,6 +12,8 @@ namespace RTSEngine.EntityComponent
 {
     public interface IMovementComponent : IEntityTargetComponent
     {
+        IUnit Unit { get; }
+
         bool DestinationReached { get; }
         Vector3 Destination { get; }
         TargetData<IEntity> Target { get; }
@@ -29,6 +31,7 @@ namespace RTSEngine.EntityComponent
 
         event CustomEventHandler<IMovementComponent, MovementEventArgs> MovementStart;
         event CustomEventHandler<IMovementComponent, EventArgs> MovementStop;
+        event CustomEventHandler<IMovementComponent, EventArgs> PositionSet;
 
         ErrorMessage SetTarget(TargetData<IEntity> newTarget, float stoppingDistance, MovementSource source);
         ErrorMessage SetTargetLocal(TargetData<IEntity> newTarget, float stoppingDistance, MovementSource source);
@@ -38,9 +41,11 @@ namespace RTSEngine.EntityComponent
 
         ErrorMessage OnPathDestination(TargetData<IEntity> newTarget, MovementSource source);
 
-        bool IsPositionReached(Vector3 position);
-
         void UpdateRotationTarget(IEntity rotationTarget, Vector3 rotationPosition, bool lookAway = false, bool setImmediately = false);
         void UpdateRotationTarget(Quaternion targetRotation, bool setImmediately = false);
+
+        ErrorMessage SetPosition(Vector3 position);
+
+        void ToggleMovementRotation(bool enable);
     }
 }

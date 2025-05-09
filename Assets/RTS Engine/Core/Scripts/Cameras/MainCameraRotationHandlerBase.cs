@@ -8,9 +8,13 @@ using UnityEngine;
 
 namespace RTSEngine.Cameras
 {
+    public enum CameraRotationType { free = 0, rotateAround = 1 }
+
     public abstract class MainCameraRotationHandlerBase : MonoBehaviour, IMainCameraRotationHandler
     {
         #region Attributes
+        public bool IsActive { set; get; }
+
         [SerializeField, Tooltip("Defines the initial rotation of the main camera.")]
         private Vector3 initialEulerAngles = new Vector3(45.0f, 45.0f, 0.0f);
         public Vector3 InitialEulerAngles => initialEulerAngles;
@@ -18,7 +22,7 @@ namespace RTSEngine.Cameras
         /// <summary>
         /// True when the current rotation is different than the initially assigned rotation.
         /// </summary>
-        public bool HasInitialRotation => Vector3.Distance(cameraController.MainCamera.transform.eulerAngles, initialEulerAngles) < 0.1f;
+        public bool HasInitialRotation => cameraController.MainCamera.transform.eulerAngles - initialEulerAngles == Vector3.zero;
 
         [Space(), SerializeField, Tooltip("Have a fixed rotation when the camera is panning? When enabled, the camera rotation will be reset when the camera pans.")]
         private bool fixPanRotation = true;
@@ -26,19 +30,22 @@ namespace RTSEngine.Cameras
         private float allowedRotationPanSize = 0.2f;
 
         [Space(), SerializeField, Tooltip("How fast can the camera rotate?")]
-        private SmoothSpeed rotationSpeed = new SmoothSpeed { value = 40.0f, smoothFactor = 0.1f };
-        public SmoothSpeed RotationSpeed => rotationSpeed;
+        private SmoothSpeedRange rotationSpeed = new SmoothSpeedRange { valueRange = new FloatRange(30.0f, 50.0f), smoothValue = 0.1f };
+        protected float CurrModifier { set; get; }
+        public float CurrRotationSpeed => rotationSpeed.GetValue(cameraController.ZoomHandler.ZoomRatio) * CurrModifier;
+
         [SerializeField, Tooltip("Minimum rotation input value for an actual rotation to be executed. This allows to avoid small mouse movements of the right mouse button or the mouse wheel to trigger rotation. Values must be in [0,1) for both axis.")]
         private Vector2 minRotationTriggerValues = new Vector2(0.8f, 0.8f);
 
         [System.Serializable]
         public struct RotationLimit
         {
-            [Space()]
+            public bool lockXRotation;
             public bool enableXLimit;
             public FloatRange xLimit;
 
             [Space()]
+            public bool lockYRotation;
             public bool enableYLimit;
             public FloatRange yLimit;
         }
@@ -47,22 +54,28 @@ namespace RTSEngine.Cameras
 
         [Space(), SerializeField, Tooltip("Reset camera rotation to initial values when placing a building? When enabled, player will not be allowed to rotate the camera as long as they are placing a building")]
         private bool resetRotationOnPlacement = true;
+        [SerializeField, Tooltip("When resetting the rotation smoothly, this field defines how smooth the reset is.")]
+        private float resetRotationSmoothFactor = 0.2f;
 
-        [Space(), SerializeField, Tooltip("When this field is enabled, rotating the main camera will always occur by orbiting/rotating around the position that the camera is looking at.")]
-        private bool rotateAroundAlways = false;
-        [SerializeField, Tooltip("When rotating around the position the camera is looking at is not always enabled, you can define a key that when down, will force the rotation to orbit around the position the camera is looking at.")]
-        private ControlType rotateAroundKey = null;
+        [Space(), SerializeField, Tooltip("Pick the default rotation mode. Free: rotate in any direction. Rotate Around: rotating the main camera will always occur by orbiting/rotating around the position that the camera is looking at.")]
+        private CameraRotationType defaultRotationType = CameraRotationType.rotateAround;
+        [SerializeField, Tooltip("When the control type is enabled, it allows to use the alternative rotation type that is not set as the default one.")]
+        private ControlType altRotationControlType = null;
         private bool isRotatingAround;
         private Vector3 rotateAroundCenter;
 
         // The current and last rotation value that is determined using the different rotation inputs.
         protected Vector2 currRotationValue;
-        private Vector2 lastRotationValue;
-        public bool IsRotating => currRotationValue != Vector2.zero;
+        protected Vector2 LastRotationValue { private set; get; }
+
+        protected bool triggerPointInputInactive;
+        public bool IsPointerInputActive { protected set; get; }
+        public bool IsRotating => IsPointerInputActive || currRotationValue != Vector2.zero;
 
         // When set to true, the main camera ignores all input until the rotation is reset back to the initial euler angles
         private bool isResettingRotation;
 
+        protected IGameManager gameMgr { private set; get; }
         protected IGameControlsManager controls { private set; get; }
         protected IMainCameraController cameraController { private set; get; }
         protected ITerrainManager terrainMgr { private set; get; }
@@ -72,16 +85,21 @@ namespace RTSEngine.Cameras
         #region Initializing/Terminating
         public void Init(IGameManager gameMgr)
         {
+            this.gameMgr = gameMgr;
             this.controls = gameMgr.GetService<IGameControlsManager>();
             this.cameraController = gameMgr.GetService<IMainCameraController>();
             this.terrainMgr = gameMgr.GetService<ITerrainManager>();
-            this.placementMgr = gameMgr.GetService<IBuildingPlacement>(); 
+            this.placementMgr = gameMgr.GetService<IBuildingPlacement>();
 
             initialRotation = Quaternion.Euler(initialEulerAngles);
+            CurrModifier = 1.0f;
+
             ResetRotation(smooth: false);
 
             minRotationTriggerValues.x = Mathf.Clamp(minRotationTriggerValues.x, 0.0f, 0.99f);
-            minRotationTriggerValues.y = Mathf.Clamp(minRotationTriggerValues.x, 0.0f, 0.99f);
+            minRotationTriggerValues.y = Mathf.Clamp(minRotationTriggerValues.y, 0.0f, 0.99f);
+
+            IsActive = true;
 
             OnInit();
         }
@@ -90,23 +108,35 @@ namespace RTSEngine.Cameras
         #endregion
 
         #region Updating/Applying Input 
+        public void PreUpdateInput()
+        {
+            if(triggerPointInputInactive)
+            {
+                triggerPointInputInactive = false;
+                IsPointerInputActive = false;
+                LastRotationValue = Vector2.zero;
+            }
+        }
+
         public abstract void UpdateInput();
-        
+
         public void Apply()
         {
-            if (Mathf.Abs(currRotationValue.x) < minRotationTriggerValues.x)
+            if (rotationLimit.lockXRotation || Mathf.Abs(currRotationValue.x) < minRotationTriggerValues.x)
                 currRotationValue.x = 0.0f;
-            if (Mathf.Abs(currRotationValue.y) < minRotationTriggerValues.y)
+            if (rotationLimit.lockYRotation || Mathf.Abs(currRotationValue.y) < minRotationTriggerValues.y)
                 currRotationValue.y = 0.0f;
 
             if (resetRotationOnPlacement && placementMgr.IsLocalPlayerPlacingBuilding)
             {
                 if (!HasInitialRotation && !isResettingRotation)
-                    ResetRotation(smooth: true);
+                {
+                    Vector3 lookAtCenter = cameraController.ScreenToWorldPoint(RTSHelper.MiddleScreenPoint, applyOffset: false);
+                    ResetRotation(smooth: false);
+                    cameraController.PanningHandler.LookAt(lookAtCenter, smooth: false);
+                }
                 currRotationValue = Vector2.zero;
             }
-
-            isRotatingAround = rotateAroundAlways || controls.Get(rotateAroundKey);
 
             if (currRotationValue != Vector2.zero && cameraController.PanningHandler.IsFollowingTarget)
                 cameraController.PanningHandler.SetFollowTarget(null);
@@ -116,46 +146,52 @@ namespace RTSEngine.Cameras
             if (isResettingRotation
                 || ((fixPanRotation && cameraController.PanningHandler.LastPanDirection.magnitude > allowedRotationPanSize) || cameraController.PanningHandler.IsFollowingTarget))
             {
-                cameraController.MainCamera.transform.rotation = Quaternion.Lerp(cameraController.MainCamera.transform.rotation, initialRotation, rotationSpeed.smoothFactor);
+                cameraController.MainCamera.transform.rotation = Quaternion.Lerp(
+                    cameraController.MainCamera.transform.rotation,
+                    initialRotation,
+                    resetRotationSmoothFactor);
 
                 if (HasInitialRotation)
                     isResettingRotation = false;
                 return;
             }
 
+            if (!IsActive)
+                return;
+
             // Smoothly update the last rotation value towards the current one
-            lastRotationValue = Vector2.Lerp(lastRotationValue, currRotationValue, rotationSpeed.smoothFactor);
+            LastRotationValue = Vector2.Lerp(
+                LastRotationValue,
+                currRotationValue,
+                rotationSpeed.smoothValue);
 
             Vector3 nextEulerAngles = cameraController.MainCamera.transform.rotation.eulerAngles;
+
+            bool altRotationTypeEnabled = controls.IsControlTypeEnabled(altRotationControlType);
+            isRotatingAround = (defaultRotationType == CameraRotationType.rotateAround && !altRotationTypeEnabled) || altRotationTypeEnabled;
 
             if (isRotatingAround)
             {
                 // The position that the camera will be rotating around is the world position of the middle of the screen.
                 // Only update it when the player is not actively rotating the camera..
-                if(currRotationValue == Vector2.zero)
+                if (currRotationValue == Vector2.zero)
                     rotateAroundCenter = cameraController.ScreenToWorldPoint(RTSHelper.MiddleScreenPoint, applyOffset: false);
 
-                // Find the rotations to be added both vertically and horizontally
-                Quaternion targetRotation = Quaternion.AngleAxis(
-                    -lastRotationValue.x * rotationSpeed.value * Time.deltaTime,
-                    cameraController.MainCamera.transform.up);
-                targetRotation *= Quaternion.AngleAxis(
-                    -lastRotationValue.y * rotationSpeed.value * Time.deltaTime,
-                    cameraController.MainCamera.transform.right);
+                // orbit horizontally
+                cameraController.MainCamera.transform.RotateAround(rotateAroundCenter,
+                    Vector3.up,
+                    LastRotationValue.x * CurrRotationSpeed * Time.deltaTime);
+                // orbit vertically
+                cameraController.MainCamera.transform.RotateAround(rotateAroundCenter,
+                    cameraController.MainCamera.transform.TransformDirection(Vector3.right),
+                    LastRotationValue.y * CurrRotationSpeed * Time.deltaTime);
 
-                // Update camera position accordingly
-                Vector3 targetDirection = targetRotation * (cameraController.MainCamera.transform.position - rotateAroundCenter);
-                cameraController.PanningHandler.SetPosition(rotateAroundCenter + targetDirection);
-
-                // Get the next camera rotation angles for the rotate around
-                Quaternion nextRotation = cameraController.MainCamera.transform.rotation;
-                nextRotation *= Quaternion.Inverse(nextRotation) * targetRotation * nextRotation;
-                nextEulerAngles = nextRotation.eulerAngles;
+                nextEulerAngles = cameraController.MainCamera.transform.eulerAngles;
             }
             else
             {
-                nextEulerAngles.y -= rotationSpeed.value * Time.deltaTime * lastRotationValue.x;
-                nextEulerAngles.x -= rotationSpeed.value * Time.deltaTime * lastRotationValue.y;
+                nextEulerAngles.y -= CurrRotationSpeed * Time.deltaTime * LastRotationValue.x;
+                nextEulerAngles.x -= CurrRotationSpeed * Time.deltaTime * LastRotationValue.y;
             }
 
             // Limit the y/x euler angless if that's enabled
@@ -166,7 +202,7 @@ namespace RTSEngine.Cameras
 
             cameraController.MainCamera.transform.rotation = Quaternion.Euler(nextEulerAngles);
 
-            if (lastRotationValue != Vector2.zero)
+            if (LastRotationValue != Vector2.zero)
                 cameraController.RaiseCameraTransformUpdated();
         }
 

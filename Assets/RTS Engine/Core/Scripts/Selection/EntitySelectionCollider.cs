@@ -33,7 +33,7 @@ namespace RTSEngine.Selection
             // Selection objects must be direct children of their parent entity objects
             // Parent entity objects will be set to ignore raycast layer.
             // While selection collider objects will be assigned the entity selection layer defined in the mouse selection layer mask
-            gameObject.layer = RTSHelper.TryNameToLayer(gameMgr.GetService<IMouseSelector>().EntitySelectionLayer);
+            gameObject.layer = RTSHelper.TryNameToLayer(gameMgr.GetService<ISelector>().EntitySelectionLayer);
 
             Collider collider = GetComponent<Collider>();
             if (!logger.RequireValid(collider,

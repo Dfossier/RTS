@@ -1,7 +1,9 @@
 ﻿using RTSEngine.Attack;
 using RTSEngine.BuildingExtension;
 using RTSEngine.Entities;
+using RTSEngine.Event;
 using RTSEngine.Model;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,7 +15,7 @@ namespace RTSEngine.EntityComponent
 
         bool RequireTarget { get; }
 
-        AttackFormationSelector Formation { get; }
+        IAttackDistanceHandler AttackDistanceHandler { get; }
         AttackWeapon Weapon { get; }
         AttackDamage Damage { get; }
         AttackLauncher Launcher { get; }
@@ -25,7 +27,7 @@ namespace RTSEngine.EntityComponent
 
         TargetData<IFactionEntity> Target { get; }
 
-        ModelCacheAwareTransformInput WeaponTransform { get; }
+        Transform WeaponTransform { get; }
 
         bool IsLocked { get; }
 
@@ -33,6 +35,11 @@ namespace RTSEngine.EntityComponent
 
         bool IsCooldownActive { get; }
         bool IsAttackMoveActive { get; }
+        float CurrReloadValue { get; }
+        TargetEntityFinderData BorderTargetFinderData { get; }
+
+        event CustomEventHandler<IAttackComponent, EventArgs> CooldownUpdated;
+        event CustomEventHandler<IAttackComponent, EventArgs> ReloadUpdated;
 
         ErrorMessage CanSwitchAttack();
         ErrorMessage LockAttackAction(bool locked, bool playerCommand);

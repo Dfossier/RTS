@@ -16,6 +16,6 @@ namespace RTSEngine.UnitExtension
         IEnumerable<IUnit> FreeUnits { get; }
 
         ErrorMessage CreateUnit(IUnit unitPrefab, Vector3 spawnPosition, Quaternion spawnRotation, InitUnitParameters initParams);
-        IUnit CreateUnitLocal(IUnit unitPrefab, Vector3 spawnPosition, Quaternion spawnRotation, InitUnitParameters initParams);
+        IReadOnlyList<IUnit> CreateUnitLocal(IUnit unitPrefab, Vector3 spawnPosition, Quaternion spawnRotation, InitUnitParameters initParams);
     }
 }

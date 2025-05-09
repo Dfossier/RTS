@@ -12,17 +12,19 @@ namespace RTSEngine.Faction
         IFactionSlot Slot { get; }
 
         IEnumerable<IFactionEntity> FactionEntities { get; }
+        IReadOnlyDictionary<string, int> FactionEntityToAmount { get; }
+        IReadOnlyList<IFactionEntity> GetFactionEntitiesListByCode(string code);
+        IReadOnlyDictionary<string, int> FactionEntityCategoryToAmount { get; }
 
         IEnumerable<IFactionEntity> MainEntities { get; }
 
         IEnumerable<IUnit> Units { get; }
         IEnumerable<IUnit> GetAttackUnits(float range = 1);
 
-        IEnumerable<IBuilding> Buildings { get; }
-        IEnumerable<IBuilding> BuildingCenters { get; }
+        IReadOnlyList<IBuilding> Buildings { get; }
+        IReadOnlyList<IBuilding> BuildingCenters { get; }
         IReadOnlyList<IFactionEntity> DropOffTargets { get; }
-        IReadOnlyDictionary<string, int> FactionEntityToAmount { get; }
-        IReadOnlyDictionary<string, int> FactionEntityCategoryToAmount { get; }
+        IReadOnlyList<IUnit> WorkerUnits { get; }
 
         event CustomEventHandler<IFactionManager, EntityEventArgs<IFactionEntity>> OwnFactionEntityAdded;
         event CustomEventHandler<IFactionManager, EntityEventArgs<IFactionEntity>> OwnFactionEntityRemoved;

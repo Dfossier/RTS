@@ -4,12 +4,24 @@ using System.Linq;
 using UnityEngine;
 
 using RTSEngine.Game;
+using RTSEngine.Logging;
 
 namespace RTSEngine.Utilities
 {
+    [System.Serializable]
+    public struct PoolableObjectSpawnData
+    {
+        public GameObject prefab;
+        [Min(1)]
+        public int amount;
+    }
+
     public class ObjectPool<T, V> : MonoBehaviour, IMonoBehaviour where T : IPoolableObject where V : PoolableObjectSpawnInput
     {
         #region Attributes
+        [SerializeField, Tooltip("Define each poolable object prefab alongside the amount of instances to pre-spawn from it.")]
+        private PoolableObjectSpawnData[] preSpawnData = new PoolableObjectSpawnData[0];
+
         public IReadOnlyDictionary<string, T> ObjectPrefabs { private set; get; }
 
         private Dictionary<string, Queue<T>> inactiveDic = null;
@@ -21,12 +33,14 @@ namespace RTSEngine.Utilities
 
         // Other components
         protected IGameManager gameMgr { private set; get; }
+        protected IGameLoggingService logger { private set; get; } 
         #endregion
 
         #region Initializing/Terminating
         public void Init(IGameManager gameMgr)
         {
             this.gameMgr = gameMgr;
+            this.logger = gameMgr.GetService<IGameLoggingService>(); 
 
             inactiveDic = new Dictionary<string, Queue<T>>();
             activeDic = new Dictionary<string, List<T>>();
@@ -42,17 +56,24 @@ namespace RTSEngine.Utilities
         #region Handling Prefabs
         private void LoadPrefabs()
         {
-            ObjectPrefabs = Resources
-                .LoadAll("Prefabs", typeof(GameObject))
-                .Cast<GameObject>()
-                .Where(prefab => prefab.IsValid() && prefab.GetComponent<T>() != null)
-                .Select(prefab => prefab.GetComponent<T>())
-                .ToDictionary(prefab => prefab.Code, prefab => prefab);
+            for (int i = 0; i < preSpawnData.Length; i++)
+            {
+                // Maybe print errors here?
+                if (!preSpawnData[i].prefab.IsValid())
+                    continue;
+
+                T comp = preSpawnData[i].prefab.GetComponent<T>();
+                if (!comp.IsValid())
+                    continue;
+
+                for (int j = 0; j < preSpawnData[i].amount; j++)
+                    Despawn(Get(comp, forceNewInstance: true));
+            }
         }
         #endregion
 
         #region Spawning/Despawning Effect Objects
-        private T Get(T prefab)
+        private T Get(T prefab, bool forceNewInstance = false)
         {
             if(!prefab.IsValid())
                 return default(T);
@@ -63,9 +84,9 @@ namespace RTSEngine.Utilities
                 inactiveDic.Add(prefab.Code, currentQueue); //add it
             }
 
-            if (currentQueue.Count == 0)
+            if (forceNewInstance || currentQueue.Count == 0)
             {
-                T newEffect = GameObject.Instantiate(prefab.gameObject, Vector3.zero, Quaternion.identity).GetComponent<T>();
+                T newEffect = GameObject.Instantiate(prefab.gameObject, RTSOptimizations.POOLABLE_OBJECT_INACTIVE_POSITION, Quaternion.identity).GetComponent<T>();
                 newEffect.Init(gameMgr);
                 currentQueue.Enqueue(newEffect);
             }
@@ -87,8 +108,11 @@ namespace RTSEngine.Utilities
             }
             currActiveList.Add(nextInstance);
 
-            nextInstance.gameObject.SetActive(true);
+            //nextInstance.gameObject.SetActive(true);
 
+            nextInstance.enabled = true;
+
+            nextInstance.transform.position = Vector3.zero;
             return nextInstance;
         }
 
@@ -100,9 +124,12 @@ namespace RTSEngine.Utilities
             if (destroyed)
                 return;
 
+            instance.enabled = false;
+
             // Make sure it has no parent object anymore and it is inactive.
             instance.transform.SetParent(null, true);
-            instance.gameObject.SetActive(false);
+            instance.transform.position = RTSOptimizations.POOLABLE_OBJECT_INACTIVE_POSITION;
+            //instance.gameObject.SetActive(false);
 
             if (!inactiveDic.TryGetValue(instance.Code, out var currInactiveQueue))
             {

@@ -16,7 +16,6 @@ using RTSEngine.Utilities;
 
 namespace RTSEngine.BuildingExtension
 {
-
     public class BuildingPlacement : MonoBehaviour, IBuildingPlacement 
     {
         #region Attributes
@@ -25,6 +24,14 @@ namespace RTSEngine.BuildingExtension
 
         // Each faction slot that can place buildings has a valid entry in this array with its faction slot id as the index
         private Dictionary<int, IBuildingPlacementHandler> handlers;
+        public IBuildingPlacementHandler LocalFactionHandler
+        {
+            get
+            {
+                handlers.TryGetValue(gameMgr.LocalFactionSlotID, out IBuildingPlacementHandler handler);
+                return handler;
+            }
+        }
 
         public bool IsLocalPlayerPlacingBuilding => IsPlacingBuilding(gameMgr.LocalFactionSlotID);
         public bool IsPlacingBuilding(int factionID)
@@ -47,6 +54,10 @@ namespace RTSEngine.BuildingExtension
         [SerializeField, Tooltip("Building placement instances will ignore collision with objects of layers assigned to the terrain areas in this array field.")]
         private TerrainAreaType[] ignoreTerrainAreas = new TerrainAreaType[0];
         public IReadOnlyList<TerrainAreaType> IgnoreTerrainAreas => ignoreTerrainAreas;
+
+        [SerializeField, Tooltip("Audio clip to play when the player places a building.")]
+        private AudioClipFetcher placeBuildingAudio = new AudioClipFetcher();
+        public AudioClipFetcher PlaceBuildingAudio => placeBuildingAudio;
 
         [SerializeField, Tooltip("Fields related to the local player faction building placement.")]
         private LocalFactionPlacementHandler localFactionPlacementHandler = new LocalFactionPlacementHandler();
@@ -114,7 +125,7 @@ namespace RTSEngine.BuildingExtension
             {
                 // In case a component that implements the required interface is attached to the same game object
                 // Use that component instead of the localFactionPlacementHandler field.
-                IBuildingPlacementHandler nextHandler = GetComponent<IBuildingPlacementHandler>();
+                IBuildingPlacementHandler nextHandler = gameMgr.GetComponentInChildren<IBuildingPlacementHandler>();
                 if (!nextHandler.IsValid())
                     nextHandler = localFactionPlacementHandler;
 

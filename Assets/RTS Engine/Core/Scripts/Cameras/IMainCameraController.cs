@@ -17,6 +17,8 @@ namespace RTSEngine.Cameras
         IMainCameraPanningHandler PanningHandler { get; }
         IMainCameraRotationHandler RotationHandler { get; }
         IMainCameraZoomHandler ZoomHandler { get; }
+        bool IsTransformUpdating { get; }
+        bool IsOrthographic { get; }
 
         event CustomEventHandler<IMainCameraController, EventArgs> CameraTransformUpdated;
         void RaiseCameraTransformUpdated();

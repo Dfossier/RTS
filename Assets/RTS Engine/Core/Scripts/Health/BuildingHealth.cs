@@ -58,6 +58,7 @@ namespace RTSEngine.Health
             Array.Copy(repairCosts, adjustedCosts, repairCosts.Length);
 
             hasBuildersInProgress = false;
+            Building.BuildingBuilt += HandleBuildingBuilt;
             Building.WorkerMgr.WorkerAdded += HandleWorkerAdded;
             Building.WorkerMgr.WorkerRemoved += HandleWorkerRemoved;
         }
@@ -68,6 +69,16 @@ namespace RTSEngine.Health
             // We also check for whether the building has been built or not because in case of a faction conversion, components are re-initiated and this would cause the construction states to appear.
             if(!Building.IsPlacementInstance && !Building.IsBuilt) 
                 stateHandler.Reset(constructionStates, CurrHealth);
+        }
+
+        private void HandleBuildingBuilt(IBuilding sender, EventArgs args)
+        {
+            if(Building.IsBuilt)
+            {
+                stateHandler.Activate(constructionCompleteState);
+
+                stateHandler.Reset(States, CurrHealth);
+            }
         }
 
         protected override void OnDisabled()
@@ -193,12 +204,6 @@ namespace RTSEngine.Health
 
         protected override void OnMaxHealthReached(HealthUpdateArgs args)
         {
-            if(Building.IsBuilt)
-            {
-                stateHandler.Activate(constructionCompleteState);
-
-                stateHandler.Reset(States, CurrHealth);
-            }
 
             base.OnMaxHealthReached(args);
         }

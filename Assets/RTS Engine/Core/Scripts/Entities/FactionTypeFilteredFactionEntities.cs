@@ -37,37 +37,34 @@ namespace RTSEngine.Entities
 
         public override IEnumerable<IFactionEntity> GetFiltered(FactionTypeInfo factionType)
         {
-            IEnumerable<IFactionEntity> filtered = Enumerable.Empty<IFactionEntity>();
-            filtered = filtered
-                .Concat(allTypes.FromGameObject<IFactionEntity>());
-
-            if(factionType != null)
-                foreach(Element element in typeSpecific)
-                    if (element.factionTypes.Contains(factionType))
-                        filtered = filtered
-                            .Concat(element.factionEntities.FromGameObject<IFactionEntity>());
-
-            return filtered;
-        }
-
-        public IEnumerable<IFactionEntity> GetFiltered(FactionTypeInfo factionType, out IEnumerable<IFactionEntity> rest)
-        {
-            IEnumerable<IFactionEntity> filtered = Enumerable.Empty<IFactionEntity>();
-            filtered = filtered
-                .Concat(allTypes.FromGameObject<IFactionEntity>());
-
-            rest = Enumerable.Empty<IFactionEntity>();
+            List<IFactionEntity> filtered = new List<IFactionEntity>();
+            filtered.AddRange(allTypes.FromGameObject<IFactionEntity>());
 
             foreach (Element element in typeSpecific)
             {
                 if (factionType.IsValid() && element.factionTypes.Contains(factionType))
-                    filtered = filtered
-                        .Concat(element.factionEntities.FromGameObject<IFactionEntity>());
-                else
-                    rest = rest
-                        .Concat(element.factionEntities.FromGameObject<IFactionEntity>());
+                    filtered.AddRange(element.factionEntities.FromGameObject<IFactionEntity>());
             }
 
+            return filtered;
+        }
+
+        public IReadOnlyList<IFactionEntity> GetFiltered(FactionTypeInfo factionType, out IReadOnlyList<IFactionEntity> rest)
+        {
+            List<IFactionEntity> filtered = new List<IFactionEntity>();
+            filtered.AddRange(allTypes.FromGameObject<IFactionEntity>());
+
+            List<IFactionEntity> restList = new List<IFactionEntity>();
+
+            foreach (Element element in typeSpecific)
+            {
+                if (factionType.IsValid() && element.factionTypes.Contains(factionType))
+                    filtered.AddRange(element.factionEntities.FromGameObject<IFactionEntity>());
+                else
+                    restList.AddRange(element.factionEntities.FromGameObject<IFactionEntity>());
+            }
+
+            rest = restList;
             return filtered;
         }
 

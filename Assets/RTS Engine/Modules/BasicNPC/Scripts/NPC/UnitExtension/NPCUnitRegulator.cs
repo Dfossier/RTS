@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System;
 
 using RTSEngine.Entities;
@@ -28,8 +27,9 @@ namespace RTSEngine.NPC.UnitExtension
         private readonly IEntityComponentTracker<IUnitCreator> unitCreatorTracker;
 
         // key: IUnitCreator instance responsible for creating the unit in its creation task of index 'value'
-        private readonly Dictionary<IPendingTaskEntityComponent, int> creators = new Dictionary<IPendingTaskEntityComponent, int>();
-        public IEnumerable<IPendingTaskEntityComponent> Creators => creators.Keys.ToArray();
+        private readonly Dictionary<IPendingTaskEntityComponent, int> creatorToTaskID;
+        private List<IPendingTaskEntityComponent> creators;
+        public IReadOnlyList<IPendingTaskEntityComponent> Creators => creators.AsReadOnly();
         public int CreatorsCount => creators.Count;
 
         // NPC components
@@ -56,6 +56,9 @@ namespace RTSEngine.NPC.UnitExtension
             this.npcResourceMgr = npcMgr.GetNPCComponent<INPCResourceManager>();
 
             ratio = Data.Ratio;
+
+            creatorToTaskID = new Dictionary<IPendingTaskEntityComponent, int>();
+            creators = new List<IPendingTaskEntityComponent>();
 
             // Add the existing units that can be regulated by this component
             foreach (IUnit unit in this.factionMgr.Units)
@@ -86,9 +89,9 @@ namespace RTSEngine.NPC.UnitExtension
 
         protected override void OnDisabled()
         {
-            unitCreatorTracker.ComponentAdded += HandleUnitCreatorAdded;
-            unitCreatorTracker.ComponentUpdated += HandleUnitCreatorUpdated;
-            unitCreatorTracker.ComponentRemoved += HandleUnitCreatorRemoved;
+            unitCreatorTracker.ComponentAdded -= HandleUnitCreatorAdded;
+            unitCreatorTracker.ComponentUpdated -= HandleUnitCreatorUpdated;
+            unitCreatorTracker.ComponentRemoved -= HandleUnitCreatorRemoved;
 
             globalEvent.UnitInitiatedGlobal -= HandleUnitInitiatedGlobal;
 
@@ -138,9 +141,10 @@ namespace RTSEngine.NPC.UnitExtension
                 return;
 
             // newCreator is valid and has a task that creates the unit regulated by this component
-            if (!creators.ContainsKey(newCreator))
+            if (!creatorToTaskID.ContainsKey(newCreator))
             {
-                creators.Add(newCreator, taskID);
+                creators.Add(newCreator);
+                creatorToTaskID.Add(newCreator, taskID);
 
                 newCreator.PendingTaskAction += HandleUnitCreatorPendingTaskAction;
             }
@@ -158,18 +162,18 @@ namespace RTSEngine.NPC.UnitExtension
         #region Handling Events: Tracked IUnitCreator
         private void HandleUnitCreatorPendingTaskAction(IPendingTaskEntityComponent sender, PendingTaskEventArgs args)
         {
-            if (creators[sender] != args.Data.sourceTaskInput.ID)
+            if (creatorToTaskID[sender] != args.Data.sourceTaskInput.ID)
                 return;
 
             switch(args.State)
             {
                 case Task.PendingTaskState.added:
-                    AddPending(args.Data.sourceTaskInput.PrefabObject.GetComponent<IUnit>());
+                    AddPending(args.Data.sourceTaskInput.Object.GetComponent<IUnit>());
                     resourceMgr.UpdateReserveResources(args.Data.sourceTaskInput.RequiredResources, npcMgr.FactionMgr.FactionID);
                     break;
 
                 case Task.PendingTaskState.cancelled:
-                    RemovePending(args.Data.sourceTaskInput.PrefabObject.GetComponent<IUnit>());
+                    RemovePending(args.Data.sourceTaskInput.Object.GetComponent<IUnit>());
                     resourceMgr.ReleaseResources(args.Data.sourceTaskInput.RequiredResources, npcMgr.FactionMgr.FactionID);
                     break;
 
@@ -178,7 +182,7 @@ namespace RTSEngine.NPC.UnitExtension
                     break;
 
                 case Task.PendingTaskState.completed:
-                    RemovePending(args.Data.sourceTaskInput.PrefabObject.GetComponent<IUnit>());
+                    RemovePending(args.Data.sourceTaskInput.Object.GetComponent<IUnit>());
                     break;
             }
         }
@@ -190,8 +194,11 @@ namespace RTSEngine.NPC.UnitExtension
             if (!RTSHelper.TestFactionEntityRequirements(Data.FactionEntityRequirements, factionMgr))
                 return false;
 
-            foreach(var nextCreator in creators)
+            for (int i = 0; i < creators.Count; i++)
             {
+                if (!creators[i].IsActive)
+                    continue;
+
                 ErrorMessage errorMessage = ErrorMessage.none;
 
                 while(errorMessage == ErrorMessage.none)
@@ -199,7 +206,7 @@ namespace RTSEngine.NPC.UnitExtension
                     if (CurrPendingAmount >= MaxPendingAmount)
                         return false;
 
-                    if ((errorMessage = nextCreator.Key.LaunchTaskAction(nextCreator.Value, false)) == ErrorMessage.none)
+                    if ((errorMessage = creators[i].LaunchTaskAction(creatorToTaskID[creators[i]], false)) == ErrorMessage.none)
                     {
                         amount--;
                     }
@@ -208,7 +215,7 @@ namespace RTSEngine.NPC.UnitExtension
                         switch (errorMessage)
                         {
                             case ErrorMessage.taskMissingResourceRequirements:
-                                npcResourceMgr.OnIncreaseMissingResourceRequest(nextCreator.Key.Tasks.ElementAt(nextCreator.Value).RequiredResources);
+                                npcResourceMgr.OnIncreaseMissingResourceRequest(creators[i].Tasks[creatorToTaskID[creators[i]]].RequiredResources);
                                 return false;
 
                             default:

@@ -9,16 +9,19 @@ using RTSEngine.Lobby.UI;
 
 namespace RTSEngine.Lobby
 {
-    public interface ILobbyManager : IMonoBehaviour, IServicePublisher<ILobbyService>
+    public interface ILobbyManagerBase : IServicePublisher<ILobbyService> { }
+
+    public interface ILobbyManager<T> : IMonoBehaviour, ILobbyManagerBase where T : ILobbyFactionSlot
     {
         string GameCode { get; }
 
-        IEnumerable<ILobbyFactionSlot> FactionSlots { get; }
+        IReadOnlyList<T> FactionSlots { get; }
         int FactionSlotCount { get; }
-        ILobbyFactionSlot GetFactionSlot(int factionSlotID);
-        ILobbyFactionSlot LocalFactionSlot { get; }
+        T GetFactionSlot(int factionSlotID);
+        int GetFactionSlotID(T slot);
+        T LocalFactionSlot { get; }
 
-        IEnumerable<LobbyMapData> Maps { get; }
+        IReadOnlyList<LobbyMapData> Maps { get; }
         LobbyMapData CurrentMap { get; }
         LobbyMapData GetMap(int mapID);
 
@@ -32,22 +35,20 @@ namespace RTSEngine.Lobby
 
         bool IsStartingLobby { get; }
 
-        event CustomEventHandler<ILobbyFactionSlot, EventArgs> FactionSlotAdded;
-        event CustomEventHandler<ILobbyFactionSlot, EventArgs> FactionSlotRemoved;
+        event CustomEventHandler<T, EventArgs> FactionSlotAdded;
+        event CustomEventHandler<T, EventArgs> FactionSlotRemoved;
 
         event CustomEventHandler<LobbyGameData, EventArgs> LobbyGameDataUpdated;
 
         bool IsLobbyGameDataMaster();
-        void UpdateLobbyGameDataComplete(LobbyGameData lobbyGameData);
-        void UpdateLobbyGameDataRequest(LobbyGameData lobbyGameData);
 
-        void AddFactionSlot(ILobbyFactionSlot newSlot);
-        void RemoveFactionSlotRequest(int slotID);
-        bool CanRemoveFactionSlot(ILobbyFactionSlot slot);
-        void RemoveFactionSlotComplete(ILobbyFactionSlot slot);
+        void AddFactionSlot(T newSlot);
+        bool CanRemoveFactionSlot(T slot);
 
-        void LeaveLobby();
         void StartLobby();
-        bool StartLobbyInterrupt();
+        void LeaveLobby();
+        bool InterruptStartLobby();
+
+        T GetHostFactionSlot();
     }
 }

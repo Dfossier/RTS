@@ -18,7 +18,9 @@ namespace RTSEngine.Lobby.Utilities
 
         public int GetNextIndex(int index) => index.GetNextIndex(allowed);
 
-        public void Init(ILobbyManager lobbyMgr)
+        public int GetRandomIndex() => Random.Range(0, allowed.Length);
+
+        public void Init(ILobbyManagerBase lobbyMgr)
         {
             ILoggingService logger = lobbyMgr.GetService<ILobbyLoggingService>();
 

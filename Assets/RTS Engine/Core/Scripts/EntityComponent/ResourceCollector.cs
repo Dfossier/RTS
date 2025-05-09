@@ -32,27 +32,31 @@ namespace RTSEngine.EntityComponent
         private ResourceCollectorSearchBehaviour onTargetResourceDepletedSearch = ResourceCollectorSearchBehaviour.prioritizeLastResourceType;
         private bool isNextAutoSearchConditionActive;
         private IsTargetValid<IResource> nextAutoSearchCondition;
+        #endregion
 
-        protected IResourceManager resourceMgr { private set; get; }
+        #region Raising Events
+        public event CustomEventHandler<IResourceCollector, SetTargetInputDataEventArgs> OnTargetMaxWorkerReached;
+        private void RaiseOnTargetMaxWorkerReached(SetTargetInputData data)
+        {
+            var handler = OnTargetMaxWorkerReached;
+            handler?.Invoke(this, new SetTargetInputDataEventArgs(data));
+        }
         #endregion
 
         #region Initializing/Terminating
         protected sealed override void OnProgressInit()
         {
-            this.resourceMgr = gameMgr.GetService<IResourceManager>();
-
             unit = Entity as IUnit;
-
-            if (unit.IsFree)
-            {
-                logger.LogError($"[{GetType().Name} - {Entity.Code}] This component can not be attached to a free unit. The unit must belong to a faction slot!");
-                return;
-            }
 
             // Allows for constant access time to collectable resource data rather than having to go through the list each time
             collectableResourcesDic = collectableResources.ToDictionary(cr => cr.type, cr => cr);
 
             DisableNextAutoSearchCondition();
+
+            if (unit.IsFree)
+            {
+                logger.LogWarning($"[{GetType().Name} - {Entity.Code}] This component can not be attached to a free unit. The unit must belong to a faction slot!", this);
+            }
         }
         #endregion
 
@@ -116,13 +120,13 @@ namespace RTSEngine.EntityComponent
         {
             return (Target.instance.Health.IsDead && (Target.instance.CanAutoCollect || unit.DropOffSource.State == DropOffState.inactive))
                 || (!Target.instance.CanCollectOutsideBorder && !RTSHelper.IsSameFaction(Target.instance, factionEntity))
-                || (InProgress && !IsTargetInRange(transform.position, Target) && (Target.instance.CanAutoCollect || unit.DropOffSource.State == DropOffState.inactive))
+                || (InProgress && !IsTargetInRange(Entity.transform.position, Target) && (Target.instance.CanAutoCollect || unit.DropOffSource.State == DropOffState.inactive))
                 || (resourceMgr.HasResourceTypeReachedLimitCapacity(Target.instance.ResourceType, unit.FactionID));
         }
 
         protected override bool CanEnableProgress()
         {
-            return IsTargetInRange(transform.position, Target)
+            return IsTargetInRange(Entity.transform.position, Target)
                 && (Target.instance.CanAutoCollect || unit.DropOffSource.State == DropOffState.inactive || unit.DropOffSource.State == DropOffState.goingBack);
         }
 
@@ -219,7 +223,7 @@ namespace RTSEngine.EntityComponent
             }
 
             return (target.instance as IResource).WorkerMgr.GetOccupiedPosition(unit, out Vector3 workerPosition)
-                ? Vector3.Distance(sourcePosition, workerPosition) <= mvtMgr.StoppingDistance
+                ? mvtMgr.IsPositionReached(sourcePosition, workerPosition)
                 : base.IsTargetInRange(sourcePosition, target);
         }
 
@@ -230,18 +234,18 @@ namespace RTSEngine.EntityComponent
                 : collectableResources.Select(cr => cr.type == resourceType).Any();
         }
 
-        public override bool IsTargetValid(SetTargetInputData testInput, out ErrorMessage errorMessage)
+        public override bool IsTargetValid(SetTargetInputData data, out ErrorMessage errorMessage)
         {
-            errorMessage = IsTargetValid(testInput.target, testInput.playerCommand);
+            errorMessage = IsTargetValid(data);
 
             return errorMessage == ErrorMessage.none
                 || (errorMessage == ErrorMessage.workersMaxAmountReached
                 && onTargetResourceFullSearch == ResourceCollectorSearchBehaviour.prioritizeLastResourceType);
         }
 
-        public override ErrorMessage IsTargetValid (TargetData<IEntity> testTarget, bool playerCommand)
+        public override ErrorMessage IsTargetValid (SetTargetInputData data)
         {
-            TargetData<IResource> potentialTarget = testTarget;
+            TargetData<IResource> potentialTarget = data.target;
 
             if (!potentialTarget.instance.IsValid())
                 return ErrorMessage.invalid;
@@ -255,10 +259,8 @@ namespace RTSEngine.EntityComponent
                 return ErrorMessage.targetPickerUndefined;
             if (potentialTarget.instance.Health.IsDead)
                 return ErrorMessage.targetDead;
-            // Check if this is not the same resource that is being collected before checking if it has max collectors (in case player is asking the unit to collect the resource it is actively collecting).
-            if (!factionEntity.CanMove() && !IsTargetInRange(transform.position, potentialTarget))
+            if (!factionEntity.CanMove() && !IsTargetInRange(Entity.transform.position, potentialTarget))
                 return ErrorMessage.targetOutOfRange;
-
             if (!potentialTarget.instance.CanCollectOutsideBorder && !potentialTarget.instance.IsFriendlyFaction(factionEntity))
                 return ErrorMessage.resourceOutsideTerritory;
             if (resourceMgr.HasResourceTypeReachedLimitCapacity(potentialTarget.instance.ResourceType, unit.FactionID))
@@ -276,12 +278,17 @@ namespace RTSEngine.EntityComponent
             if (OnNextAutoSearchCondition(potentialTarget, out ErrorMessage errorMessage))
                 return errorMessage;
 
-            return potentialTarget.instance.WorkerMgr.CanMove(
+            ErrorMessage workerMgrError = potentialTarget.instance.WorkerMgr.CanMove(
                 unit,
                 new AddableUnitData
                 {
                     allowDifferentFaction = true
                 });
+
+            if (workerMgrError == ErrorMessage.workersMaxAmountReached)
+                RaiseOnTargetMaxWorkerReached(data);
+
+            return workerMgrError;
         }
 
         protected override void OnTargetPostLocked(SetTargetInputData input, bool sameTarget)
@@ -312,11 +319,14 @@ namespace RTSEngine.EntityComponent
 
             // If the movement component is unable to calculate the path towards the target, it will set the unit back to idle
             // And in this case, we do not continue
-            if (unit.IsIdle)
+            if (!unit.MovementComponent.HasTarget)
+            {
+                Stop();
                 return;
+            }
 
             if(input.playerCommand && unit.IsLocalPlayerFaction())
-                audioMgr.PlaySFX(handler.orderAudio, loop: false);
+                audioMgr.PlaySFX(handler.orderAudio, unit, loop: false);
 
             // For the worker component manager, make sure that enough worker positions is available even in the local method.
             // Since they are only updated in the local method, meaning that the SetTarget method would always relay the input in case a lot of consecuive calls are made...
@@ -355,7 +365,7 @@ namespace RTSEngine.EntityComponent
             nextAutoSearchCondition = condition;
             isNextAutoSearchConditionActive = true;
 
-            if(gridSearch.Search(lastInput.target.instance.transform.position, TargetFinder.Range, IsTargetValid, playerCommand: false, out IResource potentialTarget) == ErrorMessage.none)
+            if(gridSearch.Search(lastInput.target.instance.transform.position, TargetFinderData.range, IsTargetValid, playerCommand: false, out IResource potentialTarget) == ErrorMessage.none)
             {
                 SetTarget(new SetTargetInputData
                 {

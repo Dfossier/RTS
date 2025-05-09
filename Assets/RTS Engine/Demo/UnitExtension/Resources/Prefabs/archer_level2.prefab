@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 327098718246578836}
   - component: {fileID: 355027777409370792}
   - component: {fileID: 344781286916411860}
-  - component: {fileID: 6255252416097225351}
   - component: {fileID: 3517232639345766585}
   m_Layer: 0
   m_Name: archer_model
@@ -30,6 +29,7 @@ Transform:
   m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
   m_LocalPosition: {x: -0.005180359, y: -0.003, z: 0}
   m_LocalScale: {x: 0.14999999, y: 0.14999999, z: 0.14999999}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 330008275674141366}
   - {fileID: 330009254320382700}
@@ -56,10 +56,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -84,31 +86,10 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!114 &6255252416097225351
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 331269198423117102}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9f25f7e5fdbfc56499eef5560418c5d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  transformConnections:
-    connectedChildren:
-    - {fileID: 327327162346933148}
-    - {fileID: 327388319554214214}
-  animatorConnections:
-    connectedChildren:
-    - {fileID: 3517232639345766585}
-  rendererConnections:
-    connectedChildren:
-    - {fileID: 344781286916411860}
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!95 &3517232639345766585
 Animator:
-  serializedVersion: 3
+  serializedVersion: 4
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -121,6 +102,7 @@ Animator:
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
@@ -153,6 +135,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0.6998474, w: 0.7142924}
   m_LocalPosition: {x: 1.5800018, y: 0.8990431, z: -0.070007324}
   m_LocalScale: {x: 0.0391497, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 327327162346933148}
   m_RootOrder: 1
@@ -176,10 +159,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -205,6 +190,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &332631746970974908
 GameObject:
   m_ObjectHideFlags: 0
@@ -231,6 +217,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 2, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 327327162346933148}
   m_RootOrder: 0
@@ -265,6 +252,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0.406, z: 0}
   m_LocalScale: {x: 0.83750004, y: 0.47406217, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 327343560208276192}
   m_RootOrder: 0
@@ -362,6 +350,7 @@ Transform:
   m_LocalRotation: {x: 0.6250033, y: 0.19727732, z: -0.21606122, w: 0.72371966}
   m_LocalPosition: {x: 0.9800025, y: 2.6, z: -0.3999958}
   m_LocalScale: {x: 1.0127821, y: 1.0127805, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 327098718246578836}
   m_RootOrder: 2
@@ -385,10 +374,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -413,6 +404,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &333046272915754244
 GameObject:
   m_ObjectHideFlags: 0
@@ -428,6 +420,7 @@ GameObject:
   - component: {fileID: 413947526790067662}
   - component: {fileID: 5518016352158563406}
   - component: {fileID: 1317312558555500977}
+  - component: {fileID: 4941313323110921296}
   m_Layer: 0
   m_Name: archer_level2
   m_TagString: Untagged
@@ -445,6 +438,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 14.5, y: 0.050000012, z: 95.725}
   m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 327143701130537404}
   - {fileID: 327461248577059584}
@@ -473,12 +467,13 @@ MonoBehaviour:
     y: 0
   _name: Archer 2
   code: archer_level2
-  category: military_foot_unit,walking_unit
+  category: military_foot_unit,walking_unit,rtse_demo_entity,rtse_demo_entity
   description: Shoots flame arrows from far range, causing damage over time to their
     targets.
   icon: {fileID: 21300000, guid: 9ac0f9115f75b764eb0f4a9d8147a776, type: 3}
   radius: 0.4
-  model: {fileID: 6255252416097225351}
+  model: {fileID: 331269198423117102}
+  isIdle: 0
   isMainEntity: 0
   isFactionLocked: 0
   initResources:
@@ -504,11 +499,7 @@ MonoBehaviour:
       capacity: 0
     nonConsumable: 0
   coloredRenderers:
-  - renderer:
-      status: 1
-      obj: {fileID: 344781286916411860}
-      indexKey: 0
-      entity: {fileID: 364402842787801582}
+  - renderer: {fileID: 344781286916411860}
     materialID: 0
     transparency: 0
     darkness: 0
@@ -536,6 +527,7 @@ MonoBehaviour:
     enabled: 1
     offset: {x: 0, y: 1.5, z: 0}
     size: {x: 1, y: 1, z: 1}
+    parent: {fileID: 0}
   hoverHealthBarY: 1.5
   hitEffect:
     input: {fileID: 0}
@@ -572,11 +564,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
   canBeAttacked: 1
-  attackTargetPosition:
-    status: 0
-    obj: {fileID: 0}
-    indexKey: 0
-    entity: {fileID: 0}
+  attackTargetPosition: {fileID: 0}
   stopMovingOnDamage: 0
 --- !u!114 &2672959007664810291
 MonoBehaviour:
@@ -590,11 +578,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb986734d7c0b9c4b9288720ed50ab74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator:
-    status: 1
-    obj: {fileID: 3517232639345766585}
-    indexKey: 0
-    entity: {fileID: 364402842787801582}
+  animator: {fileID: 3517232639345766585}
   animatorOverrideController:
     fetchType: 0
     items:
@@ -706,7 +690,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 333046272915754244}
   m_Enabled: 0
   m_AgentTypeID: 0
-  m_Radius: 0.6
+  m_Radius: 0.4
   m_Speed: 10
   m_Acceleration: 8
   avoidancePriority: 50
@@ -749,6 +733,24 @@ MonoBehaviour:
       type: 1
       options:
       - {fileID: 11400000, guid: 91a9ec14b39b8cf41852be1ae356a847, type: 2}
+--- !u!114 &4941313323110921296
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 333046272915754244}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bab46bb0053502243877f36416be80ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  coloredRenderers:
+  - renderer: {fileID: 344781286916411860}
+    materialID: 0
+    colorPropertyName: _Color
+    transparency: 0
+    darkness: 0
 --- !u!1 &333072007701158720
 GameObject:
   m_ObjectHideFlags: 0
@@ -775,6 +777,7 @@ Transform:
   m_LocalRotation: {x: 0.46646595, y: -0.8710699, z: -0.15275128, w: 0.017714439}
   m_LocalPosition: {x: 0.19635843, y: -4.546049, z: -0.21051589}
   m_LocalScale: {x: 1.1508694, y: 1.468754, z: 1.1590148}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 327388319554214214}
   - {fileID: 327187305955653994}
@@ -810,6 +813,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.002, z: 0}
   m_LocalScale: {x: 0.1, y: 1, z: 0.1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 327343560208276192}
   m_RootOrder: 1
@@ -833,10 +837,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -861,6 +867,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &7919498838490646043
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -873,6 +880,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d85c063b4ac1858429dc001b5b10f5c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetRenderer:
+    renderer: {fileID: 345286904191457378}
+    materialID: 0
+    colorPropertyName: _Color
+    transparency: 0
+    darkness: 0
   selectionRenderer: {fileID: 345286904191457378}
   materialID: 0
 --- !u!1 &333105274994737204
@@ -903,6 +916,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0, y: 2.6, z: 1.443823e-14}
   m_LocalScale: {x: 0.26, y: 0.26, z: 0.26}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 327098718246578836}
   m_RootOrder: 0
@@ -926,10 +940,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -955,6 +971,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &333116404753838278
 GameObject:
   m_ObjectHideFlags: 0
@@ -983,6 +1000,7 @@ Transform:
   m_LocalRotation: {x: 0.6048629, y: -0.2784082, z: 0.12281096, w: 0.735899}
   m_LocalPosition: {x: -1.299998, y: 2.599999, z: -0.7100041}
   m_LocalScale: {x: 0.87006056, y: 0.86848813, z: 0.86217654}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 327327162346933148}
   m_Father: {fileID: 327098718246578836}
@@ -1007,10 +1025,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -1035,6 +1055,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &3060214102830624109
 GameObject:
   m_ObjectHideFlags: 0
@@ -1062,6 +1083,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 327343560208276192}
   m_RootOrder: 4
@@ -1090,6 +1112,7 @@ MonoBehaviour:
     reloadTime: 5
     range: 10
     idleOnly: 1
+    center: {fileID: 0}
   setTargetTaskUI: {fileID: 0}
   orderAudio:
     fetchType: 0
@@ -1099,6 +1122,7 @@ MonoBehaviour:
       defaultValueRange:
         _min: 1
         _max: 2
+  showTargetGizmo: 1
   ejectionTaskUI: {fileID: 11400000, guid: a845524f06d96d441b27ee40198cefe8, type: 2}
   allowDifferentFactions: 1
 --- !u!1 &3928261712142742284
@@ -1127,6 +1151,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 327343560208276192}
   m_RootOrder: 5
@@ -1159,6 +1184,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 327343560208276192}
   m_RootOrder: 2
@@ -1187,6 +1213,7 @@ MonoBehaviour:
     reloadTime: 5
     range: 10
     idleOnly: 1
+    center: {fileID: 0}
   setTargetTaskUI: {fileID: 11400000, guid: 061c8973e3c577f4ea6c9b563d77bf00, type: 2}
   orderAudio:
     fetchType: 0
@@ -1196,6 +1223,7 @@ MonoBehaviour:
       defaultValueRange:
         _min: 1
         _max: 2
+  showTargetGizmo: 1
   movableTerrainAreas: []
   formation:
     lastType: {fileID: 11400000, guid: 35416a79068077e409e3f8c81274ce05, type: 2}
@@ -1212,6 +1240,9 @@ MonoBehaviour:
       - name: amountPerRow
         value: 4
   movementPriority: 5
+  isMoving: 0
+  isMovementPending: 0
+  startPosition: {x: 0, y: 0, z: 0}
   speed:
     value: 10
   acceleration:
@@ -1240,6 +1271,8 @@ MonoBehaviour:
       defaultValueRange:
         _min: 1
         _max: 2
+  showPathDestination: 1
+  showPathNextCorner: 1
 --- !u!114 &6333410917579508274
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1279,6 +1312,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 327343560208276192}
   m_RootOrder: 3
@@ -1307,6 +1341,7 @@ MonoBehaviour:
     reloadTime: 1
     range: 20
     idleOnly: 1
+    center: {fileID: 0}
   setTargetTaskUI: {fileID: 11400000, guid: 1acf9aaa95010f543a53822d6a4be155, type: 2}
   orderAudio:
     fetchType: 0
@@ -1317,6 +1352,7 @@ MonoBehaviour:
       defaultValueRange:
         _min: 1
         _max: 2
+  showTargetGizmo: 1
   progressEnabledAudio:
     fetchType: 0
     items: []
@@ -1331,15 +1367,12 @@ MonoBehaviour:
     - {fileID: 22100000, guid: e2e9a953551107249aef48aa1b79e040, type: 2}
   progressDuration: 0
   progressMaxDistance: 1
-  inProgressObject:
-    status: 0
-    obj: {fileID: 0}
-    indexKey: -1
-    entity: {fileID: 0}
+  inProgressObject: {fileID: 0}
   sourceEffect:
     input: {fileID: 0}
   targetEffect:
     input: {fileID: 0}
+  showProgressGizmo: 1
   isLocked: 0
   revert: 1
   engageOptions:
@@ -1349,16 +1382,20 @@ MonoBehaviour:
     engageFriendly: 0
     autoIgnoreAngleLOS: 1
     autoIgnoreObstacleLOS: 0
+  isAttackReady: 1
   targetPicker:
     type: 0
     options:
       codes: []
       categories: []
-    engageUnits: 1
-    engageBuildings: 1
+    targetUnits: 1
+    targetBuildings: 1
   requireTarget: 1
+  allowMultipleTerrainAttacks: 0
+  terrainAttackActive: 0
   reloadDuration: 1
   delayTriggerEnabled: 0
+  attackIterationTriggered: 0
   cooldown:
     enabled: 0
     defaultValueRange:
@@ -1371,23 +1408,17 @@ MonoBehaviour:
     - attackObject:
         input: {fileID: 4871843033886371497, guid: cf1a0e95e0bf7df4eb445d35ea1eaf3e,
           type: 3}
-      launchPosition:
-        status: 1
-        obj: {fileID: 327388319554214214}
-        indexKey: 1
-        entity: {fileID: 364402842787801582}
+      launchPosition: {fileID: 327388319554214214}
       launchRotationAngles: {x: 0, y: 0, z: 0}
-      accuracyModifier: {x: 0, y: 0, z: 0}
       preDelayTime: 0
       postDelayTime: 0.84
       launchDelayTime: 0.84
       damageInDelay: 0
-      delayParentObject:
-        status: 1
-        obj: {fileID: 327388319554214214}
-        indexKey: 1
-        entity: {fileID: 364402842787801582}
+      delayParentObject: {fileID: 327388319554214214}
       index: 0
+    attackIterationLaunchEvent:
+      m_PersistentCalls:
+        m_Calls: []
   damage:
     enabled: 1
     data:
@@ -1408,6 +1439,7 @@ MonoBehaviour:
         m_Calls: []
   weapon:
     toggableObjects: []
+    toggleType: 0
     updateRotation: 1
     rotateInRangeOnly: 0
     freezeRotationX: 0
@@ -1428,10 +1460,14 @@ MonoBehaviour:
     ignoreRotationY: 1
     ignoreRotationZ: 0
   nextLaunchLogEnabled: 0
+  setTargetCooldownUIData:
+    icon: {fileID: 0}
+    color: {r: 1, g: 0, b: 0, a: 1}
   switchTaskUI: {fileID: 0}
   switchAttackCooldownUIData:
     icon: {fileID: 0}
     color: {r: 1, g: 0, b: 0, a: 1}
+  cancelTaskUI: {fileID: 0}
   attackCompleteAudio:
     fetchType: 0
     items: []
@@ -1449,6 +1485,7 @@ MonoBehaviour:
   completeEvent:
     m_PersistentCalls:
       m_Calls: []
+  showAttackIterationGizmos: 1
   formation:
     unitStoppingDistance:
       _min: 3

@@ -56,7 +56,6 @@ namespace RTSEngine.Determinism
         protected IMovementManager mvtMgr { private set; get; }
         protected IAttackManager attackMgr { private set; get; }
         protected ITimeModifier timeModifier { private set; get; }
-        protected IModelCacheManager modelCacheMgr { private set; get; }
         #endregion
 
         #region Initializing/Terminating
@@ -71,7 +70,6 @@ namespace RTSEngine.Determinism
             this.mvtMgr = gameMgr.GetService<IMovementManager>();
             this.attackMgr = gameMgr.GetService<IAttackManager>();
             this.timeModifier = gameMgr.GetService<ITimeModifier>();
-            this.modelCacheMgr = gameMgr.GetService<IModelCacheManager>();
 
             spawnedEntities = new Dictionary<int, IEntity>();
             deadEntityKeys = new HashSet<int>();
@@ -186,15 +184,14 @@ namespace RTSEngine.Determinism
         }
         #endregion
 
-
         #region Sending Input
-        public ErrorMessage SendInput(CommandInput newInput, IEntity source, IEntity target)
+        public ErrorMessage SendInput(CommandInput newInput, IEntity source, IEntity target, bool masterInstanceOnly = false)
         {
             if (!logger.RequireValid(source,
                 "[InputManager] Can not process input without a valid source!"))
                 return ErrorMessage.invalid;
 
-            if (newInput.playerCommand)
+            if (!masterInstanceOnly && newInput.playerCommand)
             {
                 if  (!RTSHelper.IsLocalPlayerFaction(source) && !(RTSHelper.IsNPCFaction(source) && RTSHelper.IsMasterInstance()))
                     return ErrorMessage.noAuthority;
@@ -227,13 +224,13 @@ namespace RTSEngine.Determinism
             return SendInputFinal(newInput);
         }
 
-        public ErrorMessage SendInput(CommandInput newInput, IEnumerable<IEntity> source, IEntity target)
+        public ErrorMessage SendInput(CommandInput newInput, IEnumerable<IEntity> source, IEntity target, bool masterInstanceOnly = false)
         {
             if (!logger.RequireValid(source,
                 "[InputManager] Can not process input without a valid source!"))
                 return ErrorMessage.invalid;
 
-            if (newInput.playerCommand)
+            if (!masterInstanceOnly && newInput.playerCommand)
             {
                 if (!RTSHelper.IsLocalPlayerFaction(source) && !(RTSHelper.IsNPCFaction(source) && RTSHelper.IsMasterInstance()))
                     return ErrorMessage.noAuthority;
@@ -478,6 +475,7 @@ namespace RTSEngine.Determinism
                         new SetTargetInputData
                         {
                             target = targetData,
+                            componentCode = input.opCode,
                             playerCommand = input.playerCommand,
 
                             includeMovement = setTargetBooleans.HasFlag(SetTargetInputDataBooleans.includeMovement),
@@ -544,21 +542,24 @@ namespace RTSEngine.Determinism
                     MovementSourceBooleans sourceBooleansMask = (MovementSourceBooleans)input.intValues.Item1;
 
                     mvtMgr.SetPathDestinationLocal(
-                        sourceEntity,
-                        input.targetPosition,
-                        input.floatValue,
-                        target,
-                        new MovementSource
+                        new SetPathDestinationData<IEntity>
                         {
-                            playerCommand = input.playerCommand,
-                            sourceTargetComponent = sourceComponent,
-                            targetAddableUnit = targetAddableUnit,
-                            targetAddableUnitPosition = input.opPosition,
-                            isMoveAttackRequest = sourceBooleansMask.HasFlag(MovementSourceBooleans.isMoveAttackRequest),
-                            inMoveAttackChain = sourceBooleansMask.HasFlag(MovementSourceBooleans.inMoveAttackChain),
-                            isMoveAttackSource = sourceBooleansMask.HasFlag(MovementSourceBooleans.isMoveAttackSource),
-                            fromTasksQueue = sourceBooleansMask.HasFlag(MovementSourceBooleans.fromTasksQueue),
-                            disableMarker = sourceBooleansMask.HasFlag(MovementSourceBooleans.disableMarker),
+                            source = sourceEntity,
+                            destination = input.targetPosition,
+                            offsetRadius = input.floatValue,
+                            target = target,
+                            mvtSource = new MovementSource
+                            {
+                                playerCommand = input.playerCommand,
+                                sourceTargetComponent = sourceComponent,
+                                targetAddableUnit = targetAddableUnit,
+                                targetAddableUnitPosition = input.opPosition,
+                                isMoveAttackRequest = sourceBooleansMask.HasFlag(MovementSourceBooleans.isMoveAttackRequest),
+                                inMoveAttackChain = sourceBooleansMask.HasFlag(MovementSourceBooleans.inMoveAttackChain),
+                                isMoveAttackSource = sourceBooleansMask.HasFlag(MovementSourceBooleans.isMoveAttackSource),
+                                fromTasksQueue = sourceBooleansMask.HasFlag(MovementSourceBooleans.fromTasksQueue),
+                                disableMarker = sourceBooleansMask.HasFlag(MovementSourceBooleans.disableMarker),
+                            }
                         });
                     break;
 
@@ -599,11 +600,13 @@ namespace RTSEngine.Determinism
                         MovementSourceBooleans sourceBooleansMask = (MovementSourceBooleans)input.intValues.Item1;
 
                         mvtMgr.SetPathDestinationLocal(
-                            sourceEntities,
-                            input.targetPosition,
-                            input.floatValue,
-                            target as IEntity,
-                            new MovementSource
+                        new SetPathDestinationData<IReadOnlyList<IEntity>>
+                        {
+                            source = sourceEntities,
+                            destination = input.targetPosition,
+                            offsetRadius = input.floatValue,
+                            target = target as IEntity,
+                            mvtSource = new MovementSource
                             {
                                 playerCommand = input.playerCommand,
                                 sourceTargetComponent = null,
@@ -614,7 +617,8 @@ namespace RTSEngine.Determinism
                                 isMoveAttackSource = sourceBooleansMask.HasFlag(MovementSourceBooleans.isMoveAttackSource),
                                 fromTasksQueue = sourceBooleansMask.HasFlag(MovementSourceBooleans.fromTasksQueue),
                                 disableMarker = sourceBooleansMask.HasFlag(MovementSourceBooleans.disableMarker),
-                            });
+                            }
+                        });
                         break;
 
                     default:

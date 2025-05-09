@@ -17,13 +17,15 @@ MonoBehaviour:
     enabled: 1
     displayType: 0
     icon: {fileID: 21300000, guid: a3cd212fdc0be234b955290555d4d434, type: 3}
-    panelCategory: 2
+    panelCategory: 3
     forceSlot: 1
-    slotIndex: 0
+    slotIndex: 4
     tooltipEnabled: 1
     description: Call units to store them.
     hideTooltipOnClick: 1
     reloadTime: 0
     cursor:
       icon: {fileID: 0}
+      texture: {fileID: 0}
       hotspot: {x: 0, y: 0}
+    controlType: {fileID: 0}

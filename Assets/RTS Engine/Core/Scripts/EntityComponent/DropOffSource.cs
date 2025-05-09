@@ -23,7 +23,7 @@ namespace RTSEngine.EntityComponent
          * */
         public enum ActionType : byte { startDropoff }
 
-        protected IUnit unit;
+        public IUnit Unit { private set;  get; }
 
         // Always set 'HasTarget' to false because we do not want this component to affect the idle status of the unit.
         // If at least one IEntityTargetComponent of an IEntity has this property set to true then the unit is considered in idle status.
@@ -57,7 +57,7 @@ namespace RTSEngine.EntityComponent
             return 0;
         }
 
-        private ModelCacheAwareTransformInput dropOffObject;
+        private GameObject dropOffObject;
 
         [SerializeField, Tooltip("The total maximum capacity of all resources that the collector can hold before they have to drop it off.")]
         private int totalMaxCapacity = 10;
@@ -66,8 +66,6 @@ namespace RTSEngine.EntityComponent
         private bool dropOffOnTargetAvailable = true;
 
         public DropOffState State { private set; get; }
-
-        protected IResourceManager resourceMgr { private set; get; }
         #endregion
 
         #region Events
@@ -98,18 +96,11 @@ namespace RTSEngine.EntityComponent
         #region Initializing/Terminating
         protected override void OnTargetInit()
         {
-            this.resourceMgr = gameMgr.GetService<IResourceManager>();
+            this.Unit = Entity as IUnit;
 
-            this.unit = Entity as IUnit;
-
-            if (!unit.CollectorComponent.IsValid())
+            if (!Unit.CollectorComponent.IsValid())
             {
                 logger.LogError($"[DropOffSource - {Entity.Code}] A component that extends {typeof(IResourceCollector).Name} interface must be attached to same object!", source: this);
-                return;
-            }
-            else if (unit.IsFree)
-            {
-                logger.LogError($"[DropOffSource - {Entity.Code}] This component can not be attached to a free unit. The unit must belong to a faction slot!");
                 return;
             }
 
@@ -119,28 +110,72 @@ namespace RTSEngine.EntityComponent
             dropOffResourcesDic = dropOffResources.ToDictionary(dr => dr.type, dr => dr);
 
             // DropOffSource does not search for targets but simply tracks DropOffTarget instances being added and removed to get a target
-            TargetFinder.Enabled = false;
+            if(targetFinder.IsValid())
+                targetFinder.IsActive = false;
 
-            unit.FactionMgr.OwnFactionEntityAdded += HandleOwnFactionEntityAdded;
-            unit.FactionMgr.OwnFactionEntityRemoved += HandleOwnFactionEntityRemoved;
+            Unit.FactionUpdateStart += HandleFactionUpdateStart;
+            Unit.FactionUpdateComplete += HandleFactionUpdateComplete;
+
+            if (Unit.IsFree)
+            {
+                logger.LogWarning($"[DropOffSource - {Entity.Code}] This component can not be attached to a free unit. The unit must belong to a faction slot!", this);
+            }
+            else
+            {
+                Unit.FactionMgr.OwnFactionEntityAdded += HandleOwnFactionEntityAdded;
+                Unit.FactionMgr.OwnFactionEntityRemoved += HandleOwnFactionEntityRemoved;
+            }
 
             LastCollectedResourceType = null;
-            unit.CollectorComponent.TargetUpdated += HandleResourceCollectorTargetUpdated;
+            Unit.CollectorComponent.TargetUpdated += HandleResourceCollectorTargetUpdated;
 
             RaiseDropOffStateUpdated(DropOffState.inactive);
+        }
+
+        private void ResetCollectedResources()
+        {
+            collectedResources = resourceMgr.FactionResources[Unit.IsFree ? 0 : Unit.FactionID].ResourceHandlers.Values
+                .ToDictionary(resourceHandler => resourceHandler.Type, mr => 0);
+
+            CollectedResourcesSum = 0;
+
+            RaiseCollectedResourcesUpdated();
+        }
+
+        protected override void OnTargetDisabled()
+        {
+            if (!Unit.IsFree)
+            {
+                Unit.FactionMgr.OwnFactionEntityAdded -= HandleOwnFactionEntityAdded;
+                Unit.FactionMgr.OwnFactionEntityRemoved -= HandleOwnFactionEntityRemoved;
+            }
+
+            Unit.CollectorComponent.TargetUpdated -= HandleResourceCollectorTargetUpdated;
+        }
+        #endregion
+
+        #region Handling Event: Faction Update, Resource Collector Target Update, Own Faction Entity Add/Remove
+        private void HandleFactionUpdateStart(IEntity entity, FactionUpdateArgs args)
+        {
+            if (Unit.IsFree)
+                return;
+
+            Unit.FactionMgr.OwnFactionEntityAdded -= HandleOwnFactionEntityAdded;
+            Unit.FactionMgr.OwnFactionEntityRemoved -= HandleOwnFactionEntityRemoved;
+        }
+
+        private void HandleFactionUpdateComplete(IEntity entity, FactionUpdateArgs args)
+        {
+            if (Unit.IsFree)
+                return;
+
+            Unit.FactionMgr.OwnFactionEntityAdded += HandleOwnFactionEntityAdded;
+            Unit.FactionMgr.OwnFactionEntityRemoved += HandleOwnFactionEntityRemoved;
         }
 
         private void HandleResourceCollectorTargetUpdated(IEntityTargetComponent resourceCollector, TargetDataEventArgs args)
         {
             UpdateTarget();
-        }
-
-        protected override void OnTargetDisabled()
-        {
-            unit.FactionMgr.OwnFactionEntityAdded -= HandleOwnFactionEntityAdded;
-            unit.FactionMgr.OwnFactionEntityRemoved -= HandleOwnFactionEntityRemoved;
-
-            unit.CollectorComponent.TargetUpdated -= HandleResourceCollectorTargetUpdated;
         }
 
         private void HandleOwnFactionEntityAdded(IFactionManager sender, EntityEventArgs<IFactionEntity> args)
@@ -156,16 +191,6 @@ namespace RTSEngine.EntityComponent
             if (args.Entity.DropOffTarget.IsValid())
                 UpdateTarget();
         }
-
-        private void ResetCollectedResources()
-        {
-            collectedResources = resourceMgr.FactionResources[unit.IsFree ? 0 : unit.FactionID].ResourceHandlers.Values
-                .ToDictionary(resourceHandler => resourceHandler.Type, mr => 0);
-
-            CollectedResourcesSum = 0;
-
-            RaiseCollectedResourcesUpdated();
-        }
         #endregion
 
         #region Handling Component Upgrade
@@ -173,6 +198,8 @@ namespace RTSEngine.EntityComponent
         {
             foreach (KeyValuePair<ResourceTypeInfo, int> collectedResourcePair in (sourceFactionEntityTargetComponent as IDropOffSource).CollectedResources)
                 UpdateCollectedResources(collectedResourcePair.Key, collectedResourcePair.Value);
+
+            UpdateTarget();
 
             AttemptStartDropOff();
         }
@@ -186,18 +213,18 @@ namespace RTSEngine.EntityComponent
         public override bool IsTargetInRange(Vector3 sourcePosition, TargetData<IEntity> target)
         {
             return !maxDropOffDistanceEnabled
-                || !unit.CollectorComponent.Target.instance.IsValid()
-                || Vector3.Distance(unit.CollectorComponent.Target.instance.transform.position, target.instance.transform.position)
-                    <= maxDropOffDistance + target.instance.Radius + unit.CollectorComponent.Target.instance.Radius;
+                || !Unit.CollectorComponent.Target.instance.IsValid()
+                || Vector3.Distance(Unit.CollectorComponent.Target.instance.transform.position, target.instance.transform.position)
+                    <= maxDropOffDistance + target.instance.Radius + Unit.CollectorComponent.Target.instance.Radius;
         }
 
-        public override ErrorMessage IsTargetValid(TargetData<IEntity> testTarget, bool playerCommand)
+        public override ErrorMessage IsTargetValid(SetTargetInputData data)
         {
-            TargetData<IFactionEntity> potentialTarget = testTarget;
+            TargetData<IFactionEntity> potentialTarget = data.target;
 
             if (!potentialTarget.instance.IsValid() || !potentialTarget.instance.CanLaunchTask)
                 return ErrorMessage.invalid;
-            else if (!potentialTarget.instance.IsSameFaction(unit))
+            else if (!potentialTarget.instance.IsSameFaction(Unit))
                 return ErrorMessage.factionMismatch;
             else if (!potentialTarget.instance.IsInteractable)
                 return ErrorMessage.uninteractable;
@@ -209,8 +236,10 @@ namespace RTSEngine.EntityComponent
                 return ErrorMessage.targetPickerUndefined;
             else if (!IsTargetInRange(transform.position, potentialTarget))
                 return ErrorMessage.targetOutOfRange;
+            else if (!potentialTarget.instance.DropOffTarget.CanDropResourceType(LastCollectedResourceType))
+                return ErrorMessage.resourceTypeMismatch;
 
-            return potentialTarget.instance.DropOffTarget.CanMove(unit);
+            return potentialTarget.instance.DropOffTarget.CanMove(Unit);
         }
 
         protected override void OnTargetPostLocked(SetTargetInputData input, bool sameTarget)
@@ -218,31 +247,31 @@ namespace RTSEngine.EntityComponent
             // Force unit to drop its resources if this was a direct player command
             if(input.playerCommand)
                 AttemptStartDropOff(force: true);
-            else if (dropOffOnTargetAvailable && unit.IsIdle)
+            else if (dropOffOnTargetAvailable && Unit.IsIdle)
                 AttemptStartDropOff(force: false, LastCollectedResourceType);
         }
 
         // Called when a new drop off point is added to the faction or when the unit starts collecting a new resource
         private void UpdateTarget()
         {
-            Vector3 searchSourcePosition = unit.transform.position;
-            if (unit.CollectorComponent.HasTarget
-                && dropOffResourcesDic.ContainsKey(unit.CollectorComponent.Target.instance.ResourceType))
+            Vector3 searchSourcePosition = Unit.transform.position;
+            if (Unit.CollectorComponent.HasTarget
+                && dropOffResourcesDic.ContainsKey(Unit.CollectorComponent.Target.instance.ResourceType))
             {
-                searchSourcePosition = unit.CollectorComponent.Target.instance.transform.position;
-                LastCollectedResourceType = unit.CollectorComponent.Target.instance.ResourceType;
+                searchSourcePosition = Unit.CollectorComponent.Target.instance.transform.position;
+                LastCollectedResourceType = Unit.CollectorComponent.Target.instance.ResourceType;
             }
 
             IFactionEntity closestDropOffTarget = RTSHelper.GetClosestEntity(
                 searchSourcePosition,
-                unit.FactionMgr.DropOffTargets,
+                Unit.FactionMgr.DropOffTargets,
                 IsDropOffTargetValid
                 );
 
             if (closestDropOffTarget.IsValid())
                 SetTarget(closestDropOffTarget.ToTargetData(), false);
         }
-        private bool IsDropOffTargetValid(IFactionEntity dropOffTargetEntity) => IsTargetValid(dropOffTargetEntity.ToTargetData(), false) == ErrorMessage.none;
+        private bool IsDropOffTargetValid(IFactionEntity dropOffTargetEntity) => IsTargetValid(dropOffTargetEntity.ToSetTargetInputData(playerCommand: false)) == ErrorMessage.none;
         #endregion
 
         #region Handling Actions
@@ -265,7 +294,7 @@ namespace RTSEngine.EntityComponent
         {
             if (!Target.instance.IsValid())
             {
-                if (playerCommand && unit.IsLocalPlayerFaction())
+                if (playerCommand && Unit.IsLocalPlayerFaction())
                     playerMsgHandler.OnErrorMessage(new PlayerErrorMessageWrapper
                     {
                         message = ErrorMessage.dropOffTargetMissing,
@@ -273,7 +302,7 @@ namespace RTSEngine.EntityComponent
                         source = Entity,
                     });
 
-                unit.SetIdle();
+                Unit.SetIdle();
                 //unit.AnimatorController?.SetState(AnimatorState.idle);
 
                 return ErrorMessage.dropOffTargetMissing;
@@ -289,18 +318,18 @@ namespace RTSEngine.EntityComponent
 
             RaiseDropOffStateUpdated(DropOffState.active);
 
-            globalEvent.RaiseUnitResourceDropOffStartGlobal(unit, new ResourceEventArgs(unit.CollectorComponent.Target.instance, LastCollectedResourceType));
+            globalEvent.RaiseUnitResourceDropOffStartGlobal(Unit, new ResourceEventArgs(Unit.CollectorComponent.Target.instance, LastCollectedResourceType));
 
             dropOffObject = dropOffResourcesDic[LastCollectedResourceType].enableObject;
             if (dropOffObject.IsValid())
-                dropOffObject.IsActive = true;
+                dropOffObject.SetActive(true);
 
-            unit.AnimatorController.SetOverrideController(dropOffResourcesDic[LastCollectedResourceType].animatorOverrideController.Fetch());
-            audioMgr.StopSFX(unit.AudioSourceComponent);
-            audioMgr.PlaySFX(unit, dropOffResourcesDic[LastCollectedResourceType].enableAudio);
+            Unit.AnimatorController.SetOverrideController(dropOffResourcesDic[LastCollectedResourceType].animatorOverrideController.Fetch());
+            audioMgr.StopSFX(Unit.AudioSourceComponent);
+            audioMgr.PlaySFX(Unit, dropOffResourcesDic[LastCollectedResourceType].enableAudio);
 
             Target.instance.DropOffTarget.Move(
-                unit,
+                Unit,
                 new AddableUnitData
                 {
                     sourceTargetComponent = this,
@@ -320,9 +349,11 @@ namespace RTSEngine.EntityComponent
 
         public bool HasReachedMaxCapacity(ResourceTypeInfo resourceType = null)
         {
-            return resourceType.IsValid() 
+            return collectedResources.Values.Sum() >= totalMaxCapacity
+                ||
+                (resourceType.IsValid()
                     && dropOffResourcesDic.ContainsKey(resourceType)
-                    && collectedResources[resourceType] >= dropOffResourcesDic[resourceType].amount;
+                    && collectedResources[resourceType] >= dropOffResourcesDic[resourceType].amount);
         }
 
         // Forcing drop off means that if the collector has at least one resource unit of any type, it will be dropped off.
@@ -334,9 +365,9 @@ namespace RTSEngine.EntityComponent
                 return false;
 
             // When attempting to drop off a resource type that has already reached its maximum capacity limit
-            if(resourceMgr.HasResourceTypeReachedLimitCapacity(resourceType, unit.FactionID))
+            if(resourceMgr.HasResourceTypeReachedLimitCapacity(resourceType, Unit.FactionID))
             {
-                if (unit.IsLocalPlayerFaction())
+                if (Unit.IsLocalPlayerFaction())
                 {
                     playerMsgHandler.OnErrorMessage(new PlayerErrorMessageWrapper
                     {
@@ -345,7 +376,7 @@ namespace RTSEngine.EntityComponent
                     });
                 }
 
-                unit.CollectorComponent.Stop();
+                Unit.CollectorComponent.Stop();
 
                 return false;
             }
@@ -359,13 +390,13 @@ namespace RTSEngine.EntityComponent
 
         public void Unload()
         {
-            RaiseDropOffStateUpdated(unit.CollectorComponent.HasTarget ? DropOffState.goingBack : DropOffState.inactive);
+            RaiseDropOffStateUpdated(Unit.CollectorComponent.HasTarget ? DropOffState.goingBack : DropOffState.inactive);
 
             if (dropOffObject.IsValid())
-                dropOffObject.IsActive = false;
+                dropOffObject.SetActive(false);
 
             // Only units that belong to a faction can update their faction's resources.
-            if(!unit.IsFree) 
+            if(!Unit.IsFree) 
                 foreach (ResourceTypeInfo resourceType in collectedResources.Keys.ToArray())
                 {
                     if (collectedResources[resourceType] == 0)
@@ -382,7 +413,7 @@ namespace RTSEngine.EntityComponent
                     };
 
                     resourceMgr.UpdateResource(
-                        unit.FactionID,
+                        Unit.FactionID,
                         nextInput,
                         add: true,
                         out int restAmount);
@@ -392,7 +423,7 @@ namespace RTSEngine.EntityComponent
                     CollectedResourcesSum -= unloadedAmount;
 
                     // In case not all of the amount could be unloaded due to a limited capacity type resource that reached its maximum capacity...
-                    if(restAmount > 0 && unit.IsLocalPlayerFaction())
+                    if(restAmount > 0 && Unit.IsLocalPlayerFaction())
                     {
                         playerMsgHandler.OnErrorMessage(new PlayerErrorMessageWrapper
                         {
@@ -402,10 +433,10 @@ namespace RTSEngine.EntityComponent
                         });
                     }
 
-                    globalEvent.RaiseUnitResourceDropOffCompleteGlobal(unit, new ResourceAmountEventArgs(nextInput));
+                    globalEvent.RaiseUnitResourceDropOffCompleteGlobal(Unit, new ResourceAmountEventArgs(nextInput));
                 }
 
-            unit.AnimatorController?.ResetOverrideController();
+            Unit.AnimatorController?.ResetOverrideController();
 
             RaiseDropOffUnloaded();
             RaiseCollectedResourcesUpdated();
@@ -413,14 +444,14 @@ namespace RTSEngine.EntityComponent
             // Back to collect the last resource
             if (State == DropOffState.goingBack)
             {
-                unit.CollectorComponent.SetTarget(unit.CollectorComponent.Target, false);
+                Unit.CollectorComponent.SetTarget(Unit.CollectorComponent.Target, false);
             }
             // If the unit is idle (ResourceCollector is inactive) and we are allowed to drop off when the target available...
             // ...then this means we are resuming the resource collection of the same resource (LastTarget) that was being collected before...
             // ...the unit had to stop collecting due to not having a drop off point available
-            else if (dropOffOnTargetAvailable && unit.IsIdle)
+            else if (dropOffOnTargetAvailable && Unit.IsIdle)
             {
-                unit.CollectorComponent.SetTarget(unit.CollectorComponent.LastTarget, false);
+                Unit.CollectorComponent.SetTarget(Unit.CollectorComponent.LastTarget, false);
             }
         }
 
@@ -429,8 +460,26 @@ namespace RTSEngine.EntityComponent
             RaiseDropOffStateUpdated(DropOffState.inactive);
 
             if (dropOffObject.IsValid())
-                dropOffObject.IsActive = false;
+                dropOffObject.SetActive(false);
         }
+        #endregion
+
+        #region Editor
+#if UNITY_EDITOR
+        [SerializeField, HideInInspector]
+        private bool showDropOffPosition = true;
+        [HideInInspector]
+        public bool editorFoldout;
+
+        protected override void OnDrawGizmosSelected()
+        {
+            base.OnDrawGizmosSelected();
+
+            Gizmos.color = Color.yellow;
+            if(HasTarget && showDropOffPosition)
+                Gizmos.DrawWireSphere(Target.instance.DropOffTarget.GetAddablePosition(Unit), mvtMgr.StoppingDistance);
+        }
+#endif
         #endregion
     }
 }

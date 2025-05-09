@@ -67,6 +67,23 @@ namespace RTSEngine.UI
         #endregion
 
         #region Resources
+        public virtual bool FactionResourceHandlerToString(IFactionResourceHandler resourceHandler, out string text)
+        {
+            text = "";
+            if (!resourceHandler.IsValid())
+                return false;
+
+            if (!string.IsNullOrEmpty(resourceHandler.Type.DisplayName))
+                text = $"{resourceHandler.Type.DisplayName}: ";
+
+            if (resourceHandler.Type.HasCapacity)
+                text += $"{resourceHandler.Amount}/{resourceHandler.Capacity}";
+            else
+                text += $"{resourceHandler.Amount}";
+
+            return true;
+        }
+
         public virtual bool ResourceTypeValueToString (ResourceTypeValue value, out string text)
         {
             text = value.amount != 0
@@ -124,37 +141,44 @@ namespace RTSEngine.UI
         #endregion
 
         #region Tasks
-        public virtual bool BuildingCreationTaskToString(BuildingCreationTask creationTask, out string text)
-            => EntityComponentTaskInputToText(creationTask, creationTask?.Prefab, out text);
-
-        public virtual bool UnitCreationTaskToString(UnitCreationTask creationTask, out string text)
-            => EntityComponentTaskInputToText(creationTask, creationTask?.Prefab, out text);
-
-        public virtual bool UpgradeTaskToString(UpgradeTask upgradeTask, out string text)
+        public virtual bool EntityComponentTaskTitleToString(IEntityComponentTaskInput taskInput, out string text)
         {
-            if (upgradeTask.Prefab is EntityUpgrade)
-                return EntityComponentTaskInputToText(
-                    upgradeTask,
-                    (upgradeTask.Prefab as EntityUpgrade).GetUpgrade(upgradeTask.UpgradeIndex).UpgradeTarget,
-                    out text);
-            else if (upgradeTask.Prefab is EntityComponentUpgrade)
-            {
-                /*return EntityComponentTaskInputToText(
-                    upgradeTask,
-                    (upgradeTask.Prefab as EntityComponentUpgrade).GetUpgrade(upgradeTask.UpgradeIndex).UpgradeTarget,
-                    out text);*/
-                text = "";
+            text = String.Empty;
+            if (!taskInput.IsValid())
                 return false;
+
+            text = taskInput.Title;
+            return true;
+        }
+        public virtual bool BuildingCreationTaskTooltipToString(BuildingCreationTask creationTask, out string text)
+            => EntityComponentTaskTooltipInputToText(creationTask, creationTask?.TargetObject, out text);
+
+        public virtual bool UnitCreationTaskTooltipToString(UnitCreationTask creationTask, out string text)
+            => EntityComponentTaskTooltipInputToText(creationTask, creationTask?.TargetObject, out text);
+
+        public virtual bool UpgradeTaskTooltipToString(UpgradeTask upgradeTask, out string text)
+        {
+            if (upgradeTask.TargetObject is EntityUpgrade)
+                return EntityComponentTaskTooltipInputToText(
+                    upgradeTask,
+                    (upgradeTask.TargetObject as EntityUpgrade).GetUpgrade(upgradeTask.UpgradeIndex).UpgradeTarget,
+                    out text);
+            else if (upgradeTask.TargetObject is EntityComponentUpgrade)
+            {
+                return EntityComponentTaskTooltipInputToText(
+                    upgradeTask,
+                    (upgradeTask.TargetObject as EntityComponentUpgrade).GetUpgrade(upgradeTask.UpgradeIndex).UpgradeTarget.Entity,
+                    out text);
             }
             else
             {
-                logger.LogError("[GameUITextDisplayManager] Unable to determine the upgrade type!", source: upgradeTask.Prefab.SourceEntity);
+                logger.LogError("[GameUITextDisplayManager] Unable to determine the upgrade type!", source: upgradeTask.TargetObject.SourceEntity);
                 text = "";
                 return false;
             }
         }
 
-        public virtual bool EntityComponentTaskInputToText(IEntityComponentTaskInput taskInput, IEntity targetPrefab, out string text)
+        public virtual bool EntityComponentTaskTooltipInputToText(IEntityComponentTaskInput taskInput, IEntity targetPrefab, out string text)
         {
             text = String.Empty;
 
@@ -163,12 +187,12 @@ namespace RTSEngine.UI
 
             StringBuilder builder = new StringBuilder();
 
-            if (EntityComponentTaskToText(taskInput.Data, out string taskDescription))
+            if (EntityComponentTaskTooltipToText(taskInput.Data, out string taskDescription))
             {
                 builder.AppendLine(taskDescription);
                 builder.AppendLine();
             }
-            if (EntityDescriptionToText(targetPrefab, out string targetPrefabDescription))
+            if (targetPrefab.IsValid() && EntityDescriptionToText(targetPrefab, out string targetPrefabDescription))
             {
                 builder.AppendLine(targetPrefabDescription);
                 builder.AppendLine();
@@ -184,7 +208,7 @@ namespace RTSEngine.UI
             return true;
         }
 
-        public virtual bool EntityComponentTaskToText(EntityComponentTaskUIData taskData, out string text)
+        public virtual bool EntityComponentTaskTooltipToText(EntityComponentTaskUIData taskData, out string text)
         {
             text = taskData.description;
 
@@ -471,8 +495,8 @@ namespace RTSEngine.UI
         }
         #endregion
 
-        #region Faction State
-        public virtual bool FactionDefeatToText (FactionSlot factionSlot, out string text)
+        #region Faction Slot
+        public virtual bool FactionSlotDefeatToText (IFactionSlot factionSlot, out string text)
         {
             text = String.Empty;
 
@@ -480,6 +504,27 @@ namespace RTSEngine.UI
                 return false;
 
             text = $"Faction '{factionSlot.Data.name}' (ID: {factionSlot.ID}) has been defeated!";
+
+            return true;
+        }
+
+        public virtual bool FactionSlotToStatsText (IFactionSlot factionSlot, out string text)
+        {
+            text = String.Empty;
+
+            if(!factionSlot.IsValid())
+                return false;
+
+            text = $"{factionSlot.Data.name} ({factionSlot.ID + 1})";
+
+            return true;
+        }
+        #endregion
+
+        #region Selection
+        public virtual bool SelectionGroupToTooltip (string defaultTooltip, out string text)
+        {
+            text = defaultTooltip;
 
             return true;
         }

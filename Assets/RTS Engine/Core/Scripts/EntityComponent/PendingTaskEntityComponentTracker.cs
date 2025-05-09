@@ -53,9 +53,9 @@ namespace RTSEngine.EntityComponent
 
             //inspect the already spawned/created faction entities and see if they have the component that is tracker here
             foreach (IFactionEntity factionEntity in this.factionMgr.FactionEntities)
-                foreach(IEntityComponent entityComponent in factionEntity.EntityComponents.Values)
-                    if(entityComponent is T)
-                        components.Add((T)entityComponent);
+                foreach (IEntityComponent entityComponent in factionEntity.PendingTaskEntityComponents)
+                    if (entityComponent is T)
+                        HandlePendingTaskEntityComponentAdded((T)entityComponent, EventArgs.Empty);
 
             this.globalEvent.PendingTaskEntityComponentAdded += HandlePendingTaskEntityComponentAdded;
             this.globalEvent.PendingTaskEntityComponentUpdated += HandlePendingTaskEntityComponentUpdated;
@@ -100,7 +100,8 @@ namespace RTSEngine.EntityComponent
                 return;
 
             T removeComponent = (T)sender;
-            components.Remove(removeComponent);
+            if (!components.Remove(removeComponent))
+                return;
 
             RaiseComponentRemoved(new EntityComponentEventArgs<T>(removeComponent));
         }

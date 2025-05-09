@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 using UnityEngine;
 
@@ -40,7 +39,9 @@ namespace RTSEngine.EntityComponent
 
         [SerializeField, Tooltip("List of building creation tasks that can be launched through this component after the building upgrades are unlocked.")]
         private BuildingCreationTask[] upgradeTargetCreationTasks = new BuildingCreationTask[0];
-        public IReadOnlyList<BuildingCreationTask> UpgradeTargetCreationTasks => upgradeTargetCreationTasks.ToList();
+        public IReadOnlyList<BuildingCreationTask> UpgradeTargetCreationTasks => upgradeTargetCreationTasks;
+
+        private BuildingCreationTaskHandler buildingCreationTaskHandler = new BuildingCreationTaskHandler();
 
         [SerializeField, Tooltip("When enabled, only one audio clip from the 'Construction Audio' will be fetched and looped the entire time the builder is constructing the building. When disabled, an audio clip is fetched and played every time the builder adds health points to the target building it is constructing.")]
         private bool fetchConstructionAudioOnce = false;
@@ -63,13 +64,7 @@ namespace RTSEngine.EntityComponent
                 $"[{GetType().Name} - {unit.Code}] The 'Health Per Progress' must have a positive value.")
 
                 || !logger.RequireTrue(timeMultiplier >= 0,
-                $"[{GetType().Name} - {unit.Code}] The 'Time Multiplier' must have a positive value.")
-
-                || !logger.RequireTrue(creationTasks.All(task => task.PrefabObject != null),
-                $"[{GetType().Name} - {unit.Code}] Some elements in the 'Creation Tasks' array have the 'Prefab Object' field unassigned!")
-
-                || !logger.RequireTrue(upgradeTargetCreationTasks.All(task => task.PrefabObject != null),
-                $"[{GetType().Name} - {Entity.Code}] Some elements in the 'Upgrade Target Creation Tasks' array have the 'Prefab Object' field unassigned!"))
+                $"[{GetType().Name} - {unit.Code}] The 'Time Multiplier' must have a positive value."))
                 return;
 
             this.entityUpgradeMgr = gameMgr.GetService<IEntityUpgradeManager>();
@@ -77,71 +72,12 @@ namespace RTSEngine.EntityComponent
             this.textDisplayer = gameMgr.GetService<IGameUITextDisplayManager>();
             this.buildingMgr = gameMgr.GetService<IBuildingManager>(); 
 
-            // Initialize creation tasks
-            int taskID = 0;
-            for (taskID = 0; taskID < creationTasks.Count; taskID++)
-            {
-                creationTasks[taskID].Init(this, taskID, gameMgr);
-                creationTasks[taskID].Enable();
-            }
-            foreach(var nextTask in upgradeTargetCreationTasks)
-            {
-                nextTask.Init(this, taskID, gameMgr);
-                taskID++;
-            }
-
-            // Check for building upgrades:
-            if (!Entity.IsFree
-                && entityUpgradeMgr.TryGet (Entity.FactionID, out UpgradeElement<IEntity>[] upgradeElements))
-            {
-                foreach(var nextElement in upgradeElements)
-                {
-                    DisableTasksWithPrefabCode(nextElement.sourceCode);
-                    EnableUpgradeTargetTasksWithPrefab(nextElement.target);
-                }
-            }
-
-            globalEvent.BuildingUpgradedGlobal += HandleBuildingUpgradedGlobal;
+            buildingCreationTaskHandler.Init(gameMgr, this, creationTasks, upgradeTargetCreationTasks);
         }
 
         protected override void OnTargetDisabled()
         {
-            globalEvent.BuildingUpgradedGlobal -= HandleBuildingUpgradedGlobal;
-        }
-
-        private void DisableTasksWithPrefabCode (string prefabCode)
-        {
-            foreach (var task in creationTasks)
-                if (task.Prefab.Code == prefabCode)
-                    task.Disable();
-        }
-
-        private void EnableUpgradeTargetTasksWithPrefab(IEntity prefab)
-        {
-            foreach (var upgradeTargetTask in upgradeTargetCreationTasks)
-                if (upgradeTargetTask.Prefab.Code == prefab.Code)
-                {
-                    creationTasks.Add(upgradeTargetTask);
-                    upgradeTargetTask.Enable();
-                }
-        }
-        #endregion
-
-        #region Handling Events: Building Upgrade
-        private void HandleBuildingUpgradedGlobal(IBuilding building, UpgradeEventArgs<IEntity> args)
-        {
-            if (!Entity.IsSameFaction(args.FactionID))
-                return;
-
-            // Disable the upgraded tasks
-            DisableTasksWithPrefabCode(args.UpgradeElement.sourceCode);
-            EnableUpgradeTargetTasksWithPrefab(args.UpgradeElement.target);
-
-            // Remove the building creation task of the unit that has been upgraded
-
-            globalEvent.RaiseEntityComponentTaskUIReloadRequestGlobal(
-                this,
-                new TaskUIReloadEventArgs(reloadAll: true));
+            buildingCreationTaskHandler.Disable();
         }
         #endregion
 
@@ -151,12 +87,12 @@ namespace RTSEngine.EntityComponent
             return Target.instance.Health.IsDead
                 || Target.instance.Health.CurrHealth >= Target.instance.Health.MaxHealth
                 || Target.instance.FactionID != factionEntity.FactionID
-                || (InProgress && !IsTargetInRange(transform.position, Target));
+                || (InProgress && !IsTargetInRange(Entity.transform.position, Target));
         }
 
         protected override bool CanEnableProgress()
         {
-            if (!IsTargetInRange(transform.position, Target))
+            if (!IsTargetInRange(Entity.transform.position, Target))
             {
                 // Builder unit is not moving yet it is not able to start progress?
                 // Reset target to renable movement to a location where progress can be started.
@@ -243,13 +179,13 @@ namespace RTSEngine.EntityComponent
         public override bool IsTargetInRange(Vector3 sourcePosition, TargetData<IEntity> target)
         {
             return (target.instance as IBuilding).WorkerMgr.GetOccupiedPosition(unit, out Vector3 workerPosition)
-                ? Vector3.Distance(sourcePosition, workerPosition) <= mvtMgr.StoppingDistance
+                ? mvtMgr.IsPositionReached(sourcePosition, workerPosition)
                 : base.IsTargetInRange(sourcePosition, target);
         }
 
-        public override ErrorMessage IsTargetValid (TargetData<IEntity> testTarget, bool playerCommand)
+        public override ErrorMessage IsTargetValid (SetTargetInputData data)
         {
-            TargetData<IBuilding> potentialTarget = testTarget;
+            TargetData<IBuilding> potentialTarget = data.target;
 
             if (!IsActive || !potentialTarget.instance.IsValid())
                 return ErrorMessage.invalid;
@@ -263,7 +199,7 @@ namespace RTSEngine.EntityComponent
                 return ErrorMessage.targetDead;
             else if (potentialTarget.instance.Health.HasMaxHealth)
                 return ErrorMessage.targetHealthtMaxReached;
-            else if (!factionEntity.CanMove() && !IsTargetInRange(transform.position, potentialTarget))
+            else if (!factionEntity.CanMove() && !IsTargetInRange(Entity.transform.position, potentialTarget))
                 return ErrorMessage.targetOutOfRange;
             else if (Target.instance != potentialTarget.instance && potentialTarget.instance.WorkerMgr.HasMaxAmount)
                 return ErrorMessage.workersMaxAmountReached;
@@ -309,39 +245,25 @@ namespace RTSEngine.EntityComponent
 
             // If the movement component is unable to calculate the path towards the target, it will set the unit back to idle
             // And in this case, we do not continue
-            if (unit.IsIdle)
+            if (!unit.MovementComponent.HasTarget)
+            {
+                Stop();
                 return;
+            }
 
             globalEvent.RaiseEntityComponentTargetLockedGlobal(this, new TargetDataEventArgs(Target));
         }
         #endregion
 
         #region Task UI
-        public override bool OnTaskUIRequest(
-            out IEnumerable<EntityComponentTaskUIAttributes> taskUIAttributes,
-            out IEnumerable<string> disabledTaskCodes)
+        protected override bool OnTaskUICacheUpdate(List<EntityComponentTaskUIAttributes> taskUIAttributesCache, List<string> disabledTaskCodesCache)
         {
-            if (base.OnTaskUIRequest(out taskUIAttributes, out disabledTaskCodes) == false)
+            if (!base.OnTaskUICacheUpdate(taskUIAttributesCache, disabledTaskCodesCache))
                 return false;
 
             if (canPlaceBuildings)
             {
-                // For building creation tasks, we show building creation tasks that do not have required conditions to launch but make them locked.
-                taskUIAttributes = taskUIAttributes
-                    .Concat(creationTasks
-                        .Where(task => task.IsFactionTypeAllowed(unit.Slot.Data.type))
-                        .Select(task => new EntityComponentTaskUIAttributes
-                        {
-                            data = task.Data,
-
-                            // Wa want the building placement process to start once, this avoids having each builder component instance launch a placement
-                            launchOnce = true,
-
-                            locked = task.CanStart() != ErrorMessage.none,
-                            lockedData = task.MissingRequirementData,
-
-                            tooltipText = GetTooltipText(task)
-                        }));
+                buildingCreationTaskHandler.OnTaskUICacheUpdate(taskUIAttributesCache, disabledTaskCodesCache);
             }
 
             return true;
@@ -352,24 +274,7 @@ namespace RTSEngine.EntityComponent
             if (base.OnTaskUIClick(taskAttributes))
                 return true;
 
-            // If it's not the launch task (task that makes the builder construct a building) then it is a building placement task.
-            foreach (BuildingCreationTask creationTask in creationTasks)
-                if (creationTask.Data.code == taskAttributes.data.code)
-                {
-                    placementMgr.Add(unit.FactionID, creationTask);
-                    return true;
-                }
-
-            return false;
-        }
-
-        private string GetTooltipText(BuildingCreationTask nextTask)
-        {
-            textDisplayer.BuildingCreationTaskToString(
-                nextTask,
-                out string tooltipText);
-
-            return tooltipText;
+            return buildingCreationTaskHandler.OnTaskUIClick(taskAttributes); 
         }
         #endregion
     }

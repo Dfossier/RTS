@@ -39,8 +39,9 @@ namespace RTSEngine.ResourceExtension
         {
             ResourceNeedRatio = resourceNeedRatio;
 
-            ResourceHandlers = mapResources.
-                ToDictionary(
+            ResourceHandlers = mapResources
+                .Where(resourceType => resourceType.IsValid())
+                .ToDictionary(
                 mapResource => mapResource,
                 mapResource => new FactionResourceHandler(
                     factionSlot,

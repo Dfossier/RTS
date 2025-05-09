@@ -18,7 +18,7 @@ namespace RTSEngine.Movement
 
             // Calculate the perimeter of the circle in which unoccupied positions will be searched
             // Then calculate the expected amount of free positions for the unit with unitRadius in the circle
-            int expectedPositionCount = Mathf.FloorToInt(2.0f * Mathf.PI * offset / ((input.refMvtComp.Controller.Radius + spacing) * 2.0f));
+            int expectedPositionCount = Mathf.FloorToInt(2.0f * Mathf.PI * offset / input.refMvtComp.Controller.Radius);
 
             // If no expected positions are to be found and the radius offset is zero then set the expected position count to 1 to test the actual target position if it is valid
             if (expectedPositionCount == 0 && offset == 0.0f)
@@ -31,7 +31,7 @@ namespace RTSEngine.Movement
             // Get the initial path destination by picking the closest position on the circle around the target.
             Vector3 nextDestination = input.target.position + Vector3.right * offset;
 
-            int counter = 0; 
+            int counter = 0;
 
             // As long as we haven't inspected all the expected free positions inside this cirlce
             while (counter < expectedPositionCount) 

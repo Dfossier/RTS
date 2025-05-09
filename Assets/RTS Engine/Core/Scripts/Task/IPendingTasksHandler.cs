@@ -10,7 +10,7 @@ namespace RTSEngine.Task
     {
         IEntity Entity { get; }
 
-        IEnumerable<PendingTask> Queue { get; }
+        IReadOnlyList<PendingTask> Queue { get; }
         int QueueCount { get; }
         float QueueTimerValue { get; }
 
@@ -24,6 +24,7 @@ namespace RTSEngine.Task
 
         void CompleteCurrent();
 
-        bool OnPendingTaskUIRequest(out IEnumerable<EntityComponentPendingTaskUIAttributes> taskUIAttributes);
+        bool OnPendingTaskUIRequest(out IReadOnlyList<EntityComponentPendingTaskUIAttributes> taskUIAttributes);
+        void CancelBySourceComponent(IPendingTaskEntityComponent sourceComponnet);
     }
 }

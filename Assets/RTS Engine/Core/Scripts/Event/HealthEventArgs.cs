@@ -8,6 +8,7 @@ namespace RTSEngine.Event
         public int Value { get; }
         public IEntity Source { get; }
 
+        // For max health update, the value is the last max health value
         public HealthUpdateArgs(int value, IEntity source)
         {
             this.Value = value;

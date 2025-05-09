@@ -80,7 +80,7 @@ namespace RTSEngine.Terrain
         [SerializeField, Tooltip("The size of the base terrain. Make sure this covers more than the entire map so that at any allowed camera position, a ray can be drawn from any of the camera's corners and it hits the base terrain collider.")]
         private Vector2 baseTerrainSize = new Vector2(x: 350, y: 350);
 
-        [SerializeField, Tooltip("When inspecting the main camera's boundaries and using them to determine the positions on the base terrain that they hit, this margin value allows to widen the main camera's boundaries. This is mainly useful in caching model objects as a small margin would allow to display models just outside of the camera view to make sure that they are visible immediately when the camera pans over a little to look at the model objects. Pick the margin applied to the top right and top left corners of the camera view (Upper Margin) and the one applied to the bottom left and right corners (Bottom Margin).")]
+        [SerializeField, Tooltip("When inspecting the main camera's boundaries and using them to determine the positions on the base terrain that they hit, this margin value allows to widen the main camera's boundaries. This is mainly useful in caching model objects as a small margin would allow to display models just outside of the camera view to make sure that they are visible immediately when the camera pans over a little to look at the model objects. Pick the margin applied to the top right and top left corners of the camera view (Upper Margin) and the one applied to the bottom left and right corners (Bottom Margin). In case your main camera is using an Orthographic projection mode, set both the upper and bottom margins to 0.")]
         public CameraBoundariesMargin cameraBoundariesToBaseTerrainPositionMargin = new CameraBoundariesMargin { upperMargin = 10, bottomMargin = 2000 };
         public CameraBoundariesToTerrainPositions BaseTerrainCameraBounds { get; private set; }
 
@@ -100,7 +100,7 @@ namespace RTSEngine.Terrain
         // Other components
         protected IGameManager gameMgr { private set; get; }
 
-        public int Priority => 200; 
+        public int ServicePriority => 200; 
         #endregion
 
         #region Initializing/Terminating
@@ -197,6 +197,8 @@ namespace RTSEngine.Terrain
 
             heightCacheDict = new Dictionary<string, Dictionary<Int2D, float>>();
 
+            bool hasTerrain = false;
+
             foreach (TerrainAreaType areaType in areas)
             {
                 heightCacheDict.Add(areaType.Key, new Dictionary<Int2D, float>());
@@ -211,13 +213,19 @@ namespace RTSEngine.Terrain
                             y = y
                         };
 
-                        if(GetTerrainAreaPosition(
+                        if (GetTerrainAreaPosition(
                             new Vector3(nextPosition.x, areaType.BaseHeight + heightCacheSampleOffset, nextPosition.y),
                             areaType.Key,
                             out Vector3 outPosition))
+                        {
+                            hasTerrain = true;
                             heightCacheDict[areaType.Key].Add(nextPosition, outPosition.y);
+                        }
                     }
             }
+
+            if (!hasTerrain)
+                logger.LogError($"[{GetType().Name}] No terrain object belonging to the assigned terrain areas has been detected in the scene", this);
 
             yield return null;
         }
@@ -443,7 +451,6 @@ namespace RTSEngine.Terrain
 
             if (BaseTerrainCameraBounds.IsValid())
             {
-                print("");
                 Debug.DrawLine(BaseTerrainCameraBounds.Get().TopLeft, BaseTerrainCameraBounds.Get().TopRight, Color.blue);
                 Debug.DrawLine(BaseTerrainCameraBounds.Get().TopRight, BaseTerrainCameraBounds.Get().BottomRight, Color.green);
                 Debug.DrawLine(BaseTerrainCameraBounds.Get().BottomRight, BaseTerrainCameraBounds.Get().BottomLeft, Color.yellow);

@@ -12,8 +12,10 @@ namespace RTSEngine.Audio
         void OnMusicVolumeSliderUpdated();
         void OnSFXVolumeSliderUpdated();
         void PlayMusic();
-        void PlaySFX(AudioClipFetcher clip, bool loop = false);
-        void PlaySFX(AudioClip clip, bool loop = false);
+        void PlayNextMusicTrack();
+        void PlayPreviousMusicTrack();
+        void PlaySFX(AudioClipFetcher clip, IEntity source, bool loop = false);
+        void PlaySFX(AudioClip clip, IEntity source, bool loop = false);
         void PlaySFX(AudioSource source, AudioClip clip, bool loop = false);
         void PlaySFX(AudioSource source, AudioClipFetcher fetcher, bool loop = false);
         void StopMusic();

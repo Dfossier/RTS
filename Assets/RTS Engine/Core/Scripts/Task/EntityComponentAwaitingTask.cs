@@ -46,10 +46,10 @@ namespace RTSEngine.Task
             if (!IsEnabled)
                 return;
 
-            Texture2D nextTexture = GetCursorTexture(Current.data.cursor);
+            Texture2D nextTexture = GetCursorTexture(customCursor);
 
             if (nextTexture.IsValid())
-                Cursor.SetCursor(customCursor.icon.texture, customCursor.hotspot, CursorMode.Auto);
+                Cursor.SetCursor(nextTexture, customCursor.hotspot, CursorMode.Auto);
             else
                 Cursor.SetCursor(null, Vector3.zero, CursorMode.Auto);
 

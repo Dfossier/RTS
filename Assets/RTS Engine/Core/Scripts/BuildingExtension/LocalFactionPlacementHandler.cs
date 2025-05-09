@@ -15,8 +15,6 @@ namespace RTSEngine.BuildingExtension
     {
         #region Attributes
         //[Header("General")]
-        [SerializeField, Tooltip("Audio clip to play when the player places a building.")]
-        private AudioClipFetcher placeBuildingAudio = new AudioClipFetcher();
 
         //[Header("Rotation")]
         [SerializeField, Tooltip("Enable to allow the player to rotate buildings while placing them.")]
@@ -44,6 +42,7 @@ namespace RTSEngine.BuildingExtension
         #region Initializing/Terminating
         protected override void OnInit()
         {
+            controls.InitControlType(holdAndSpawnKey);
         }
         #endregion
 
@@ -136,17 +135,17 @@ namespace RTSEngine.BuildingExtension
         #region Starting
         protected override void OnStart()
         {
+            Vector3 nextBuildingPos = current.instance.transform.position;
             // Set the position of the new building (and make sure it's on the terrain)
             if (Physics.Raycast(mainCameraController.MainCamera.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, Mathf.Infinity, placerMgr.PlacableLayerMask))
             {
-                Vector3 nextBuildingPos = hit.point;
+                nextBuildingPos = hit.point;
                 nextBuildingPos.y += placerMgr.BuildingPositionYOffset;
-                current.instance.transform.position = nextBuildingPos;
             }
 
             current.instance.gameObject.SetActive(true);
             // Enable marker since this is the local player
-            current.instance.SelectionMarker.Enable();
+            current.instance.PlacerComponent.OnPlacementUpdate(nextBuildingPos);
         }
         #endregion
 
@@ -172,9 +171,7 @@ namespace RTSEngine.BuildingExtension
                 return;
             }
 
-            audioMgr.PlaySFX(placeBuildingAudio.Fetch(), false);
-
-            if (holdAndSpawnEnabled && controls.Get(holdAndSpawnKey))
+            if (holdAndSpawnEnabled && controls.IsControlTypeEnabled(holdAndSpawnKey))
             {
                 holdAndSpawnActive = true;
                 holdAndSpawnTask = completedPlacement.task;

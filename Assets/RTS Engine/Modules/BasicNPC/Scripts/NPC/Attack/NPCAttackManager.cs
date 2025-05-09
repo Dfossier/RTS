@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System;
+using System.Linq;
 
 using UnityEngine;
 
@@ -155,12 +155,11 @@ namespace RTSEngine.NPC.Attack
         public void SetTargetFaction()
         {
             // Order the potential target factions via the attack resources assigned for this component
-            IFactionSlot[] activeFactions = gameMgr.FactionSlots
-                .Where(faction => faction.IsActiveFaction() && faction.FactionMgr != factionMgr)
+            IFactionSlot[] activeFactions = gameMgr.ActiveFactionSlots
                 .OrderByDescending(faction => attackResources.Sum(resourceType => resourceMgr.FactionResources[faction.ID].ResourceHandlers[resourceType].Amount))
                 .ToArray();
 
-            if (!activeFactions.Any())
+            if (activeFactions.Length == 0)
                 return;
 
             // Cancel current attack (if there is one) and start new one.
@@ -253,7 +252,7 @@ namespace RTSEngine.NPC.Attack
 
             // Set initial target faction entity
             currentTargetEntity = null;
-            SetTargetEntity(targetFactionSlot.FactionMgr.Buildings.Cast<FactionEntity>(), true);
+            SetTargetEntity(targetFactionSlot.FactionMgr.Buildings, true);
 
             // Start the attack order timer to handle attack commands in the active attack engagement
             attackOrderTimer = new TimeModifiedTimer(attackOrderReloadRange);
@@ -271,26 +270,36 @@ namespace RTSEngine.NPC.Attack
             if (resetCurrentTarget)
                 ResetCurrentTarget();
 
-            // Prioritize faction entities that are defined in the target
-            IEnumerable<IGrouping<bool, IFactionEntity>> factionEntityGroups = factionEntities
-                .GroupBy(factionEntity => targetPicker.IsValidTarget(factionEntity))
-                .OrderByDescending(factionEntityGroup => factionEntityGroup.Key == true);
-
-            foreach (IGrouping<bool, IFactionEntity> factionEntityGroup in factionEntityGroups)
+            float distance = Mathf.Infinity;
+            IFactionEntity nextTarget = null;
+            float priorityDistance = Mathf.Infinity;
+            IFactionEntity nextPriorityTarget = null;
+            foreach(IFactionEntity nextEntity in factionEntities)
             {
-                foreach (IFactionEntity nextEntity in factionEntityGroup
-                    .Where(factionEntity => factionEntity.IsValid())
-                    .OrderBy(factionEntity => Vector3.Distance(factionEntity.transform.position, lastAttackPos)))
+                if(targetPicker.IsValidTarget(nextEntity))
                 {
-                    if (!IsValidTargetFactionEntity(nextEntity))
-                        continue;
-
-                    currentTargetEntity = nextEntity;
-                    lastAttackPos = currentTargetEntity.transform.position;
-
-                    LogEvent($"Active attack target entity updated to {currentTargetEntity.Code}");
-                    return true;
+                    if(priorityDistance > Vector3.Distance(nextEntity.transform.position, lastAttackPos))
+                    {
+                        priorityDistance = Vector3.Distance(nextEntity.transform.position, lastAttackPos);
+                        nextPriorityTarget = nextEntity;
+                    }
                 }
+                else
+                {
+                    if(distance > Vector3.Distance(nextEntity.transform.position, lastAttackPos))
+                    {
+                        distance = Vector3.Distance(nextEntity.transform.position, lastAttackPos);
+                        nextTarget = nextEntity;
+                    }
+                }
+            }
+
+            currentTargetEntity = nextPriorityTarget.IsValid() ? nextPriorityTarget : nextTarget;
+            if (currentTargetEntity.IsValid())
+            {
+                lastAttackPos = currentTargetEntity.transform.position;
+                LogEvent($"Active attack target entity updated to {currentTargetEntity.Code}");
+                return true;
             }
 
             return false;
@@ -410,19 +419,20 @@ namespace RTSEngine.NPC.Attack
                 return false;
             }
 
+            IBuilding targetBuilding = currentTargetEntity.IsBuilding() ? currentTargetEntity as IBuilding : null;
             // If the current target is a building and it is being constructed, then assign an active builder (if it exists) as the current target.
-            if (currentTargetEntity.IsBuilding()
-                && (currentTargetEntity as IBuilding).WorkerMgr.Amount > 0)
+            if (targetBuilding.IsValid() && targetBuilding.WorkerMgr.Amount > 0)
             {
-                IUnit activeBuilder = (currentTargetEntity as IBuilding)
-                    .WorkerMgr.Workers
-                    .Where(unit => unit.BuilderComponent.InProgress)
-                    .FirstOrDefault();
-
-                if (activeBuilder.IsValid())
+                int i = 0;
+                while(i < targetBuilding.WorkerMgr.Workers.Count)
                 {
-                    LogEvent($"Active attack target entity updated to builder {currentTargetEntity.Code}");
-                    currentTargetEntity = activeBuilder;
+                    if(targetBuilding.WorkerMgr.Workers[i].BuilderComponent.InProgress)
+                    {
+                        currentTargetEntity = targetBuilding.WorkerMgr.Workers[i];
+                        LogEvent($"Active attack target entity updated to builder {currentTargetEntity.Code}");
+                        break;
+                    }
+                    i++;
                 }
             }
 

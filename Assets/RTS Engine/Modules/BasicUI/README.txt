@@ -1,4 +1,4 @@
-RTS Engine Module: Basic UI - v2022.2.3
+RTS Engine Module: Basic UI - v2024.0.1
 
 - Module feaures, requirements, installation and guide: https://docs.gamedevspice.com/rtsengine/manual/08_Modules/05_Basic_UI.html
 

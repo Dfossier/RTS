@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 using UnityEngine;
@@ -17,7 +16,6 @@ using RTSEngine.Faction;
 using RTSEngine.Determinism;
 using RTSEngine.UnitExtension;
 using RTSEngine.Utilities;
-using RTSEngine.Model;
 using RTSEngine.Attack;
 using RTSEngine.Movement;
 using RTSEngine.Minimap.Icons;
@@ -70,10 +68,8 @@ namespace RTSEngine.Entities
         }
 
         [SerializeField, Tooltip("Drag and drop the model object of the entity into this field. Make sure the model object has the 'EntityModelConnections' component attached to it.")]
-        private EntityModelConnections model = null;
-        public IEntityModel EntityModel { private set; get; }
-
-        public ModelCacheAwareTransformInput TransformInput { private set; get; }
+        private GameObject model = null;
+        public GameObject Model => model;
 
         public bool IsFree { protected set; get; }
         public int FactionID { protected set; get; }
@@ -101,26 +97,17 @@ namespace RTSEngine.Entities
         }
         public bool IsSearchable => IsInteractable;
 
-        public bool IsIdle
-        {
-            get
-            {
-                if (TasksQueue.IsValid() && TasksQueue.QueueCount > 0)
-                    return false;
-
-                for (int i = 0; i < entityTargetComponents.Length; i++)
-                    if (!entityTargetComponents[i].IsIdle)
-                        return false;
-
-                return true;
-            }
-        }
+        [SerializeField, ReadOnly]
+        private bool isIdle;
+        public bool IsIdle => isIdle;
 
         // Minimap Icon
         public IEntityMinimapIconHandler MinimapIconHandler { private set; get; }
 
         //entity components:
         public IReadOnlyDictionary<string, IEntityComponent> EntityComponents { private set; get; }
+
+        public IReadOnlyList<IPendingTaskEntityComponent> PendingTaskEntityComponents { private set; get; }
 
         public IPendingTasksHandler PendingTasksHandler { private set; get; }
         public IEntityTasksQueueHandler TasksQueue { private set; get; }
@@ -133,11 +120,13 @@ namespace RTSEngine.Entities
         public virtual bool CanMove(bool playerCommand) => CanMove();
 
         private IEntityTargetComponent[] entityTargetComponents;
+        private HashSet<IEntityTargetComponent> idleEntityTargetComponents;
         public IReadOnlyDictionary<string, IEntityTargetComponent> EntityTargetComponents { private set; get; }
         public IReadOnlyDictionary<string, IEntityTargetProgressComponent> EntityTargetProgressComponents { private set; get; }
 
         private IAttackComponent[] attackComponents;
-        public IReadOnlyDictionary<string, IAttackComponent> AttackComponents { private set; get; }
+        public IReadOnlyList<IAttackComponent> AttackComponents => attackComponents;
+        public IReadOnlyDictionary<string, IAttackComponent> AttackComponentsDic { private set; get; }
         public IAttackComponent FirstActiveAttackComponent => attackComponents.Where(comp => comp.IsActive).FirstOrDefault();
         public IEnumerable<IAttackComponent> ActiveAttackComponents => attackComponents.Where(comp => comp.IsActive);
         public bool CanAttack => FirstActiveAttackComponent.IsValid() && FirstActiveAttackComponent.IsActive;
@@ -146,7 +135,7 @@ namespace RTSEngine.Entities
         protected IGameManager gameMgr { private set; get; }
         protected IGameLoggingService logger { private set; get; }
         protected IGlobalEventPublisher globalEvent { private set; get; }
-        protected IMouseSelector mouseSelector { private set; get; }
+        protected ISelector selector { private set; get; }
         protected ISelectionManager selectionMgr { private set; get; } 
         protected IInputManager inputMgr { private set; get; }
         protected IEntityComponentUpgradeManager entityComponentUpgradeMgr { private set; get; } 
@@ -164,8 +153,28 @@ namespace RTSEngine.Entities
             handler?.Invoke(this, System.EventArgs.Empty);
         }
 
-        public event CustomEventHandler<IEntity, FactionUpdateArgs> FactionUpdateComplete;
+        public event CustomEventHandler<IEntity, System.EventArgs> EntityEnterIdle;
+        private void RaiseEntityEnterIdle()
+        {
+            isIdle = true;
+            var handler = EntityEnterIdle;
+            handler?.Invoke(this, System.EventArgs.Empty);
+        }
+        public event CustomEventHandler<IEntity, System.EventArgs> EntityExitIdle;
+        private void RaiseEntityExitIdle()
+        {
+            isIdle = false;
+            var handler = EntityExitIdle;
+            handler?.Invoke(this, System.EventArgs.Empty);
+        }
 
+        public event CustomEventHandler<IEntity, FactionUpdateArgs> FactionUpdateStart;
+        public event CustomEventHandler<IEntity, FactionUpdateArgs> FactionUpdateComplete;
+        protected void RaiseFactionUpdateStart(FactionUpdateArgs eventArgs)
+        {
+            var handler = FactionUpdateStart;
+            handler?.Invoke(this, eventArgs);
+        }
         protected void RaiseFactionUpdateComplete(FactionUpdateArgs eventArgs)
         {
             var handler = FactionUpdateComplete;
@@ -184,21 +193,11 @@ namespace RTSEngine.Entities
         public virtual void InitPrefab(IGameManager gameMgr)
         {
             if (!gameMgr.GetService<IGameLoggingService>().RequireValid(model,
-              $"[{GetType().Name} - {Code}] The 'Model' field must be assigned!", source: this))
+                $"[{GetType().Name} - {Code}] The 'Model' field must be assigned!", source: this))
                 return;
-
-            FetchEntityModelComponent();
 
             // Immediately set parent to null since some model cache aware calculations require the entity to be parentless
             transform.SetParent(null, worldPositionStays: true);
-
-            // Initialize the model connections
-            model.Init(gameMgr, this);
-            gameMgr.GetService<IModelCacheManager>().CacheModel(Code, model);
-
-            // The above constructor allows to cache the model object in the prefab which is why we want to set the model to null
-            // So that any entity created from this base prefab will not have a model by default.
-            model = null;
 
             foreach (var component in GetComponents<IEntityPrefabInitializable>())
                 component.OnPrefabInit(this, gameMgr);
@@ -227,29 +226,14 @@ namespace RTSEngine.Entities
             this.IsFree = initParams.free;
             this.FactionID = IsFree ? RTSHelper.FREE_FACTION_ID : initParams.factionID;
 
-            // The reason behind not caching an already existing model and opting to destroy it...
-            // ... instead is to make sure all pre-placed entities of the same type would use clones of the same model entity that comes from the prefab...
-            // ... and this allows us to avoid a lot of issues
-            if (model.IsValid())
-            {
-                FetchEntityModelComponent();
-                EntityModel.OnPrePlacedInit(model);
-                Destroy(model.gameObject);
-            }
-            /*if(model.IsValid())
-                gameMgr.GetService<IModelCacheManager>().CacheModel(Code, model);*/
-            model = null;
-
             this.globalEvent = this.gameMgr.GetService<IGlobalEventPublisher>();
-            this.mouseSelector = this.gameMgr.GetService<IMouseSelector>();
+            this.selector = this.gameMgr.GetService<ISelector>();
             this.selectionMgr = gameMgr.GetService<ISelectionManager>(); 
             this.entityComponentUpgradeMgr = gameMgr.GetService<IEntityComponentUpgradeManager>();
             this.taskMgr = gameMgr.GetService<ITaskManager>();
             this.attackMgr = gameMgr.GetService<IAttackManager>();
             this.mvtMgr = gameMgr.GetService<IMovementManager>();
             this.playerMsgHandler = gameMgr.GetService<IPlayerMessageHandler>(); 
-
-            TransformInput = new ModelCacheAwareTransformInput(transform);
 
             //get the components attached to the entity
             HandleComponentUpgrades();
@@ -269,7 +253,7 @@ namespace RTSEngine.Entities
 
             InitPriorityComponents();
 
-            UpdateColors();
+            UpdateSelectionColor();
 
             InitComponents(initPre: true);
 
@@ -361,12 +345,16 @@ namespace RTSEngine.Entities
 
             RaiseEntityComponentUpgraded(new EntityComponentUpgradeEventArgs(sourceComponent, newEntityComponent));
 
+            UnsubFromEvents();
+
             if (IsInitialized)
             {
                 // Disable the old entity component flagging it to make it unfetchable // this can happen in the upgrade method itself
                 // Fetch mvt, attack and special entity components through the fetched entity components that do not include disabled ones
                 FetchEntityComponents(sourceComponent);
                 FetchComponents();
+
+                SubToEvents();
 
                 newEntityComponent.OnEntityPostInit(gameMgr, this);
                 if (sourceComponent.IsValid())
@@ -391,6 +379,52 @@ namespace RTSEngine.Entities
             //subscribe to events:
             Health.EntityDead += HandleEntityDead;
             Selection.Selected += HandleEntitySelected;
+
+            for (int i = 0; i < entityTargetComponents.Length; i++)
+            {
+                entityTargetComponents[i].TargetUpdated += HandleEntityTargetComponentTargetUpdated;
+                entityTargetComponents[i].TargetStop += HandleEntityTargetComponentTargetStop;
+
+                if (entityTargetComponents[i].IsIdle)
+                {
+                    idleEntityTargetComponents.Add(entityTargetComponents[i]);
+                }
+            }
+
+            if (idleEntityTargetComponents.Count == entityTargetComponents.Length)
+            {
+                if (!isIdle)
+                {
+                    RaiseEntityEnterIdle();
+                }
+            }
+            else if (isIdle)
+                RaiseEntityExitIdle();
+        }
+
+        protected virtual void UnsubFromEvents()
+        {
+            if (!IsInitialized)
+                return;
+
+            Health.EntityDead -= HandleEntityDead;
+            Selection.Selected -= HandleEntitySelected;
+
+            for (int i = 0; i < entityTargetComponents.Length; i++)
+            {
+                entityTargetComponents[i].TargetUpdated -= HandleEntityTargetComponentTargetUpdated;
+                entityTargetComponents[i].TargetStop -= HandleEntityTargetComponentTargetStop;
+            }
+
+            idleEntityTargetComponents.Clear();
+
+            if (Health.IsDead)
+                return;
+
+            if (!isIdle)
+            {
+                RaiseEntityEnterIdle();
+            }
         }
 
         private void FetchEntityComponents(IEntityComponent exception)
@@ -420,6 +454,11 @@ namespace RTSEngine.Entities
                 return;
 
             EntityComponents = entityComponents.ToDictionary(comp => comp.Code);
+
+            PendingTaskEntityComponents = entityComponents
+                .Where(comp => comp is IPendingTaskEntityComponent)
+                .Cast<IPendingTaskEntityComponent>()
+                .ToList();
         }
 
         protected T GetEntityComponent<T>() where T : IEntityComponent
@@ -431,16 +470,8 @@ namespace RTSEngine.Entities
             return EntityComponents.Values.Where(comp => comp is T).Cast<T>();
         }    
 
-        private void FetchEntityModelComponent()
-        {
-            if (!(EntityModel = GetComponent<IEntityModel>()).IsValid())
-                EntityModel = gameObject.AddComponent<EntityModel>();
-        }
-
         protected virtual void FetchComponents()
         {
-            FetchEntityModelComponent();
-
             AnimatorController = transform.GetComponentInChildren<IAnimatorController>();
 
             Selection = transform.GetComponentInChildren<IEntitySelection>();
@@ -472,13 +503,16 @@ namespace RTSEngine.Entities
                 $"[{GetType().Name} - {Code}] Having more than one components that extend {typeof(IMovementComponent).Name} interface attached to the same entity is not allowed!"))
                 return;
 
+            // If the entity was already initialized then unsub from the entity target components events
+            // In case this is a reload for entity components due to an upgrade, we make sure that we unsub from the upgraded instance
             entityTargetComponents = GetEntityComponents<IEntityTargetComponent>().OrderBy(comp => comp.Priority).ToArray();
+            idleEntityTargetComponents = new HashSet<IEntityTargetComponent>(entityTargetComponents.Length);
             EntityTargetComponents = entityTargetComponents.ToDictionary(comp => comp.Code);
 
             EntityTargetProgressComponents = GetEntityComponents<IEntityTargetProgressComponent>().ToDictionary(comp => comp.Code);
 
             attackComponents = GetEntityComponents<IAttackComponent>().OrderBy(comp => comp.Priority).ToArray();
-            AttackComponents = attackComponents.ToDictionary(comp => comp.Code);
+            AttackComponentsDic = attackComponents.ToDictionary(comp => comp.Code);
 
             // Minimap Icon
             MinimapIconHandler = GetComponentInChildren<IEntityMinimapIconHandler>();
@@ -496,10 +530,7 @@ namespace RTSEngine.Entities
 
         private void OnDestroy()
         {
-            if(Health.IsValid())
-                Health.EntityDead -= HandleEntityDead;
-            if (Selection.IsValid())
-                Selection.Selected -= HandleEntitySelected;
+            UnsubFromEvents();
         }
         #endregion
 
@@ -522,7 +553,7 @@ namespace RTSEngine.Entities
             if (!input.isMoveAttackRequest && this.IsLocalPlayerFaction())
                 input.isMoveAttackRequest = (attackMgr.CanAttackMoveWithKey && input.playerCommand);
 
-            if (CanAttack && FirstActiveAttackComponent.IsTargetValid(input.target, input.playerCommand) == ErrorMessage.none)
+            if (CanAttack && FirstActiveAttackComponent.IsTargetValid(input) == ErrorMessage.none)
             {
                 if(TasksQueue.IsValid() && TasksQueue.CanAdd(input))
                 {
@@ -563,13 +594,17 @@ namespace RTSEngine.Entities
                 }
 
                 return mvtMgr.SetPathDestination(
-                    this,
-                    input.target.position,
-                    input.target.instance.IsValid() ? input.target.instance.Radius : 0.0f,
-                    input.target.instance,
-                    new MovementSource { 
-                        playerCommand = input.playerCommand,
-                        isMoveAttackRequest = input.isMoveAttackRequest
+                    new SetPathDestinationData<IEntity>
+                    {
+                        source = this,
+                        destination = input.target.position,
+                        offsetRadius = input.target.instance.IsValid() ? input.target.instance.Radius : 0.0f,
+                        target = input.target.instance,
+                        mvtSource = new MovementSource
+                        {
+                            playerCommand = input.playerCommand,
+                            isMoveAttackRequest = input.isMoveAttackRequest
+                        }
                     });
             }
             else
@@ -622,6 +657,26 @@ namespace RTSEngine.Entities
                 }
             }
         }
+
+        private void HandleEntityTargetComponentTargetUpdated(IEntityTargetComponent component, TargetDataEventArgs args)
+        {
+            if (component.IsIdle)
+                return;
+
+            idleEntityTargetComponents.Remove(component);
+            if (isIdle)
+                RaiseEntityExitIdle();
+        }
+
+        private void HandleEntityTargetComponentTargetStop(IEntityTargetComponent component, TargetDataEventArgs args)
+        {
+            if (idleEntityTargetComponents.Contains(component))
+                return;
+
+            idleEntityTargetComponents.Add(component);
+            if(!isIdle && idleEntityTargetComponents.Count == entityTargetComponents.Length)
+                RaiseEntityEnterIdle();
+        }
         #endregion
 
         #region Updating Faction
@@ -631,7 +686,7 @@ namespace RTSEngine.Entities
         #endregion
 
         #region Updating Entity Colors
-        protected abstract void UpdateColors();
+        protected abstract void UpdateSelectionColor();
         #endregion
 
         #region IEquatable Implementation

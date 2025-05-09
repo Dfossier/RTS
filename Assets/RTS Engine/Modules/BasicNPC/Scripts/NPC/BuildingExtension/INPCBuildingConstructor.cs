@@ -6,8 +6,7 @@ namespace RTSEngine.NPC.BuildingExtension
 {
     public interface INPCBuildingConstructor : INPCComponent
     {
-        IReadOnlyDictionary<string, string[]> BuilderPlacableBuildingMapper { get; }
-
+        IReadOnlyList<string> GetBuildingCreatorCodes(string buildingCode);
         int GetTargetBuildersAmount(IBuilding building);
 
         bool IsBuildingUnderConstruction(IBuilding building);

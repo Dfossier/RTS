@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 using UnityEngine;
 
@@ -7,7 +6,6 @@ using RTSEngine.Entities;
 using RTSEngine.Event;
 using RTSEngine.UI;
 using RTSEngine.UnitExtension;
-using RTSEngine.Model;
 using RTSEngine.Utilities;
 using RTSEngine.Logging;
 
@@ -27,7 +25,7 @@ namespace RTSEngine.EntityComponent
         public override bool IsIdle => true;
 
         public IUnitCarrier CurrCarrier { private set; get; }
-        public ModelCacheAwareTransformInput CurrSlot {private set; get;}
+        public Transform CurrSlot {private set; get;}
         public int CurrSlotID { private set; get; }
         private FollowTransform slotFollowHandler = null;
 
@@ -41,6 +39,23 @@ namespace RTSEngine.EntityComponent
         //private bool allowMovementToExitCarrier = true;
         //public bool AllowMovementToExitCarrier => allowMovementToExitCarrier;
         #endregion
+
+        #region Raising Events
+        public event CustomEventHandler<IUnitCarrier, UnitCarrierEventArgs> UnitAdded;
+        public event CustomEventHandler<IUnitCarrier, UnitCarrierEventArgs> UnitRemoved;
+
+        private void RaiseUnitAdded(UnitCarrierEventArgs args)
+        {
+            var handler = UnitAdded;
+            handler?.Invoke(CurrCarrier, args);
+        }
+        private void RaiseUnitRemoved(UnitCarrierEventArgs args)
+        {
+            var handler = UnitRemoved;
+            handler?.Invoke(CurrCarrier, args);
+        }
+        #endregion
+
 
         #region Initializing/Terminating
         protected override void OnTargetInit()
@@ -81,9 +96,9 @@ namespace RTSEngine.EntityComponent
         #endregion
 
         #region Searching/Updating Target
-        public override ErrorMessage IsTargetValid(TargetData<IEntity> testTarget, bool playerCommand)
+        public override ErrorMessage IsTargetValid(SetTargetInputData data)
         {
-            TargetData<IFactionEntity> potentialTarget = testTarget;
+            TargetData<IFactionEntity> potentialTarget = data.target;
 
             if (!potentialTarget.instance.IsValid())
                 return ErrorMessage.invalid;
@@ -94,7 +109,7 @@ namespace RTSEngine.EntityComponent
 
             return potentialTarget.instance.UnitCarrier.CanMove(
                 unit,
-                GetAddableData(playerCommand));
+                GetAddableData(data.playerCommand));
         }
 
         public override bool IsTargetInRange(Vector3 sourcePosition, TargetData<IEntity> target) => true;
@@ -103,7 +118,7 @@ namespace RTSEngine.EntityComponent
             if (sameTarget)
                 return;
 
-            Target.instance.UnitCarrier.UnitAdded += HandleTargetCarrierUnitAdded;
+            //Target.instance.UnitCarrier.UnitAdded += HandleTargetCarrierUnitAdded;
 
             Target.instance.UnitCarrier.Move(
                 unit,
@@ -116,7 +131,7 @@ namespace RTSEngine.EntityComponent
         {
             if(CurrCarrier.IsValid())
             {
-                CurrCarrier.UnitAdded -= HandleTargetCarrierUnitAdded;
+                //CurrCarrier.UnitAdded -= HandleTargetCarrierUnitAdded;
                 CurrCarrier.UnitRemoved -= HandleTargetCarrierUnitRemoved;
             }
         }
@@ -167,7 +182,7 @@ namespace RTSEngine.EntityComponent
         #endregion
 
         #region Handling Events: Target Carrier Unit Added/Removed
-        private void HandleTargetCarrierUnitAdded(IUnitCarrier carrier, UnitCarrierEventArgs args)
+        public void OnCarrierUnitAdded(IUnitCarrier carrier, UnitCarrierEventArgs args)
         {
             if (args.Unit != unit)
                 return;
@@ -178,12 +193,13 @@ namespace RTSEngine.EntityComponent
 
             if (CurrSlot.IsValid())
             {
-                unit.transform.position = CurrSlot.Position;
+                unit.MovementComponent.SetPosition(CurrSlot.position);
                 slotFollowHandler.SetTarget(CurrSlot, enableCallback: false);
-                unit.EntityModel.SetParent(carrier.Entity.EntityModel);
             }
 
-            CurrCarrier.UnitAdded -= HandleTargetCarrierUnitAdded;
+            RaiseUnitAdded(args);
+
+            //CurrCarrier.UnitAdded -= HandleTargetCarrierUnitAdded;
             CurrCarrier.UnitRemoved += HandleTargetCarrierUnitRemoved;
         }
 
@@ -197,9 +213,9 @@ namespace RTSEngine.EntityComponent
             {
                 Stop();
 
-                unit.EntityModel.SetParent(null);
-
                 CurrCarrier.UnitRemoved -= HandleTargetCarrierUnitRemoved;
+
+                RaiseUnitAdded(args);
 
                 CurrCarrier = null;
                 CurrSlot = null;
@@ -210,15 +226,15 @@ namespace RTSEngine.EntityComponent
         #endregion
 
         #region Task UI
-        public override bool OnTaskUIRequest(out IEnumerable<EntityComponentTaskUIAttributes> taskUIAttributes, out IEnumerable<string> disabledTaskCodes)
+        protected override bool OnTaskUICacheUpdate(List<EntityComponentTaskUIAttributes> taskUIAttributesCache, List<string> disabledTaskCodesCache)
         {
-            if (!base.OnTaskUIRequest(out taskUIAttributes, out disabledTaskCodes))
+            if (!base.OnTaskUICacheUpdate(taskUIAttributesCache, disabledTaskCodesCache))
                 return false;
 
             if (ejectionTaskUI.IsValid())
             {
                 if (CurrCarrier.IsValid())
-                    taskUIAttributes = taskUIAttributes.Append(
+                    taskUIAttributesCache.Add(
                         new EntityComponentTaskUIAttributes
                         {
                             data = ejectionTaskUI.Data,
@@ -226,7 +242,7 @@ namespace RTSEngine.EntityComponent
                             locked = false
                         });
                 else
-                    disabledTaskCodes = disabledTaskCodes.Append(ejectionTaskUI.Key);
+                    disabledTaskCodesCache.Add(ejectionTaskUI.Key);
             }
 
             return true;
@@ -295,9 +311,9 @@ namespace RTSEngine.EntityComponent
             Target = carrier.Entity.ToTargetData();
 
             if (addableData.playerCommand && Target.instance.IsValid() && factionEntity.IsLocalPlayerFaction())
-                mouseSelector.FlashSelection(Target.instance, true);
+                selector.FlashSelection(Target.instance, true);
 
-            Target.instance.UnitCarrier.UnitAdded += HandleTargetCarrierUnitAdded;
+            //Target.instance.UnitCarrier.UnitAdded += HandleTargetCarrierUnitAdded;
 
             Target.instance.UnitCarrier.Move(
                 unit,

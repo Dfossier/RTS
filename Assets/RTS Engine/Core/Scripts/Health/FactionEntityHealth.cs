@@ -17,11 +17,11 @@ namespace RTSEngine.Health
         public bool CanBeAttacked { get => canBeAttacked; set { canBeAttacked = value; } }
 
         [SerializeField, Tooltip("Drag and drop a child Transform whose position will be used as the target position of attack objects directed at this entity. If left empty, the target position will be the position of the game object that holds the selection component of the entity.")]
-        private ModelCacheAwareTransformInput attackTargetPosition = null;
-        public IAttackTargetPositionGetter attackTargetPositionGetter { private set; get; }
-        public Vector3 AttackTargetPosition => 
-            attackTargetPositionGetter.IsValid() ? attackTargetPositionGetter.TargetPosition
-            : (attackTargetPosition.IsValid() ? attackTargetPosition.Position : Entity.Selection.transform.position);
+        private Transform attackTargetPosition = null;
+        public IAttackTargetPositionGetter AttackTargetPositionGetter { private set; get; }
+        public Vector3 GetAttackTargetPosition(IEntity source) =>
+            AttackTargetPositionGetter.IsValid() ? AttackTargetPositionGetter.GetAttackTargetPosition(source)
+            : (attackTargetPosition.IsValid() ? attackTargetPosition.position : Entity.Selection.transform.position);
 
         private List<DamageOverTimeHandler> dotHandlers;
         public IEnumerable<DamageOverTimeHandler> DOTHandlers => dotHandlers;
@@ -33,7 +33,7 @@ namespace RTSEngine.Health
         protected sealed override void OnEntityHealthInit()
         {
             FactionEntity = Entity as IFactionEntity;
-            attackTargetPositionGetter = FactionEntity.GetComponentInChildren<IAttackTargetPositionGetter>();
+            AttackTargetPositionGetter = FactionEntity.GetComponentInChildren<IAttackTargetPositionGetter>();
 
             dotHandlers = new List<DamageOverTimeHandler>();
 
@@ -70,8 +70,8 @@ namespace RTSEngine.Health
         }
 
 #endregion
-#region Handling Damage Over Time
 
+        #region Handling Damage Over Time
         private void Update()
         {
             if (dotHandlers.Count == 0)

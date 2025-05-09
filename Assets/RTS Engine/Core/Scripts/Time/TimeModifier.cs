@@ -18,7 +18,7 @@ namespace RTSEngine.Determinism
     public struct TimeModifierOptions
     {
         public TimeModifierOption[] values;
-        public int initialValueID;
+        public int initialValueIndex;
     }
 
     public class TimeModifier : MonoBehaviour, ITimeModifier
@@ -28,28 +28,28 @@ namespace RTSEngine.Determinism
         private float defaultModifier = 1.0f;
 
         public TimeModifierOptions Options { private set; get; }
-        public void SetOptions (TimeModifierOption[] modifierOptions, int initialOptionID)
+        public void SetOptions (TimeModifierOption[] modifierOptions, int initialOptionIndex)
         {
-            if (!initialOptionID.IsValidIndex(modifierOptions))
+            if (!initialOptionIndex.IsValidIndex(modifierOptions))
             {
-                logger.LogError("[TimeModifier] Provided time modifier initial option index of {initialOptionID} is not a valid index of the provided options array of size {modifierOptions.Length}. Current options will not be changed.");
+                logger.LogError($"[TimeModifier] Provided time modifier initial option index of {initialOptionIndex} is not a valid index of the provided options array of size {modifierOptions.Length}. Current options will not be changed.");
                 return;
             }
 
             Options = new TimeModifierOptions
             {
                 values = modifierOptions,
-                initialValueID = initialOptionID
+                initialValueIndex = initialOptionIndex
             };
 
             int index = -1;
-            modifierToOptionID = Options
+            modifierToOptionIndex = Options
                 .values
                 .ToDictionary(val => val.modifier, val => { index++; return index; });
         }
 
-        private IReadOnlyDictionary<float, int> modifierToOptionID;
-        public int CurrOptionID { private set; get; }
+        private IReadOnlyDictionary<float, int> modifierToOptionIndex;
+        public int CurrOptionIndex { private set; get; }
 
 #if UNITY_EDITOR
         [SerializeField, ReadOnly]
@@ -69,6 +69,9 @@ namespace RTSEngine.Determinism
 
         [SerializeField, ReadOnly]
         private int globalTimersCount = 0;
+
+        // Optimization Attributes
+        private int currFrameTimerRemovals;
 
         public bool CanFreezeTimeOnPause { private set; get; }
 
@@ -105,29 +108,29 @@ namespace RTSEngine.Determinism
 
             globalEvent.GameStateUpdatedGlobal += HandleGameStateUpdatedGlobal;
 
-            globalTimers = new List<GlobalTimeModifiedTimer>();
-            globalTimersDic = new Dictionary<GlobalTimeModifiedTimer, Action>();
-            nextTimers = new List<GlobalTimeModifiedTimer>();
-            nextTimersDic = new Dictionary<GlobalTimeModifiedTimer, Action>();
+            globalTimers = new List<GlobalTimeModifiedTimer>(RTSOptimizations.INIT_TIME_MODIFIER_DATA_CAPACITY);
+            globalTimersDic = new Dictionary<GlobalTimeModifiedTimer, Action>(RTSOptimizations.INIT_TIME_MODIFIER_DATA_CAPACITY);
+            nextTimers = new List<GlobalTimeModifiedTimer>(RTSOptimizations.INIT_TIME_MODIFIER_DATA_CAPACITY);
+            nextTimersDic = new Dictionary<GlobalTimeModifiedTimer, Action>(RTSOptimizations.INIT_TIME_MODIFIER_DATA_CAPACITY);
 
             if(gameMgr.CurrBuilder.IsValid())
             {
                 CanFreezeTimeOnPause = gameMgr.CurrBuilder.CanFreezeTimeOnPause;
                 SetOptions(
                     gameMgr.CurrBuilder.Data.timeModifierOptions.values,
-                    gameMgr.CurrBuilder.Data.timeModifierOptions.initialValueID);
+                    gameMgr.CurrBuilder.Data.timeModifierOptions.initialValueIndex);
             }    
             else
             {
                 SetOptions(
                     new TimeModifierOption[] { new TimeModifierOption { name = "default", modifier = defaultModifier } }
-                    ,initialOptionID: 0);
+                    ,initialOptionIndex: 0);
                 CanFreezeTimeOnPause = true;
             }
 
-            SetModifierLocal(Options.values[Options.initialValueID].modifier, playerCommand: false);
+            SetModifierLocal(Options.values[Options.initialValueIndex].modifier, playerCommand: false);
 
-            CurrOptionID = Options.initialValueID;
+            CurrOptionIndex = Options.initialValueIndex;
         }
 
         private void OnDestroy()
@@ -209,8 +212,8 @@ namespace RTSEngine.Determinism
             currentModifier = CurrentModifier;
 #endif
 
-            if (modifierToOptionID.TryGetValue(newModifier, out int newOptionID))
-                CurrOptionID = newOptionID;
+            if (modifierToOptionIndex.TryGetValue(newModifier, out int newOptionIndex))
+                CurrOptionIndex = newOptionIndex;
 
             RaiseModifierUpdate();
         }
@@ -221,7 +224,7 @@ namespace RTSEngine.Determinism
               $"[{GetType().Name}] Can only reset the time modifier when the game is running. Please use the IGameManager.SetGameState method first to run the game!"))
                 return;
 
-            SetModifier(Options.values[CurrOptionID].modifier,
+            SetModifier(Options.values[CurrOptionIndex].modifier,
                 playerCommand);
         }
         #endregion
@@ -229,8 +232,7 @@ namespace RTSEngine.Determinism
         #region Handling Global Timers
         private void Update()
         {
-            int i = 0;
-
+            int i;
             if (nextTimers.Count > 0)
             {
                 for(i = 0; i < nextTimers.Count; i++)
@@ -249,25 +251,31 @@ namespace RTSEngine.Determinism
                 return;
 
             i = 0;
+            currFrameTimerRemovals = 0;
             while(i < globalTimers.Count)
             {
                 if(globalTimers[i].ModifiedDecrease())
                 {
+                    currFrameTimerRemovals++;
                     RemoveTimer(i);
-                    continue;
+
+                    if (RTSOptimizations.LIMIT_TIMER_REMOVALS_PER_FRAME && currFrameTimerRemovals >= RTSOptimizations.MAX_TIMER_REMOVALS_PER_FRAME)
+                        break;
+                    else
+                        continue;
                 }
 
                 i++;
             }
         }
 
-        public void AddTimer(GlobalTimeModifiedTimer timer, Action removalCallback)
+        public void AddTimer(GlobalTimeModifiedTimer timer, Action timerThroughCallback)
         {
-            if (nextTimersDic.ContainsKey(timer))
+            if (globalTimersDic.ContainsKey(timer) || nextTimersDic.ContainsKey(timer))
                 return;
 
             nextTimers.Add(timer);
-            nextTimersDic.Add(timer, removalCallback);
+            nextTimersDic.Add(timer, timerThroughCallback);
         }
 
         private void RemoveTimer(int i)
@@ -281,16 +289,19 @@ namespace RTSEngine.Determinism
                 value();
         }
 
-        public void RemoveTimer(GlobalTimeModifiedTimer timer, bool triggerRemovalCallback = true)
+        public void RemoveTimer(GlobalTimeModifiedTimer timer)
         {
-            if (!globalTimersDic.TryGetValue(timer, out Action value))
+            if(nextTimersDic.ContainsKey(timer))
+            {
+                nextTimers.Remove(timer);
+                nextTimersDic.Remove(timer);
+            }
+
+            if (!globalTimersDic.ContainsKey(timer))
                 return;
 
             globalTimersDic.Remove(timer);
             globalTimers.Remove(timer);
-
-            if (triggerRemovalCallback && value.IsValid())
-                value();
         }
         #endregion
     }

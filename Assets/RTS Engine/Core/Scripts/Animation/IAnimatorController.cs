@@ -9,7 +9,7 @@ namespace RTSEngine.Animation
     public interface IAnimatorController : IMonoBehaviour
     {
         IUnit Unit { get; }
-        ModelCacheAwareAnimatorInput Animator { get; }
+        Animator Animator { get; }
 
         AnimatorState CurrState { get; }
         bool LockState { get; set; }

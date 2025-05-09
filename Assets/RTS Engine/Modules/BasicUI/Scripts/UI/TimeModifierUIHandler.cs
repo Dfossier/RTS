@@ -8,6 +8,7 @@ using RTSEngine.Game;
 using RTSEngine.Logging;
 using RTSEngine.Event;
 using RTSEngine.Determinism;
+using TMPro;
 
 namespace RTSEngine.UI
 {
@@ -25,7 +26,7 @@ namespace RTSEngine.UI
         [SerializeField, Tooltip("UI Button object used to allow the player to go through the available time modifier options.")]
         private Button updateOptionButton = null;
         [SerializeField, Tooltip("UI Text object used to display the current time modifier label out of the above options.")]
-        private Text optionLabelText = null;
+        private TextMeshProUGUI optionLabelText = null;
 
         [SerializeField, Tooltip("Show a tooltip regarding changing the time modifier when hovering over the button?")]
         private bool showTooltip = true;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,7 +12,8 @@ using RTSEngine.Logging;
 using RTSEngine.Selection;
 using System.Collections.Generic;
 using RTSEngine.ResourceExtension;
-using System.Linq;
+using RTSEngine.UnitExtension;
+using TMPro;
 
 namespace RTSEngine.UI
 {
@@ -32,22 +34,23 @@ namespace RTSEngine.UI
 
     public class SingleSelectionPanelUIHandler : MonoBehaviour, IPreRunGameService
     {
+        #region Attributes
         [SerializeField, Tooltip("The single selection menu, parent of the rest of the following UI objects.")]
         private GameObject panel = null; 
         [SerializeField, Tooltip("Displays the icon of the selected entity.")]
-        private Image icon = null; 
+        private Image icon = null;
         [SerializeField, Tooltip("Displays the name of the selected entity.")]
-        private Text nameText = null; 
+        private TextMeshProUGUI nameUIText;
         [SerializeField, Tooltip("Displays the description of the selected entity.")]
-        public Text descriptionText = null; 
+        private TextMeshProUGUI descriptionUIText = null; 
 
         [Space(), SerializeField, Tooltip("Displays the active workers of the selected entity.")]
-        public Text workersText = null;
+        private TextMeshProUGUI workersUIText = null;
         [SerializeField, Tooltip("Define the entities that are allowed to have their workers displayed when they are selected.")]
-        public EntityTargetPicker showWorkersEntityPicker = new EntityTargetPicker();
+        private EntityTargetPicker showWorkersEntityPicker = new EntityTargetPicker();
 
         [Space(), SerializeField, Tooltip("Displays the amount of health of the selected entity.")]
-        private Text healthText = null; 
+        private TextMeshProUGUI healthUIText = null; 
         [SerializeField, Tooltip("Handles the health bar of the selected entity.")]
         private ProgressBarUI healthBar = new ProgressBarUI();
 
@@ -58,6 +61,8 @@ namespace RTSEngine.UI
 
         // Holds the entity currently displayed in the single selection panel
         private IEntity currEntity;
+        private IEntityWorkerManager currWorkerMgr;
+        private IUnitSquad currSquad;
 
         // Game services
         protected IGameLoggingService logger { private set; get; }
@@ -65,7 +70,9 @@ namespace RTSEngine.UI
         protected IGlobalEventPublisher globalEvent { private set; get; }
         protected IGameUITextDisplayManager textDisplayer { private set; get; }
         protected IResourceManager resourceMgr { private set; get; }
+        #endregion
 
+        #region Initializing/Terminating
         public void Init(IGameManager gameMgr)
         {
             this.globalEvent = gameMgr.GetService<IGlobalEventPublisher>();
@@ -78,6 +85,9 @@ namespace RTSEngine.UI
 
             globalEvent.EntitySelectedGlobal += HandleEntitySelectionUpdate;
             globalEvent.EntityDeselectedGlobal += HandleEntitySelectionUpdate;
+
+            globalEvent.UnitSquadSelectedGlobal += HandleUnitSquadSelectionUpdate;
+            globalEvent.UnitSquadDeselectedGlobal += HandleUnitSquadSelectionUpdate;
 
             dropOffResourcePanelEnabled = dropOffResourcePanel.panel.IsValid() && dropOffResourcePanel.prefab.IsValid();
             if(dropOffResourcePanelEnabled)
@@ -106,15 +116,104 @@ namespace RTSEngine.UI
         {
             globalEvent.EntitySelectedGlobal -= HandleEntitySelectionUpdate;
             globalEvent.EntityDeselectedGlobal -= HandleEntitySelectionUpdate;
-        }
 
-        private void HandleEntitySelectionUpdate(IEntity entity, EventArgs e)
+            globalEvent.UnitSquadSelectedGlobal -= HandleUnitSquadSelectionUpdate;
+            globalEvent.UnitSquadDeselectedGlobal -= HandleUnitSquadSelectionUpdate;
+        }
+        #endregion
+
+        #region Handling Single Unit Squad
+        private void HandleUnitSquadSelectionUpdate(IUnitSquad squad, EventArgs args)
         {
-            if (selectionMgr.Count == 1)
-                Show(entity);
+            if(selectionMgr.IsUnitSquadSelectedOnly(squad))
+            {
+                ShowSquad(squad);
+            }
             else
                 Hide();
         }
+
+        private void HandleSquadUpdated(IUnitSquad squad, EventArgs args)
+        {
+            if (selectionMgr.IsUnitSquadSelectedOnly(squad))
+            {
+                ShowSquad(squad);
+            }
+        }
+
+        private void ShowSquad(IUnitSquad squad)
+        {
+            //either valid selected entity or one that is not currently being displayed in the panel
+            if (!squad.IsValid()
+                || squad.CurrentCount == 0)
+                return;
+
+            IEntity entity = squad.Units[0];
+            panel.SetActive(true);
+
+            if (nameUIText && textDisplayer.EntityNameToText(entity, out string entityName))
+                nameUIText.text = $"{entityName} {squad.CurrentCount}/{squad.SpawnCount}"; //display that the entity belongs to a faction or free one?
+
+            if(descriptionUIText && textDisplayer.EntityDescriptionToText(entity, out string entityDescription)) 
+                descriptionUIText.text = entityDescription;
+
+            if(icon)
+                icon.sprite = entity.Icon;
+
+            if(squad == currSquad)
+                return;
+
+            squad.SquadUpdated += HandleSquadUpdated;
+
+            ShowSquadHealthUI(squad);
+            squad.SquadHealthUpdated += HandleSquadHealthUpdated;
+            squad.SquadMaxHealthUpdated += HandleSquadHealthUpdated;
+
+            //ShowDropOffResources(entity);
+
+            currEntity = entity;
+            currSquad = squad;
+        }
+
+        #region Handling Unit Squad Health
+        private void HandleSquadHealthUpdated(IUnitSquad squad, HealthUpdateArgs args)
+        {
+            ShowSquadHealthUI(squad);
+        }
+
+        public void ShowSquadHealthUI(IUnitSquad squad)
+        {
+            if(healthUIText) //show the faction entity health:
+            {
+                healthUIText.gameObject.SetActive(true);
+                healthUIText.text = squad.CurrHealth.ToString() + "/" + squad.MaxHealth.ToString();
+            }
+
+            //health bar:
+            healthBar.Toggle(true);
+
+            //Update the health bar:
+            healthBar.Update(squad.CurrHealth / (float)squad.MaxHealth);
+        }
+        #endregion
+        #endregion
+
+        #region Handling Single Entity
+        private void HandleEntitySelectionUpdate(IEntity entity, EventArgs e)
+        {
+            if (selectionMgr.IsUnitSquadSelectedOnly())
+            {
+                if (currSquad != selectionMgr.SingleSelectedUnitSquad)
+                    ShowSquad(selectionMgr.SingleSelectedUnitSquad);
+                return;
+            }
+
+            if (selectionMgr.Count == 1)
+                Show(selectionMgr.GetSingleSelectedEntity(EntityType.all));
+            else
+                Hide();
+        }
+
 
         private void Show(IEntity entity)
         {
@@ -125,88 +224,71 @@ namespace RTSEngine.UI
 
             panel.SetActive(true);
 
-            if (nameText && textDisplayer.EntityNameToText(entity, out string entityName))
-                nameText.text = entityName; //display that the entity belongs to a faction or free one?
+            if (nameUIText && textDisplayer.EntityNameToText(entity, out string entityName))
+                nameUIText.text = entityName; //display that the entity belongs to a faction or free one?
 
-            if(descriptionText && textDisplayer.EntityDescriptionToText(entity, out string entityDescription)) 
-                descriptionText.text = entityDescription;
+            if(descriptionUIText && textDisplayer.EntityDescriptionToText(entity, out string entityDescription)) 
+                descriptionUIText.text = entityDescription;
 
             if(icon)
                 icon.sprite = entity.Icon;
 
-            if (entity.WorkerMgr.IsValid())
+            currWorkerMgr = entity.GetWorkerManager();
+            if (currWorkerMgr.IsValid())
             {
-                ShowWorkerUI(entity.WorkerMgr);
+                ShowWorkerUI();
 
-                entity.WorkerMgr.WorkerAdded += HandleWorkerAdded;
-                entity.WorkerMgr.WorkerRemoved += HandleWorkerRemoved;
+                currWorkerMgr.WorkerAdded += HandleWorkerAdded;
+                currWorkerMgr.WorkerRemoved += HandleWorkerRemoved;
             }
 
             ShowHealthUI(entity);
             entity.Health.EntityHealthUpdated += HandleEntityHealthUpdated;
+            entity.Health.EntityMaxHealthUpdated += HandleEntityHealthUpdated;
 
             ShowDropOffResources(entity);
 
             currEntity = entity;
         }
 
-        private void Hide () 
-        {
-            panel.SetActive(false);
-
-            HideWorkerUI();
-            HideHealthUI();
-            HideDropOffResources();
-
-            if (!currEntity.IsValid())
-                return;
-
-            if (currEntity.WorkerMgr.IsValid())
-            {
-                currEntity.WorkerMgr.WorkerAdded -= HandleWorkerAdded;
-                currEntity.WorkerMgr.WorkerRemoved -= HandleWorkerRemoved;
-            }
-
-            currEntity.Health.EntityHealthUpdated -= HandleEntityHealthUpdated;
-
-            currEntity = null;
-        }
-
+        #region Handling Single Entity WorkerManager
         private void HandleWorkerAdded(IEntity sender, EntityEventArgs<IUnit> e)
         {
-            ShowWorkerUI(sender.WorkerMgr);
+            ShowWorkerUI();
         }
 
         private void HandleWorkerRemoved(IEntity sender, EntityEventArgs<IUnit> e)
         {
-            ShowWorkerUI(sender.WorkerMgr);
+            ShowWorkerUI();
         }
 
-        private void ShowWorkerUI(IEntityWorkerManager workerMgr)
+        private void ShowWorkerUI()
         {
-            if(workersText && showWorkersEntityPicker.IsValidTarget(workerMgr.Entity))
+            if(workersUIText && showWorkersEntityPicker.IsValidTarget(currWorkerMgr.Entity))
             {
-                workersText.gameObject.SetActive(true);
-                workersText.text = $"{workerMgr.Amount} / {workerMgr.MaxAmount}";
+                workersUIText.gameObject.SetActive(true);
+                workersUIText.text = $"{currWorkerMgr.Amount} / {currWorkerMgr.MaxAmount}";
             }
         }
 
         private void HideWorkerUI ()
         {
-            workersText.gameObject.SetActive(false);
+            workersUIText.gameObject.SetActive(false);
         }
 
         private void HandleEntityHealthUpdated(IEntity sender, HealthUpdateArgs e)
         {
             ShowHealthUI(sender);
         }
+        #endregion
 
+        #region Handling Single Unit Health
         public void ShowHealthUI(IEntity entity)
         {
-            if(healthText) //show the faction entity health:
+            if(healthUIText) //show the faction entity health:
             {
-                healthText.gameObject.SetActive(true);
-                healthText.text = entity.Health.CurrHealth.ToString() + "/" + entity.Health.MaxHealth.ToString();
+                healthUIText.gameObject.SetActive(true);
+                healthUIText.text = entity.Health.CurrHealth.ToString() + "/" + entity.Health.MaxHealth.ToString();
             }
 
             //health bar:
@@ -219,10 +301,12 @@ namespace RTSEngine.UI
         //hides the health related UI elements:
         private void HideHealthUI ()
         {
-            healthText?.gameObject.SetActive(false);
+            healthUIText?.gameObject.SetActive(false);
             healthBar.Toggle(false);
         }
+        #endregion
 
+        #region Handling Single Entity Drop Off Resources
         private void ShowDropOffResources(IEntity entity)
         {
             if (!dropOffResourcePanelEnabled
@@ -259,5 +343,43 @@ namespace RTSEngine.UI
             foreach (DropOffResourceTaskUI dropOffResourceTask in dropOffResourceTasks.Values)
                 dropOffResourceTask.Disable();
         }
+        #endregion
+        #endregion
+
+        #region Hiding Single Selection Panel
+        private void Hide () 
+        {
+            panel.SetActive(false);
+
+            HideWorkerUI();
+            HideHealthUI();
+            HideDropOffResources();
+
+            if (currEntity.IsValid())
+            {
+
+                if (currWorkerMgr.IsValid())
+                {
+                    currWorkerMgr.WorkerAdded -= HandleWorkerAdded;
+                    currWorkerMgr.WorkerRemoved -= HandleWorkerRemoved;
+                }
+
+                currEntity.Health.EntityHealthUpdated -= HandleEntityHealthUpdated;
+                currEntity.Health.EntityMaxHealthUpdated -= HandleEntityHealthUpdated;
+            }
+            
+            if(currSquad.IsValid())
+            {
+                currSquad.SquadUpdated -= HandleSquadUpdated;
+
+                currSquad.SquadHealthUpdated -= HandleSquadHealthUpdated;
+                currSquad.SquadMaxHealthUpdated -= HandleSquadHealthUpdated;
+            }
+
+            currEntity = null;
+            currSquad = null;
+        }
+
+        #endregion
     }
 }

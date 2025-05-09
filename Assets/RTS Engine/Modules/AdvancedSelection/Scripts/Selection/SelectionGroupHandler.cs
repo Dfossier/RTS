@@ -7,17 +7,37 @@ using RTSEngine.Entities;
 using RTSEngine.Event;
 using RTSEngine.Game;
 using RTSEngine.Logging;
+using System;
+using System.Linq;
 
 namespace RTSEngine.Selection
 {
-    public enum SelectionGroupAction { select, assign, append, substract }
+    public enum SelectionGroupAction { select, assign, append, substract, reset }
+
+    public interface ISelectionGroup
+    {
+        IReadOnlyList<IEntity> Entities { get; }
+        bool HasKey { get; }
+
+        event CustomEventHandler<ISelectionGroup, EventArgs> GroupUpdated;
+
+        bool Update(SelectionGroupAction action, bool requireKey = true);
+
+        void Add(IEnumerable<IEntity> entities);
+        bool Add(IEntity entity);
+
+        void Remove(IEnumerable<IEntity> entities);
+        void Remove(IEntity entity);
+        void RemoveAll();
+    }
 
     [System.Serializable]
-    public class SelectionGroup
+    public class SelectionGroup : ISelectionGroup
     {
         #region Attributes
         [SerializeField, Tooltip("Control type that defines the key used to use this selection group.")]
         private ControlType key = null;
+        public bool HasKey => key.IsValid();
 
         [SerializeField, Tooltip("Define what entity types can be added to this selection group.")]
         private EntityType allowedEntityTypes = EntityType.unit & EntityType.building;
@@ -27,34 +47,48 @@ namespace RTSEngine.Selection
         [SerializeField, Tooltip("The maximum amount of entities allowed in the selection group at the same time if the above field is enabled."), Min(1)]
         private int maxAmount = 20;
 
+        [SerializeField, Tooltip("Force the group entities to be of the same type!")]
+        private bool forceSameType = false;
+        private string forcedEntityCode;
+
         private List<IEntity> current;
+        public IReadOnlyList<IEntity> Entities => current;
 
         protected ISelectionManager selectionMgr { private set; get; }
-        protected IGameControlsManager controls { private set; get; } 
+        protected IGameControlsManager controls { private set; get; }
+        #endregion
+
+        #region Raising Events
+        public event CustomEventHandler<ISelectionGroup, EventArgs> GroupUpdated;
+        private void RaiseGroupUpdated()
+        {
+            var handler = GroupUpdated;
+            handler?.Invoke(this, EventArgs.Empty);
+        }
         #endregion
 
         #region Initializing/Terminating
         public bool Init(int index, IGameManager gameMgr)
         {
-            if(!key.IsValid())
-            {
-                gameMgr.GetService<IGameLoggingService>().LogError($"[{GetType().Name} - index: {index}] 'Key' field must be assigned!");
-                return false;
-            }
-
             this.selectionMgr = gameMgr.GetService<ISelectionManager>();
             this.controls = gameMgr.GetService<IGameControlsManager>(); 
 
             current = new List<IEntity>();
+
+            if(!key.IsValid())
+            {
+                gameMgr.GetService<IGameLoggingService>().LogWarning($"[{GetType().Name} - index: {index}] 'Key' field must be assigned to use the selection group with keyboard keys!");
+                return false;
+            }
 
             return true;
         }
         #endregion
 
         #region Adding/Removing
-        public bool Update(SelectionGroupAction action)
+        public bool Update(SelectionGroupAction action, bool requireKey = true)
         {
-            if (!controls.Get(key))
+            if (requireKey && (!HasKey || !controls.Get(key)))
                 return false;
 
             switch(action)
@@ -76,7 +110,11 @@ namespace RTSEngine.Selection
                     Remove(selectionMgr.GetEntitiesList(allowedEntityTypes, exclusiveType: false, localPlayerFaction: true));
                     break;
 
-                default:
+                case SelectionGroupAction.reset:
+                    RemoveAll();
+                    break;
+
+                case SelectionGroupAction.select:
 
                     if (current.Count > 0)
                     {
@@ -89,19 +127,35 @@ namespace RTSEngine.Selection
             return true;
         }
 
-        public bool Add(IEnumerable<IEntity> entities)
+        public void Add(IEnumerable<IEntity> entities)
         {
             foreach (IEntity entity in entities)
-            {
-                if (maxAmountEnabled && current.Count == maxAmount)
-                    return false;
+                Add(entity);
+        }
 
-                current.Add(entity);
-                entity.Health.EntityDead += HandleEntityDead;
-                entity.FactionUpdateComplete += HandleFactionUpdateComplete;
-            }
+        public bool Add(IEntity entity)
+        {
+            if (current.Contains(entity)
+                || (maxAmountEnabled && current.Count == maxAmount)
+                || (forceSameType && current.Count > 0 && entity.Code != forcedEntityCode))
+                return false;
+
+            current.Add(entity);
+            entity.Health.EntityDead += HandleEntityDead;
+            entity.FactionUpdateComplete += HandleFactionUpdateComplete;
+
+            if (forceSameType && current.Count == 1)
+                forcedEntityCode = entity.Code;
+
+            RaiseGroupUpdated();
 
             return true;
+        }
+
+        public void RemoveAll()
+        {
+            while (current.Count > 0)
+                Remove(current[0]);
         }
 
         public void Remove(IEnumerable<IEntity> entities)
@@ -113,8 +167,10 @@ namespace RTSEngine.Selection
         public void Remove(IEntity entity)
         {
             current.Remove(entity);
-            entity.Health.EntityDead += HandleEntityDead;
-            entity.FactionUpdateComplete += HandleFactionUpdateComplete;
+            entity.Health.EntityDead -= HandleEntityDead;
+            entity.FactionUpdateComplete -= HandleFactionUpdateComplete;
+
+            RaiseGroupUpdated();
         }
         #endregion
 
@@ -131,8 +187,14 @@ namespace RTSEngine.Selection
         }
         #endregion
     }
+    
+    public interface ISelectionGroupHandler : IPreRunGameService
+    {
+        bool IsActive { get; }
+        IReadOnlyList<ISelectionGroup> Groups { get; }
+    }
 
-    public class SelectionGroupHandler : MonoBehaviour, IPostRunGameService
+    public class SelectionGroupHandler : MonoBehaviour, ISelectionGroupHandler
     {
         #region Attributes
         [SerializeField, Tooltip("Enable assigning, appending and substracting entity selection groups?")]
@@ -145,12 +207,15 @@ namespace RTSEngine.Selection
         private ControlType appendKey = null;
         [SerializeField, Tooltip("Optional control type that defines the key used to subtract the currently selected entities from a selection group.")]
         private ControlType substractKey = null;
+        [SerializeField, Tooltip("Optional control type that defines the key used to reset the currently selected entities from a selection group.")]
+        private ControlType resetKey = null;
 
         [SerializeField, Tooltip("For each selection group slot, define an element in this array field.")]
         private SelectionGroup[] groups = new SelectionGroup[0];
+        public IReadOnlyList<ISelectionGroup> Groups => groups;
 
         protected IGameLoggingService logger { private set; get; }
-        protected IGameControlsManager controls { private set; get; } 
+        protected IGameControlsManager controls { private set; get; }
         #endregion
 
         #region Initializing/Terminating
@@ -159,19 +224,16 @@ namespace RTSEngine.Selection
             this.logger = gameMgr.GetService<IGameLoggingService>(); 
             this.controls = gameMgr.GetService<IGameControlsManager>(); 
 
-            if (!IsActive)
+            for (int i = 0; i < groups.Length; i++)
+                groups[i].Init(i, gameMgr);
+
+            if (!isActive)
                 return;
 
             if(!assignKey.IsValid())
             {
-                logger.LogError($"[{GetType().Name}] The 'Assign Group Key' field must be assigned!");
+                logger.LogWarning($"[{GetType().Name}] The 'Assign Group Key' field must be assigned to use the selection group with keys!");
                 return;
-            }
-
-            for (int i = 0; i < groups.Length; i++)
-            {
-                if (!groups[i].Init(i, gameMgr))
-                    return;
             }
         }
         #endregion
@@ -183,12 +245,15 @@ namespace RTSEngine.Selection
                 return;
 
             SelectionGroupAction nextAction = SelectionGroupAction.select;
+
             if(controls.Get(assignKey))
                 nextAction = SelectionGroupAction.assign;
             else if (appendKey.IsValid() && controls.Get(appendKey))
                 nextAction = SelectionGroupAction.append;
             else if (substractKey.IsValid() && controls.Get(substractKey))
                 nextAction = SelectionGroupAction.substract;
+            else if (resetKey.IsValid() && controls.Get(resetKey))
+                nextAction = SelectionGroupAction.reset;
 
             for (int i = 0; i < groups.Length; i++)
             {

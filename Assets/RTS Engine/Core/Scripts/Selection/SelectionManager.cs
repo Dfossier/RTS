@@ -6,6 +6,8 @@ using UnityEngine;
 using RTSEngine.Entities;
 using RTSEngine.Game;
 using RTSEngine.Event;
+using RTSEngine.UnitExtension;
+using System;
 
 namespace RTSEngine.Selection
 {
@@ -17,12 +19,13 @@ namespace RTSEngine.Selection
         private Dictionary<string, List<IEntity>> selectionDic;
 
         // Caches the entity instance that was first selected among all of the currently selected entities.
-        private IEntity firstSelected;
+        public IEntity FirstSelected { private set; get; }
 
         /// <summary>
         /// Total amount of currently selected entities.
         /// </summary>
         public int Count { private set; get; }
+        public int LocalFactionCount { private set; get; }
 
         // Cache the last selected entity type
         private EntityType lastSelectedEntityType = EntityType.all;
@@ -34,19 +37,31 @@ namespace RTSEngine.Selection
         private EntitySelectionOptions[] selectionOptions = new EntitySelectionOptions[0];
 
         // Game services
-        protected ISelectionManager selectionMgr { private set; get; }
-        protected IMouseSelector mouseSelector { private set; get; } 
+        protected ISelector selector { private set; get; }
+        protected IGlobalEventPublisher globalEvent { private set; get; } 
         #endregion
 
         #region Initializing/Terminating
         public void Init(IGameManager gameMgr)
         {
-            this.selectionMgr = gameMgr.GetService<ISelectionManager>();
-            this.mouseSelector = gameMgr.GetService<IMouseSelector>(); 
+            this.selector = gameMgr.GetService<ISelector>();
+            this.globalEvent = gameMgr.GetService<IGlobalEventPublisher>(); 
 
             // Initial state
             selectionDic = new Dictionary<string, List<IEntity>>();
             Count = 0;
+            LocalFactionCount = 0;
+
+            selectedUnitSquads = new HashSet<IUnitSquad>();
+
+            globalEvent.UnitSquadSelectedGlobal += HandleUnitSquadSelectionUpdate;
+            globalEvent.UnitSquadDeselectedGlobal += HandleUnitSquadSelectionUpdate;
+        }
+
+        private void OnDestroy()
+        {
+            globalEvent.UnitSquadSelectedGlobal -= HandleUnitSquadSelectionUpdate;
+            globalEvent.UnitSquadDeselectedGlobal -= HandleUnitSquadSelectionUpdate;
         }
         #endregion
 
@@ -58,14 +73,14 @@ namespace RTSEngine.Selection
 
         public bool IsSelectedOnly(IEntity entity, bool localPlayerFaction = false)
             => Count == 1
-            && firstSelected == entity
+            && FirstSelected == entity
             && (!localPlayerFaction || entity.IsLocalPlayerFaction());
         #endregion
 
         #region Getting Selected Entities
         public IEntity GetSingleSelectedEntity(EntityType requiredType, bool localPlayerFaction = false)
-            => IsSelectedOnly(firstSelected, localPlayerFaction) && firstSelected.IsEntityTypeMatch(requiredType)
-                ? firstSelected
+            => IsSelectedOnly(FirstSelected, localPlayerFaction) && FirstSelected.IsEntityTypeMatch(requiredType)
+                ? FirstSelected
                 : null;
 
         public IEnumerable<IEntity> GetEntitiesList(EntityType requiredType, bool exclusiveType, bool localPlayerFaction)
@@ -115,26 +130,37 @@ namespace RTSEngine.Selection
             // ToList() to generate a separate collection to avoid the issue where the input collection is referencing a collection in this class
             // Select each entity individually and launch the selection update event after all entities are selected
 
-            var args = new EntitySelectionEventArgs(SelectionType.multiple, isLocalPlayerClickSelection: false);
-
             IEntity refEntity = null;
             foreach (IEntity entity in entities)
-                if (AddInternal(entity, SelectionType.multiple))
+            {
+                SelectedType selectedType = AddInternal(entity, SelectionType.multiple);
+                if (selectedType != SelectedType.notSelected)
                 {
+                    var args = new EntitySelectionEventArgs(SelectionType.multiple, selectedType, isLocalPlayerClickSelection: false);
                     entity.Selection.OnSelected(args);
 
                     if (!refEntity.IsValid())
                         refEntity = entity;
                 }
+            }
 
             return refEntity.IsValid();
         }
 
         public bool Add(IEntity entity, SelectionType type, bool isLocalPlayerClickSelection)
         {
-            if (AddInternal(entity, type))
+            if(isLocalPlayerClickSelection
+                && type == SelectionType.single
+                && selector.MultipleSelectionModeEnabled
+                && entity.Selection.IsSelected)
             {
-                var args = new EntitySelectionEventArgs(type, isLocalPlayerClickSelection);
+                return Remove(entity);
+            }
+
+            SelectedType selectedType = AddInternal(entity, type);
+            if (selectedType != SelectedType.notSelected)
+            {
+                var args = new EntitySelectionEventArgs(type, selectedType, isLocalPlayerClickSelection);
 
                 entity.Selection.OnSelected(args);
                 return true;
@@ -143,13 +169,13 @@ namespace RTSEngine.Selection
             return false;
         }
 
-        private bool AddInternal(IEntity entity, SelectionType type)
+        private SelectedType AddInternal(IEntity entity, SelectionType type)
         {
             if (!entity.IsValid())
-                return false;
+                return SelectedType.notSelected;
 
             // Overwrite the selection type if the player is forcing multiple selection
-            if (mouseSelector.MultipleSelectionKeyDown == true)
+            if (selector.MultipleSelectionModeEnabled == true)
                 type = SelectionType.multiple;
 
             // If the last selection type was exclusive and this doesn't match the last selected entity type
@@ -206,7 +232,10 @@ namespace RTSEngine.Selection
             }
 
             bool isSelected = IsSelected(entity);
-            if (entity.Selection.CanSelect && !isSelected)
+            if (isSelected)
+                return SelectedType.alreadySelected;
+
+            if (entity.Selection.CanSelect)
             {
                 // If there's at least another entity of the same type that is already selected then add this entity to the same list
                 if (selectionDic.TryGetValue(entity.Code, out List<IEntity> targetList))
@@ -215,21 +244,26 @@ namespace RTSEngine.Selection
                     selectionDic.Add(entity.Code, new List<IEntity> { entity });
 
                 Count++;
+                if (entity.IsLocalPlayerFaction())
+                    LocalFactionCount++;
 
                 // Set firstSelected entity
                 if (Count == 1)
-                    firstSelected = entity;
+                    FirstSelected = entity;
 
                 lastSelectedEntityType = entity.Type;
                 isCurrSelectionExclusive = exclusiveOnSuccess;
 
-                return true;
+                return SelectedType.newlySelected;
+            }
+            else
+            {
+                return SelectedType.notSelected;
             }
 
             // Even if the entity is already selected, we do not add it to the selection dictionaries again
             // But we still return true in order to trigger the corresponding selection events upon which...
             // ... other mechnacis like range double click selection depend.
-            return isSelected;
         }
         #endregion
 
@@ -249,15 +283,17 @@ namespace RTSEngine.Selection
                     return false;
 
                 Count--;
+                if (entity.IsLocalPlayerFaction())
+                    LocalFactionCount--;
 
                 // If the selection list is now empty, remove the whole entry from the dictionary
                 if (selectedList.Count == 0)
                     selectionDic.Remove(entity.Code);
 
                 if (Count == 1) //if only one entity is left selected, assign it as the single selected entity
-                    firstSelected = GetEntitiesList(EntityType.all, false, false).FirstOrDefault();
+                    FirstSelected = GetEntitiesList(EntityType.all, false, false).FirstOrDefault();
 
-                entity.Selection.OnDeselected();
+                entity.Selection.OnDeselected(new EntityDeselectionEventArgs(DeselectedType.single));
 
                 return true;
             }
@@ -271,19 +307,42 @@ namespace RTSEngine.Selection
             IEnumerable<string> keys = selectionDic.Keys.ToList();
 
             Count = 0; //reset selection count
-            IEntity refEntity = null; // this would be valid if at least one entity was selected prior to the call of this method
+            LocalFactionCount = 0;
 
             foreach (string code in keys)
-                foreach (IEntity entity in selectionDic[code])
+                foreach (IEntity entity in selectionDic[code]) 
                 {
-                    entity.Selection.OnDeselected();
-                    if (!refEntity.IsValid())
-                        refEntity = entity;
+                    entity.Selection.OnDeselected(new EntityDeselectionEventArgs(DeselectedType.all));
                 }
 
             // Reset state
             selectionDic.Clear();
-            firstSelected = null;
+            FirstSelected = null;
+        }
+        #endregion
+
+        #region Handling Unit Squad Selection
+        private HashSet<IUnitSquad> selectedUnitSquads;
+        public IUnitSquad SingleSelectedUnitSquad => IsUnitSquadSelectedOnly() ? selectedUnitSquads.First() : null;
+
+        private void HandleUnitSquadSelectionUpdate(IUnitSquad unitSquad, EventArgs args)
+        {
+            if(unitSquad.IsSelected)
+            {
+                if (!selectedUnitSquads.Contains(unitSquad))
+                    selectedUnitSquads.Add(unitSquad);
+            }
+            else
+            {
+                selectedUnitSquads.Remove(unitSquad);
+            }
+        }
+
+        public bool IsUnitSquadSelectedOnly() => selectedUnitSquads.Count == 1 && selectedUnitSquads.First().CurrentCount == Count;
+
+        public bool IsUnitSquadSelectedOnly(IUnitSquad unitSquad)
+        {
+            return IsUnitSquadSelectedOnly() && selectedUnitSquads.Contains(unitSquad);
         }
         #endregion
     }

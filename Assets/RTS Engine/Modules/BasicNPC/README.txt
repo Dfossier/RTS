@@ -1,4 +1,4 @@
-RTS Engine Module: Basic NPC - v2022.3.2
+RTS Engine Module: Basic NPC - v2024.0.0
 
 - Module feaures, requirements, installation and guide: https://docs.gamedevspice.com/rtsengine/manual/08_Modules/04_Basic_NPC.html
 

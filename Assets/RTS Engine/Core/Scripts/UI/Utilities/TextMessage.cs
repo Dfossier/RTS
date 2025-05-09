@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 using RTSEngine.Event;
 using RTSEngine.Logging;
+using UnityEngine.Serialization;
+using TMPro;
 
 namespace RTSEngine.UI.Utilities
 {
@@ -17,7 +19,7 @@ namespace RTSEngine.UI.Utilities
         [SerializeField, Tooltip("Parent object of the message UI Text element. This is optional!")]
         private GameObject panel = null;
         [SerializeField, Tooltip("UI Text responsible for displaying the message.")]
-        private Text messageDisplay = null;
+        private TextMeshProUGUI messageDisplayText = null;
 
         [SerializeField, Tooltip("Disable this option to allow the message to be displayed until manually hidden.")]
         private bool useDuration = true;
@@ -35,7 +37,7 @@ namespace RTSEngine.UI.Utilities
 
             if(!logger.RequireValid(source,
                 $"[{GetType().Name}] This class must be initialized by an object that implements interface '{typeof(IMonoBehaviour).Name}'.")
-                || !logger.RequireValid(messageDisplay,
+                || !logger.RequireValid(messageDisplayText,
                 $"[{GetType().Name}] The field 'Message Display' must be assigned!",
                 source))
                 return;
@@ -49,14 +51,17 @@ namespace RTSEngine.UI.Utilities
 
         public void Display(MessageEventArgs args)
         {
+            if (!source.gameObject.activeInHierarchy)
+                return;
+
             if(hideMessageCoroutine != null)
                 source.StopCoroutine(hideMessageCoroutine);
 
             if(panel)
                 panel.gameObject.SetActive(true);
 
-            messageDisplay.gameObject.SetActive(true);
-			messageDisplay.text = args.Message;
+            messageDisplayText.gameObject.SetActive(true);
+			messageDisplayText.text = args.Message;
 
             if (useDuration)
             {
@@ -72,8 +77,8 @@ namespace RTSEngine.UI.Utilities
             if(panel.IsValid())
                 panel.gameObject.SetActive(false);
 
-            if(messageDisplay.IsValid())
-                messageDisplay.gameObject.SetActive(false);
+            if(messageDisplayText.IsValid())
+                messageDisplayText.gameObject.SetActive(false);
 
             if (hideMessageCoroutine.IsValid())
             {

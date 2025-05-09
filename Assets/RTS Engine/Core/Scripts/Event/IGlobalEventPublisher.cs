@@ -1,4 +1,5 @@
-﻿using RTSEngine.BuildingExtension;
+﻿using RTSEngine.Attack;
+using RTSEngine.BuildingExtension;
 using RTSEngine.Effect;
 using RTSEngine.Entities;
 using RTSEngine.EntityComponent;
@@ -6,6 +7,7 @@ using RTSEngine.Faction;
 using RTSEngine.Game;
 using RTSEngine.Model;
 using RTSEngine.Search;
+using RTSEngine.UnitExtension;
 using System;
 
 namespace RTSEngine.Event
@@ -92,12 +94,15 @@ namespace RTSEngine.Event
         event CustomEventHandler<IFactionSlot, DefeatConditionEventArgs> FactionSlotDefeatConditionTriggeredGlobal;
         event CustomEventHandler<IEntity, VisibilityEventArgs> EntityVisibilityUpdateGlobal;
         event CustomEventHandler<IFactionSlot, DefeatConditionEventArgs> FactionSlotDefeatedGlobal;
-        event CustomEventHandler<ICachedModel, EventArgs> CachedModelEnabledGlobal;
-        event CustomEventHandler<ICachedModel, EventArgs> CachedModelDisabledGlobal;
         event CustomEventHandler<ISearchObstacle, EventArgs> SearchObstacleEnabledGlobal;
         event CustomEventHandler<ISearchObstacle, EventArgs> SearchObstacleDisabledGlobal;
         event CustomEventHandler<IResourceGenerator, ResourceAmountEventArgs> ResourceGeneratorCollectedGlobal;
         event CustomEventHandler<IEntityComponentTaskInput, EventArgs> EntityComponentTaskInputInitializedGlobal;
+        event CustomEventHandler<IUnitSquad, EventArgs> UnitSquadSelectedGlobal;
+        event CustomEventHandler<IUnitSquad, EventArgs> UnitSquadDeselectedGlobal;
+        event CustomEventHandler<IEntity, HealthUpdateArgs> EntityMaxHealthUpdatedGlobal;
+        event CustomEventHandler<IResourceGenerator, EventArgs> ResourceGeneratorInitGlobal;
+        event CustomEventHandler<IAttackObject, AttackObjectTargetEventArgs> AttackObjectApplyDamageGlobal;
 
         void RaiseAttackSwitchCompleteGlobal(IAttackComponent sender);
         void RaiseAttackSwitchStartGlobal(IAttackComponent sender);
@@ -125,6 +130,7 @@ namespace RTSEngine.Event
         void RaiseEntityDeadGlobal(IEntity sender, DeadEventArgs e);
         void RaiseEntityDeselectedGlobal(IEntity sender);
         void RaiseEntityHealthUpdatedGlobal(IEntity sender, HealthUpdateArgs e);
+        void RaiseEntityMaxHealthUpdatedGlobal(IEntity sender, HealthUpdateArgs e);
         void RaiseEntityInitiatedGlobal(IEntity sender);
         void RaiseEntityInstanceUpgradedGlobal(IEntity sender, UpgradeEventArgs<IEntity> e);
         void RaiseEntityMouseEnterGlobal(IEntity sender);
@@ -157,11 +163,13 @@ namespace RTSEngine.Event
         void RaiseUnitUpgradedGlobal(IUnit sender, UpgradeEventArgs<IEntity> e);
         void RaiseEntityVisibilityUpdateGlobal(IEntity sender, VisibilityEventArgs args);
         void RaiseFactionSlotDefeatedGlobal(IFactionSlot factionSlot, DefeatConditionEventArgs args);
-        void RaiseCachedModelEnabledGlobal(ICachedModel sender);
-        void RaiseCachedModelDisabledGlobal(ICachedModel sender);
         void RaiseSearchObstacleEnabledGlobal(ISearchObstacle sender);
         void RaiseSearchObstacleDisabledGlobal(ISearchObstacle sender);
         void RaiseResourceGeneratorCollectedGlobal(IResourceGenerator sender, ResourceAmountEventArgs args);
         void RaiseEntityComponentTaskInputInitializedGlobal(IEntityComponentTaskInput sender);
+        void RaiseUnitSquadSelectedGlobal(IUnitSquad sender, EventArgs args);
+        void RaiseUnitSquadDeselectedGlobal(IUnitSquad sender, EventArgs args);
+        void RaiseResourceGeneratorInitGlobal(IResourceGenerator sender);
+        void RaiseAttackObjectApplyDamageGlobal(IAttackObject sender, AttackObjectTargetEventArgs args);
     }
 }

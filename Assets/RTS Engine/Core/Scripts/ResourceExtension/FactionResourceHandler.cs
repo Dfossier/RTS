@@ -1,16 +1,19 @@
-﻿using RTSEngine.EntityComponent;
+﻿using RTSEngine.Entities;
+using RTSEngine.EntityComponent;
 using RTSEngine.Event;
 using RTSEngine.Faction;
 using RTSEngine.Game;
 using RTSEngine.Logging;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RTSEngine.ResourceExtension
 {
     public class FactionResourceHandler : IFactionResourceHandler
     {
         #region Attributes
-        private int factionID;
+        public int FactionID { private set; get; }
         public ResourceTypeInfo Type { private set; get; }
 
         public int Amount { private set; get; }
@@ -20,7 +23,11 @@ namespace RTSEngine.ResourceExtension
         public int ReservedCapacity { private set; get; }
         public int FreeAmount => Capacity - Amount;
 
-        public List<IResourceCollector> activeCollectors;
+        private List<IResourceCollector> collectors;
+        public IReadOnlyList<IResourceCollector> Collectors => collectors;
+        private List<IResourceGenerator> generators;
+        public IReadOnlyList<IResourceGenerator> Generators => generators;
+        public int ProducerCount => collectors.Count + generators.Count;
 
         // Game services
         protected IGlobalEventPublisher globalEvent { private set; get; }
@@ -32,9 +39,18 @@ namespace RTSEngine.ResourceExtension
 
         private void RaiseFactionResourceAmountUpdated(ResourceUpdateEventArgs args)
         {
-            CustomEventHandler<IFactionResourceHandler, ResourceUpdateEventArgs> handler = FactionResourceAmountUpdated;
+            var handler = FactionResourceAmountUpdated;
 
             handler?.Invoke(this, args);
+        }
+
+        public event CustomEventHandler<IFactionResourceHandler, EventArgs> FactionResourceProducersUpdated;
+
+        private void RaiseFactionResourceProducersUpdated()
+        {
+            var handler = FactionResourceProducersUpdated;
+
+            handler?.Invoke(this, EventArgs.Empty);
         }
         #endregion
 
@@ -45,7 +61,7 @@ namespace RTSEngine.ResourceExtension
             ResourceTypeInfo data,
             ResourceTypeValue startingAmount)
         {
-            this.factionID = factionSlot.ID;
+            this.FactionID = factionSlot.ID;
             this.Type = data;
 
             this.globalEvent = gameMgr.GetService<IGlobalEventPublisher>();
@@ -54,7 +70,11 @@ namespace RTSEngine.ResourceExtension
             Amount = startingAmount.amount;
             Capacity = startingAmount.capacity;
 
-            activeCollectors = new List<IResourceCollector>();
+            collectors = new List<IResourceCollector>();
+            generators = new List<IResourceGenerator>();
+
+            globalEvent.ResourceGeneratorInitGlobal += HandleResourceGeneratorInitGlobal;
+            factionSlot.FactionMgr.OwnFactionEntityAdded += HandleOwnFactionEntityAdded;
         }
         #endregion
 
@@ -74,14 +94,14 @@ namespace RTSEngine.ResourceExtension
             Capacity += updateValue.capacity;
             Amount += updateValue.amount;
 
+            OnAmountUpdated();
+
             ResourceUpdateEventArgs eventArgs = new ResourceUpdateEventArgs(
                     Type,
                     updateValue);
 
-            globalEvent.RaiseFactionSlotResourceAmountUpdatedGlobal(factionID.ToFactionSlot(), eventArgs);
+            globalEvent.RaiseFactionSlotResourceAmountUpdatedGlobal(FactionID.ToFactionSlot(), eventArgs);
             RaiseFactionResourceAmountUpdated(eventArgs);
-
-            OnAmountUpdated();
         }
 
         public void SetAmount(ResourceTypeValue setValue, out int restAmount)
@@ -149,6 +169,91 @@ namespace RTSEngine.ResourceExtension
                 //logger.LogError($"[FactionResourceHandler - Faction ID: {factionID} - Resource Type: {Type.Key}] Property 'ReservedCapacity' has been updated to a negative value. This is not allowed. Follow error trace to see how we got here.");
                 ReservedCapacity = 0;
             }
+        }
+        #endregion
+
+        #region Tracking Resource Generators
+        private void HandleResourceGeneratorInitGlobal(IResourceGenerator generator, EventArgs args)
+        {
+            if (!generator.Entity.IsSameFaction(FactionID))
+                return;
+
+            foreach(var resource in generator.Resources)
+            {
+                if(resource.type == Type)
+                {
+                    generators.Add(generator);
+
+                    generator.Entity.Health.EntityDead += HandleResourceGeneratorDead;
+
+                    RaiseFactionResourceProducersUpdated();
+                    break;
+                }
+            }
+        }
+
+        private void HandleResourceGeneratorDead(IEntity entity, DeadEventArgs args)
+        {
+            foreach(var generator in (entity as IFactionEntity).ResourceGenerators)
+            {
+                foreach (var resource in generator.Resources)
+                {
+                    if (resource.type == Type)
+                    {
+                        generators.Remove(generator);
+
+                        generator.Entity.Health.EntityDead -= HandleResourceGeneratorDead;
+
+                        RaiseFactionResourceProducersUpdated();
+                        break;
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region Tracking Resource Collectors
+        private void HandleOwnFactionEntityAdded(IFactionManager factionMgr, EntityEventArgs<IFactionEntity> args)
+        {
+            if (!args.Entity.IsUnit())
+                return;
+
+            IUnit unit = args.Entity as IUnit;
+            if (!unit.CollectorComponent.IsValid()
+                || !unit.CollectorComponent.IsResourceTypeCollectable(Type))
+                return;
+
+            unit.CollectorComponent.TargetUpdated += HandleResourceCollectorTargetUpdated;
+            unit.CollectorComponent.TargetStop += HandleResourceCollectorTargetStopped;
+
+            unit.Health.EntityDead += HandleResourceCollectorDead;
+        }
+
+        private void HandleResourceCollectorDead(IEntity entity, DeadEventArgs args)
+        {
+            IUnit unit = entity as IUnit;
+            unit.CollectorComponent.TargetUpdated -= HandleResourceCollectorTargetUpdated;
+            unit.CollectorComponent.TargetStop -= HandleResourceCollectorTargetStopped;
+
+            unit.Health.EntityDead -= HandleResourceCollectorDead;
+        }
+
+        private void HandleResourceCollectorTargetUpdated(IEntityTargetComponent collectorComp, TargetDataEventArgs args)
+        {
+            if (!(args.Data.instance as IResource).IsValid() || (args.Data.instance as IResource).ResourceType != Type)
+                return;
+
+            collectors.Add((collectorComp.Entity as IUnit).CollectorComponent);
+            RaiseFactionResourceProducersUpdated();
+        }
+
+        private void HandleResourceCollectorTargetStopped(IEntityTargetComponent collectorComp, TargetDataEventArgs args)
+        {
+            if (!(args.Data.instance as IResource).IsValid() || (args.Data.instance as IResource).ResourceType != Type)
+                return;
+
+            collectors.Remove((collectorComp.Entity as IUnit).CollectorComponent);
+            RaiseFactionResourceProducersUpdated();
         }
         #endregion
     }

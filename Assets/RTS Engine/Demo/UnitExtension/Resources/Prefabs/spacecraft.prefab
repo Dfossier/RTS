@@ -1,44 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!95 &8064871382511999972
-Animator:
-  serializedVersion: 3
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2581516478273868740}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 22100000, guid: cd92369e97bf29f4fb9fbcd04ab1a07a, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
---- !u!114 &7341564413470805372
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2581516478273868740}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9f25f7e5fdbfc56499eef5560418c5d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  transformConnections:
-    connectedChildren: []
-  animatorConnections:
-    connectedChildren:
-    - {fileID: 8064871382511999972}
-  rendererConnections:
-    connectedChildren:
-    - {fileID: 4094792403976417809}
 --- !u!1 &4458340652966854125
 GameObject:
   m_ObjectHideFlags: 0
@@ -66,6 +27,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5635641197457816151}
   m_RootOrder: 3
@@ -94,34 +56,37 @@ MonoBehaviour:
     reloadTime: 1
     range: 15
     idleOnly: 1
+    center: {fileID: 0}
   setTargetTaskUI: {fileID: 11400000, guid: 1acf9aaa95010f543a53822d6a4be155, type: 2}
   orderAudio:
     fetchType: 0
     items: []
     cooldown:
       enabled: 1
-      defaultValue: 2
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  showTargetGizmo: 1
   progressEnabledAudio:
     fetchType: 0
     items: []
     cooldown:
       enabled: 1
-      defaultValue: 2
+      defaultValueRange:
+        _min: 1
+        _max: 2
   progressOverrideController:
     fetchType: 0
     items:
     - {fileID: 22100000, guid: cd92369e97bf29f4fb9fbcd04ab1a07a, type: 2}
   progressDuration: 0
   progressMaxDistance: 1
-  inProgressObject:
-    status: 0
-    obj: {fileID: 0}
-    indexKey: -1
-    entity: {fileID: 0}
+  inProgressObject: {fileID: 0}
   sourceEffect:
     input: {fileID: 0}
   targetEffect:
     input: {fileID: 0}
+  showProgressGizmo: 1
   isLocked: 0
   revert: 1
   engageOptions:
@@ -131,23 +96,32 @@ MonoBehaviour:
     engageFriendly: 0
     autoIgnoreAngleLOS: 1
     autoIgnoreObstacleLOS: 0
+  isAttackReady: 1
   targetPicker:
     type: 0
     options:
       codes: []
       categories: []
-    engageUnits: 1
-    engageBuildings: 1
+    targetUnits: 1
+    targetBuildings: 1
   requireTarget: 0
+  allowMultipleTerrainAttacks: 0
+  terrainAttackActive: 0
   reloadDuration: 1.5
   delayTriggerEnabled: 0
+  attackIterationTriggered: 0
   cooldown:
     enabled: 0
-    defaultValue: 1
+    defaultValueRange:
+      _min: 1
+      _max: 2
   launcher:
     useAttackObjects: 0
     launchType: 1
     sources: []
+    attackIterationLaunchEvent:
+      m_PersistentCalls:
+        m_Calls: []
   damage:
     enabled: 1
     data:
@@ -178,6 +152,7 @@ MonoBehaviour:
         m_Calls: []
   weapon:
     toggableObjects: []
+    toggleType: 0
     updateRotation: 1
     rotateInRangeOnly: 0
     freezeRotationX: 0
@@ -198,16 +173,22 @@ MonoBehaviour:
     ignoreRotationY: 1
     ignoreRotationZ: 0
   nextLaunchLogEnabled: 0
+  setTargetCooldownUIData:
+    icon: {fileID: 0}
+    color: {r: 1, g: 0, b: 0, a: 1}
   switchTaskUI: {fileID: 0}
   switchAttackCooldownUIData:
     icon: {fileID: 0}
     color: {r: 1, g: 0, b: 0, a: 1}
+  cancelTaskUI: {fileID: 0}
   attackCompleteAudio:
     fetchType: 0
     items: []
     cooldown:
       enabled: 1
-      defaultValue: 2
+      defaultValueRange:
+        _min: 1
+        _max: 2
   attackRangeEnterEvent:
     m_PersistentCalls:
       m_Calls: []
@@ -217,10 +198,12 @@ MonoBehaviour:
   completeEvent:
     m_PersistentCalls:
       m_Calls: []
+  showAttackIterationGizmos: 1
   formation:
     unitStoppingDistance:
       _min: 3
       _max: 10
+    unitEnableDistance: 2
     buildingStoppingDistance:
       _min: 3
       _max: 10
@@ -229,6 +212,7 @@ MonoBehaviour:
       _max: 10
     enforceMinStoppingDistance: 1
     minStoppingDistance: 1
+    stopMovementOnTargetInRange: 1
     updateMvtDistance: 2
     movementFormation:
       lastType: {fileID: 11400000, guid: 5abc4719d7c003f4ab588b6e8649f63e, type: 2}
@@ -270,6 +254,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5635641197457816151}
   m_RootOrder: 2
@@ -298,13 +283,17 @@ MonoBehaviour:
     reloadTime: 5
     range: 10
     idleOnly: 1
+    center: {fileID: 0}
   setTargetTaskUI: {fileID: 11400000, guid: 061c8973e3c577f4ea6c9b563d77bf00, type: 2}
   orderAudio:
     fetchType: 0
     items: []
     cooldown:
       enabled: 1
-      defaultValue: 2
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  showTargetGizmo: 1
   movableTerrainAreas:
   - {fileID: 11400000, guid: 638b60ed754e2434abaf52e10809c19b, type: 2}
   formation:
@@ -322,6 +311,9 @@ MonoBehaviour:
       - name: amountPerRow
         value: 3
   movementPriority: 10
+  isMoving: 0
+  isMovementPending: 0
+  startPosition: {x: 0, y: 0, z: 0}
   speed:
     value: 8
   acceleration:
@@ -339,13 +331,19 @@ MonoBehaviour:
     items: []
     cooldown:
       enabled: 1
-      defaultValue: 2
+      defaultValueRange:
+        _min: 1
+        _max: 2
   invalidMvtPathAudio:
     fetchType: 0
     items: []
     cooldown:
       enabled: 1
-      defaultValue: 2
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  showPathDestination: 1
+  showPathNextCorner: 1
 --- !u!114 &3116406965020792750
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -384,6 +382,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5635641197457816151}
   m_RootOrder: 4
@@ -402,6 +401,7 @@ GameObject:
   - component: {fileID: 9198425428472945899}
   - component: {fileID: 5701502198465169125}
   - component: {fileID: 5515879644855646029}
+  - component: {fileID: -489877152865096227}
   m_Layer: 0
   m_Name: spacecraft
   m_TagString: Untagged
@@ -419,6 +419,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 5, z: 0}
   m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5632414048218093079}
   - {fileID: 5635647118867971503}
@@ -446,11 +447,12 @@ MonoBehaviour:
     y: 1
   _name: Space Craft
   code: spacecraft
-  category: air_unit
+  category: air_unit,rtse_demo_entity
   description: An example of an air unit with an attack component.
   icon: {fileID: 21300000, guid: 2e0c6035e4870b84d804a645cb3fe48f, type: 3}
   radius: 1
-  model: {fileID: 7341564413470805372}
+  model: {fileID: 2581516478273868740}
+  isIdle: 0
   isMainEntity: 0
   isFactionLocked: 0
   initResources:
@@ -476,11 +478,7 @@ MonoBehaviour:
       capacity: 0
     nonConsumable: 0
   coloredRenderers:
-  - renderer:
-      status: 1
-      obj: {fileID: 4094792403976417809}
-      indexKey: 0
-      entity: {fileID: 5741168793034866065}
+  - renderer: {fileID: 4094792403976417809}
     materialID: 3
     transparency: 0
     darkness: 0
@@ -508,6 +506,7 @@ MonoBehaviour:
     enabled: 1
     offset: {x: 0, y: 2.25, z: 0}
     size: {x: 1, y: 1, z: 1}
+    parent: {fileID: 0}
   hoverHealthBarY: 2.25
   hitEffect:
     input: {fileID: 0}
@@ -516,7 +515,9 @@ MonoBehaviour:
     items: []
     cooldown:
       enabled: 1
-      defaultValue: 2
+      defaultValueRange:
+        _min: 1
+        _max: 2
   destroyObject: 1
   destroyObjectDelay: 0.5
   destroyAward: []
@@ -525,11 +526,14 @@ MonoBehaviour:
     items: []
     cooldown:
       enabled: 1
-      defaultValue: 2
+      defaultValueRange:
+        _min: 1
+        _max: 2
   destructionEffect:
     input: {fileID: 5196475526077132557, guid: 4a5b12714a933c54cb2bf0e87f9964c4, type: 3}
   states: []
   destroyState:
+    usePercentage: 0
     healthRange:
       _min: 0
       _max: 100
@@ -539,11 +543,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
   canBeAttacked: 1
-  attackTargetPosition:
-    status: 0
-    obj: {fileID: 0}
-    indexKey: 0
-    entity: {fileID: 0}
+  attackTargetPosition: {fileID: 0}
   stopMovingOnDamage: 0
 --- !u!114 &9198425428472945899
 MonoBehaviour:
@@ -557,11 +557,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb986734d7c0b9c4b9288720ed50ab74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator:
-    status: 1
-    obj: {fileID: 8064871382511999972}
-    indexKey: 0
-    entity: {fileID: 5741168793034866065}
+  animator: {fileID: 8064871382511999972}
   animatorOverrideController:
     fetchType: 0
     items: []
@@ -685,6 +681,24 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 8
   m_ObstacleAvoidanceType: 0
+--- !u!114 &-489877152865096227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5637529055079676105}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bab46bb0053502243877f36416be80ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  coloredRenderers:
+  - renderer: {fileID: 4094792403976417809}
+    materialID: 3
+    colorPropertyName: _Color
+    transparency: 0
+    darkness: 0
 --- !u!1 &5637964056050951273
 GameObject:
   m_ObjectHideFlags: 0
@@ -715,6 +729,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0.406, z: 0}
   m_LocalScale: {x: 0.83750004, y: 0.47406217, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5635641197457816151}
   m_RootOrder: 0
@@ -770,7 +785,9 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 5cf2429ba0e215346aa8788178ce6341, type: 3}
     cooldown:
       enabled: 1
-      defaultValue: 2
+      defaultValueRange:
+        _min: 1
+        _max: 2
 --- !u!114 &6037076564268344274
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -812,6 +829,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.002, z: -0.074}
   m_LocalScale: {x: 0.18874992, y: 1, z: 0.21651529}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5635641197457816151}
   m_RootOrder: 1
@@ -835,10 +853,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -863,6 +883,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &2612706699088802245
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -875,6 +896,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d85c063b4ac1858429dc001b5b10f5c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetRenderer:
+    renderer: {fileID: 5651716998131328379}
+    materialID: 0
+    colorPropertyName: _Color
+    transparency: 0
+    darkness: 0
   selectionRenderer: {fileID: 5651716998131328379}
   materialID: 0
 --- !u!1001 &3391784871853158037
@@ -884,6 +911,26 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 5635641197457816151}
     m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 363b57d22f4683047aaccff22581f01f,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 363b57d22f4683047aaccff22581f01f,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.25
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 363b57d22f4683047aaccff22581f01f,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.25
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 363b57d22f4683047aaccff22581f01f,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.25
+      objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 363b57d22f4683047aaccff22581f01f,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -898,6 +945,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalPosition.z
       value: -0.20083427
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 363b57d22f4683047aaccff22581f01f,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 363b57d22f4683047aaccff22581f01f,
         type: 3}
@@ -916,16 +968,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 363b57d22f4683047aaccff22581f01f,
         type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 363b57d22f4683047aaccff22581f01f,
-        type: 3}
-      propertyPath: m_RootOrder
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 363b57d22f4683047aaccff22581f01f,
-        type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
       objectReference: {fileID: 0}
@@ -939,21 +981,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 363b57d22f4683047aaccff22581f01f,
-        type: 3}
-      propertyPath: m_LocalScale.x
-      value: 1.25
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 363b57d22f4683047aaccff22581f01f,
-        type: 3}
-      propertyPath: m_LocalScale.y
-      value: 1.25
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 363b57d22f4683047aaccff22581f01f,
-        type: 3}
-      propertyPath: m_LocalScale.z
-      value: 1.25
-      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 363b57d22f4683047aaccff22581f01f,
         type: 3}
       propertyPath: m_Name
@@ -961,6 +988,32 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 363b57d22f4683047aaccff22581f01f, type: 3}
+--- !u!1 &2581516478273868740 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 363b57d22f4683047aaccff22581f01f,
+    type: 3}
+  m_PrefabInstance: {fileID: 3391784871853158037}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &8064871382511999972
+Animator:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2581516478273868740}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 22100000, guid: cd92369e97bf29f4fb9fbcd04ab1a07a, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!4 &2925284923699136894 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 363b57d22f4683047aaccff22581f01f,
@@ -970,12 +1023,6 @@ Transform:
 --- !u!23 &4094792403976417809 stripped
 MeshRenderer:
   m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: 363b57d22f4683047aaccff22581f01f,
-    type: 3}
-  m_PrefabInstance: {fileID: 3391784871853158037}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &2581516478273868740 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 363b57d22f4683047aaccff22581f01f,
     type: 3}
   m_PrefabInstance: {fileID: 3391784871853158037}
   m_PrefabAsset: {fileID: 0}

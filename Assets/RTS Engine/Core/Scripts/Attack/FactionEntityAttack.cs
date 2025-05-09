@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 using UnityEngine;
 using UnityEngine.Events;
@@ -13,7 +12,7 @@ using RTSEngine.UI;
 using RTSEngine.Event;
 using RTSEngine.Animation;
 using RTSEngine.Audio;
-using RTSEngine.Model;
+using System;
 
 namespace RTSEngine.EntityComponent
 {
@@ -25,10 +24,10 @@ namespace RTSEngine.EntityComponent
          * switchAttack: no parameters. Deactivates the currently active attack component attached to the entity and activates this one.
          * lockAttack: target.position.x => 0 to lock, else unlock.
          * */
-        public enum ActionType : byte { switchAttack = 0, lockAttack = 1, setNextLaunchLog = 2, setSearchRangeCenter = 3 }
+        public enum ActionType : byte { switchAttack = 0, lockAttack = 1, setNextLaunchLog = 2, setSearchRangeCenter = 3, cancelAttack = 4 }
 
         // GENERAL
-        public abstract AttackFormationSelector Formation { get; }
+        public abstract IAttackDistanceHandler AttackDistanceHandler { get; }
 
         [SerializeField, Tooltip("If the attack is locked then the faction entity can not switch to it unless it is unlocked.")]
         private bool isLocked = false;
@@ -44,6 +43,7 @@ namespace RTSEngine.EntityComponent
         public AttackEngagementOptions EngageOptions => engageOptions;
 
         // When enabled, it allows the attacker to proceed with an attack iteration.
+        [SerializeField, HideInInspector]
         private bool isAttackReady = true;
 
         // TARGET
@@ -53,6 +53,9 @@ namespace RTSEngine.EntityComponent
         [SerializeField, Tooltip("Does this attack require a target to be assigned to launch it? When disabled and terrain attack is active, the attacker can launch an attack towards a position in the terrain.")]
         private bool requireTarget = true;
         public bool RequireTarget => requireTarget;
+        [SerializeField, Tooltip("When enabled, the attacker is able to keep launching terrain attack iterations. Otherwise, the attacker will launch one terrain attack iteration then stop.")]
+        private bool allowMultipleTerrainAttacks = false;
+        [SerializeField, HideInInspector]
         private bool terrainAttackActive = false;
 
         /// <summary>
@@ -69,14 +72,17 @@ namespace RTSEngine.EntityComponent
         [SerializeField, Tooltip("Reload time between two consecutive attack iterations.")]
         private float reloadDuration = 3.0f;
         protected TimeModifiedTimer reloadTimer;
+        public float CurrReloadValue => reloadTimer.CurrValue;
 
         [SerializeField, Tooltip("If enabled, then another component must call the 'TriggerAttack()' method to trigger the attack launch.")]
         private bool delayTriggerEnabled = false;
-        protected bool triggered = false;
+        [SerializeField, HideInInspector]
+        protected bool attackIterationTriggered = false;
 
         [SerializeField, Tooltip("Enable/disable cooldown time for the attack.")]
         private GlobalTimeModifiedTimer cooldown = new GlobalTimeModifiedTimer();
         public bool IsCooldownActive => cooldown.IsActive;
+        public float CurrCooldownValue => cooldown.CurrValue;
 
         // LAUNCHER
         [SerializeField, Tooltip("Settings for launching the attack.")]
@@ -89,7 +95,7 @@ namespace RTSEngine.EntityComponent
         public AttackDamage Damage => damage;
 
         // WEAPON
-        public ModelCacheAwareTransformInput WeaponTransform => inProgressObject;
+        public Transform WeaponTransform => inProgressObject.IsValid() ? inProgressObject.transform : null;
         [SerializeField, Tooltip("Settings to handle the attack weapon.")]
         private AttackWeapon weapon = new AttackWeapon();
         public AttackWeapon Weapon => weapon;
@@ -106,6 +112,7 @@ namespace RTSEngine.EntityComponent
         // AI
         // Target finder used for NPC factions to locate enemies within the borders of a building center.
         private TargetEntityFinder<IFactionEntity> borderTargetFinder = null;
+        public TargetEntityFinderData BorderTargetFinderData => borderTargetFinder.IsValid() ? borderTargetFinder.Data : new TargetEntityFinderData();
 
         // Pre-Assigned AttackLaunchLogs
         // When enabled, the attack launcher will use the following launch logs instead of following the settings in the inspector 
@@ -116,10 +123,14 @@ namespace RTSEngine.EntityComponent
         private IFactionEntity nextLaunchLogTarget;
 
         // UI
+        [SerializeField, Tooltip("How would the set target task look when the attack type is in cooldown?")]
+        private EntityComponentLockedTaskUIData setTargetCooldownUIData = new EntityComponentLockedTaskUIData { color = Color.red, icon = null };
         [SerializeField, Tooltip("Defines information used to display the attack switch task in the task panel.")]
         private EntityComponentTaskUIAsset switchTaskUI = null;
         [SerializeField, Tooltip("How would the attack switch task look when the attack type is in cooldown?")]
         private EntityComponentLockedTaskUIData switchAttackCooldownUIData = new EntityComponentLockedTaskUIData { color = Color.red, icon = null };
+        [SerializeField, Tooltip("Defines information used to display the attack cancel in the task panel when the entity is actively attacking and is used to stop the attack iteration.")]
+        private EntityComponentTaskUIAsset cancelTaskUI = null;
 
         // AUDIO
         [SerializeField, Tooltip("What audio clip to play when the attack is launched?")]
@@ -137,10 +148,34 @@ namespace RTSEngine.EntityComponent
         protected IAttackManager attackMgr { private set; get; }
         #endregion
 
+        #region Raising Events
+        private void OnCooldownOver()
+        {
+            RaiseCooldownUpdated();
+            globalEvent.RaiseEntityComponentTaskUIReloadRequestGlobal(this);
+        }
+
+        public event CustomEventHandler<IAttackComponent, EventArgs> CooldownUpdated;
+        private void RaiseCooldownUpdated()
+        {
+            var handler = CooldownUpdated;
+            handler?.Invoke(this, EventArgs.Empty);
+        }
+
+        public event CustomEventHandler<IAttackComponent, EventArgs> ReloadUpdated;
+        private void RaiseReloadUpdated()
+        {
+            var handler = ReloadUpdated;
+            handler?.Invoke(this, EventArgs.Empty);
+        }
+        #endregion
+
         #region Initializing/Terminating
         protected override void OnProgressInit()
         {
             this.attackMgr = gameMgr.GetService<IAttackManager>();
+
+            cooldown.Init(gameMgr, OnCooldownOver);
 
             // Init attack sub-components:
             damage.Init(gameMgr, this);
@@ -149,13 +184,12 @@ namespace RTSEngine.EntityComponent
             lineOfSight.Init(gameMgr, this);
 
             reloadTimer = new TimeModifiedTimer(0.0f);
-            ResetAttack(isAttackComplete: false);
+            ResetReload(isAttackComplete: false);
+            ResetAttack();
 
             factionEntity.Health.EntityHealthUpdated += HandleEntityHealthUpdated;
 
             OnAttackInit();
-
-            Weapon.Toggle(IsActive);
         }
 
         protected virtual void OnAttackInit() { }
@@ -165,7 +199,12 @@ namespace RTSEngine.EntityComponent
             //unsub from events:
             factionEntity.Health.EntityHealthUpdated -= HandleEntityHealthUpdated;
             if (borderTargetFinder.IsValid())
-                borderTargetFinder.Enabled = false;
+                borderTargetFinder.Disable();
+
+            damage.Disable();
+            launcher.Disable();
+            Weapon.Disable();
+            lineOfSight.Disable();
 
             OnAttackDisabled();
         }
@@ -199,7 +238,10 @@ namespace RTSEngine.EntityComponent
             terrainAttackActive = false;
             IsInTargetRange = false;
 
-            ResetAttack(isAttackComplete: false);
+            ResetReload(isAttackComplete: false);
+            ResetAttack();
+
+            globalEvent.RaiseEntityComponentTaskUIReloadRequestGlobal(this, new TaskUIReloadEventArgs(reloadAll: false));
 
             OnAttackStop();
         }
@@ -207,19 +249,16 @@ namespace RTSEngine.EntityComponent
         protected virtual void OnAttackStop() { }
         #endregion
 
-        #region Activating/Deactivating Component
-        protected override void OnTargetActiveStatusUpdated()
-        {
-            weapon.Toggle(IsActive);
-        }
-        #endregion
-
         #region Handling Time Update
         protected override void OnUpdate()
         {
             if (isAttackReady
                 && reloadTimer.CurrValue > 0)
+            {
                 reloadTimer.ModifiedDecrease();
+                if (CurrReloadValue <= 0.0f)
+                    RaiseReloadUpdated();
+            }
 
             weapon.Update();
             launcher.Update();
@@ -229,37 +268,18 @@ namespace RTSEngine.EntityComponent
         #region Searching/Updating Target
         public override bool CanSearch => true;
 
-        public override ErrorMessage IsTargetValid(SetTargetInputData testInput)
+        public override ErrorMessage IsTargetValid(SetTargetInputData data)
         {
-            ErrorMessage errorMessage = IsTargetValid(testInput.target, testInput.playerCommand);
+            if (IsCooldownActive)
+                return ErrorMessage.attackTypeInCooldown;
 
-            // If the above IsTargetValid method returns negative because of a LOS related error
-            // And we have an option here to ignore LOS, then we reset the error message to none
-            // Checking for LOS is the last condition done in the above method so we guarantee that no further conditions need to be checked from this point
-            if (testInput.ignoreLOS 
-                && (errorMessage == ErrorMessage.LOSAngleBlocked || errorMessage == ErrorMessage.LOSObstacleBlocked))
-            {
-                errorMessage = ErrorMessage.none;
-            }
-
-            return errorMessage;
-        }
-        // Does not include checking for LOS
-        public override ErrorMessage IsTargetValid(TargetData<IEntity> testTarget, bool playerCommand)
-        {
-            TargetData<IFactionEntity> potentialTarget = testTarget;
+            TargetData<IFactionEntity> potentialTarget = data.target;
 
             if (!factionEntity.CanLaunchTask)
                 return ErrorMessage.taskSourceCanNotLaunch;
             // See if the attack entity can attack without target
             else if (!potentialTarget.instance.IsValid())
-                return !requireTarget && attackMgr.CanLaunchTerrainAttack(new LaunchAttackData<IEntity>
-                {
-                    source = Entity,
-                    targetEntity = potentialTarget.instance,
-                    targetPosition = potentialTarget.position,
-                    playerCommand = playerCommand
-                })
+                return !requireTarget && attackMgr.CanLaunchTerrainAttack(data.ToLaunchAttackData<IEntity>(Entity, Entity))
                     ? ErrorMessage.none
                     : ErrorMessage.attackTargetRequired;
 
@@ -280,9 +300,9 @@ namespace RTSEngine.EntityComponent
             // We leave checking for LOS as the last condition
             // Since 'ErrorMessage IsTargetValid(SetTargetInputData testInput)' which calls this method when SetTargetLocal is called..
             // ... has the flag for ignoring LOS which can override the decision made in this condition
-            else if (!playerCommand)
+            else if (!data.ignoreLOS && !data.playerCommand)
             {
-                ErrorMessage errorMessage = LineOfSight.IsInSight(testTarget, ignoreAngle: engageOptions.autoIgnoreAngleLOS, ignoreObstacle: engageOptions.autoIgnoreObstacleLOS);
+                ErrorMessage errorMessage = LineOfSight.IsInSight(data.target, ignoreAngle: engageOptions.autoIgnoreAngleLOS, ignoreObstacle: engageOptions.autoIgnoreObstacleLOS);
                 if (errorMessage != ErrorMessage.none)
                     return errorMessage;
             }
@@ -312,7 +332,7 @@ namespace RTSEngine.EntityComponent
                 attackTypeCode = Code,
 
                 targetEntity = input.target.instance as IFactionEntity,
-                targetPosition = input.target.position,
+                targetPosition = RTSHelper.GetAttackTargetPosition(this, input.target),
 
                 playerCommand = input.playerCommand,
 
@@ -327,7 +347,9 @@ namespace RTSEngine.EntityComponent
         {
             base.OnTargetPostLocked(input, sameTarget);
 
-            ResetAttack(isAttackComplete: false); // to allow the entity to start a new attack iteration after it is assigned its target
+            // to allow the entity to start a new attack iteration after it is assigned its target
+            ResetReload(isAttackComplete: false);
+            ResetAttack();
 
             // No target assigned but this is allowed for this attacker
             if (!Target.instance.IsValid() && !requireTarget)
@@ -336,13 +358,13 @@ namespace RTSEngine.EntityComponent
 
             targetLockedEvent.Invoke();
             globalEvent.RaiseEntityComponentTargetLockedGlobal(this, new TargetDataEventArgs(Target));
+
+            globalEvent.RaiseEntityComponentTaskUIReloadRequestGlobal(this, new TaskUIReloadEventArgs(reloadAll: false));
         }
         #endregion
 
         #region Engaging Target
-
         // 'Progress' from FacitonEntityTargetComponent is used as the delay time in this component
-
         protected override void OnTargetUpdate() { }
 
         // Stop the engagement when the target is valid (no terrain attack) and it is dead or has been converted to a friendly faction while engaging friendly entities is not allowed.
@@ -355,11 +377,17 @@ namespace RTSEngine.EntityComponent
         }
 
         // Enable engagement progress only if the target is inside the attack range
-        protected override bool CanEnableProgress()
+        protected override bool CanEnableProgress() => CanStartAttackIteration() == ErrorMessage.none;
+
+        public ErrorMessage CanStartAttackIteration()
         {
-            return isAttackReady
-                && reloadTimer.CurrValue <= 0.0f
-                && LineOfSight.IsInSight(Target) == ErrorMessage.none;
+            if (!isAttackReady)
+                return ErrorMessage.attackTypeNotReady;
+            else if (reloadTimer.CurrValue > 0.0f)
+                return ErrorMessage.attackTypeReloadNonZero;
+            else if (cooldown.IsActive)
+                return ErrorMessage.attackTypeInCooldown;
+            return LineOfSight.IsInSight(Target);
         }
 
         // Engagement progress is enabled when the target is inside the attack range.
@@ -378,7 +406,7 @@ namespace RTSEngine.EntityComponent
 
             // Here 'progressDuration' is used for the delay timer.
             // If there's any sign of upcoming delay time then trigger the callback
-            if (progressDuration > 0.0f || !triggered)
+            if (progressDuration > 0.0f || !attackIterationTriggered)
                 OnDelayEnter();
 
             // Attacker must finish this attack iteration first before moving to the next one!
@@ -408,20 +436,25 @@ namespace RTSEngine.EntityComponent
         private IEnumerator PrepareLaunch()
         {
             // Wait for the attack to be triggered or go through directly if delay trigger is disabled.
-            yield return new WaitWhile(() => !triggered);
+            yield return new WaitWhile(() => !attackIterationTriggered);
 
             Launch();
         }
 
         protected virtual void OnDelayEnter() { }
 
-        private void ResetAttack(bool isAttackComplete)
+        private void ResetReload(bool isAttackComplete)
         {
-            // Reset reload
-            reloadTimer = new TimeModifiedTimer(isAttackComplete ? reloadDuration : reloadTimer.CurrValue);
+            reloadTimer.SetDefaultValue(isAttackComplete ? reloadDuration : reloadTimer.CurrValue);
+            reloadTimer.Reload();
+            RaiseReloadUpdated();
+        }
 
+        // resets fields to allow to start a new attack iteration
+        private void ResetAttack()
+        {
             // Does the attack need to be triggered from an external component?
-            triggered = !delayTriggerEnabled;
+            attackIterationTriggered = !delayTriggerEnabled;
 
             // A new attack iteration can be proceeded by the attacker
             isAttackReady = true;
@@ -429,18 +462,23 @@ namespace RTSEngine.EntityComponent
 
         public void TriggerAttack()
         {
-            triggered = true;
+            attackIterationTriggered = true;
         }
 
         private void Launch()
         {
             OnLaunch();
 
+            // Reset reload for next attack iteration
+            ResetReload(isAttackComplete: true);
+
+            // Activate cooldown (if it can be enabled)
+            cooldown.IsActive = true;
+            if(cooldown.IsActive)
+                RaiseCooldownUpdated();
+
             //reset the reload (done in the parent class, reload = progress), delay and the terrain attack mode right on launch, else the launch keeps getting triggered as long as the attack is not complete
             //attack is marked as complete depending on the settings of the AttackLauncher
-
-            cooldown.IsActive = true;
-
             launcher.Trigger(Complete,
                 nextLaunchLogEnabled && (!nextLaunchLogTargetEnabled || Target.instance.Equals(nextLaunchLogTarget))
                 ? nextLaunchLog : null);
@@ -457,7 +495,8 @@ namespace RTSEngine.EntityComponent
         private void Complete()
         {
             // Disable last terrain attack if one was active
-            terrainAttackActive = false;
+            if(!allowMultipleTerrainAttacks)
+                terrainAttackActive = false;
 
             completeEvent.Invoke();
 
@@ -469,14 +508,23 @@ namespace RTSEngine.EntityComponent
 
             // This is not the attack type to revert, check if there is one and get back to it
             if (!Revert)
-                factionEntity.AttackComponents.Values.Where(attackType => attackType.Revert).FirstOrDefault()?.SwitchAttackAction(false);
+            {
+                for (int i = 0; i < factionEntity.AttackComponents.Count; i++)
+                {
+                    if (factionEntity.AttackComponents[i].Revert)
+                    {
+                        factionEntity.AttackComponents[i].SwitchAttackAction(false);
+                        break;
+                    }
+                }
+            }
 
-            // Attack once? cancel attack to prevent source from attacking again
-            if (engageOptions.engageOnce == true)
+            ResetAttack();
+
+            // Attack once or cooldown is active? cancel attack to prevent source from attacking again
+            if (engageOptions.engageOnce == true
+                || cooldown.IsActive)
                 Stop();
-            else
-                // Reset for next attack iteration
-                ResetAttack(isAttackComplete: true);
         }
 
         protected virtual void OnComplete() { }
@@ -499,6 +547,9 @@ namespace RTSEngine.EntityComponent
                 // Currently, setting next launch log is enabled on a local level only.
                 case ActionType.setNextLaunchLog:
                     return ErrorMessage.none;
+
+                case ActionType.cancelAttack:
+                    return CancelAttackActionLocal(input.playerCommand);
 
                 default:
                     return base.LaunchActionLocal(actionID, input);
@@ -526,8 +577,8 @@ namespace RTSEngine.EntityComponent
                     borderTargetFinder = new TargetEntityFinder<IFactionEntity>(
                         gameMgr,
                         source: this,
-                        center: transform,
-                        data: TargetFinder.Data);
+                        center: factionEntity.transform,
+                        data: targetFinder.Data);
 
                 borderTargetFinder.Range = newSearchRangeCenter.Size;
                 borderTargetFinder.Center = newSearchRangeCenter.Building.transform;
@@ -535,11 +586,11 @@ namespace RTSEngine.EntityComponent
                 // Having it turned on allows to ignore LOS constraints for example
                 borderTargetFinder.PlayerCommand = playerCommand;
 
-                borderTargetFinder.Enabled = true;
+                borderTargetFinder.IsActive = true;
             }
             else if (borderTargetFinder.IsValid())
             {
-                borderTargetFinder.Enabled = false;
+                borderTargetFinder.IsActive = false;
             }
 
             return ErrorMessage.none;
@@ -633,24 +684,24 @@ namespace RTSEngine.EntityComponent
         #endregion
 
         #region Task UI
-        public override bool OnTaskUIRequest(
-            out IEnumerable<EntityComponentTaskUIAttributes> taskUIAttributes,
-            out IEnumerable<string> disabledTaskCodes)
+        protected override bool OnTaskUICacheUpdate(List<EntityComponentTaskUIAttributes> taskUIAttributesCache, List<string> disabledTaskCodesCache)
         {
             if (RTSHelper.OnSingleTaskUIRequest(
                 this,
-                out taskUIAttributes,
-                out disabledTaskCodes,
+                taskUIAttributesCache,
+                disabledTaskCodesCache,
                 SetTargetTaskUI,
                 requireActiveComponent: false,
-                extraCondition: IsActive) == false)
+                showCondition: IsActive,
+                lockedCondition: cooldown.IsActive,
+                lockedData: setTargetCooldownUIData) == false)
                 return false;
 
             if (switchTaskUI.IsValid())
             {
                 if (!IsLocked && !IsActive)
-                    taskUIAttributes = taskUIAttributes
-                        .Append(new EntityComponentTaskUIAttributes
+                    taskUIAttributesCache.Add(
+                        new EntityComponentTaskUIAttributes
                         {
                             data = switchTaskUI.Data,
 
@@ -658,8 +709,21 @@ namespace RTSEngine.EntityComponent
                             lockedData = switchAttackCooldownUIData
                         });
                 else
-                    disabledTaskCodes = disabledTaskCodes
-                        .Append(switchTaskUI.Key);
+                    disabledTaskCodesCache.Add(switchTaskUI.Key);
+            }
+
+            if(cancelTaskUI.IsValid())
+            {
+                if (HasTarget)
+                    taskUIAttributesCache.Add(
+                        new EntityComponentTaskUIAttributes
+                        {
+                            data = cancelTaskUI.Data,
+
+                            locked = false,
+                        });
+                else
+                    disabledTaskCodesCache.Add(cancelTaskUI.Key);
             }
             return true;
         }
@@ -669,14 +733,80 @@ namespace RTSEngine.EntityComponent
             if (base.OnTaskUIClick(taskAttributes))
                 return true;
 
-            if (switchTaskUI.IsValid() && switchTaskUI.Data.code == taskAttributes.data.code)
+            if (switchTaskUI.IsValid() && switchTaskUI.Key == taskAttributes.data.code)
             {
                 SwitchAttackAction(true);
+                return true;
+            }
+            else if(cancelTaskUI.IsValid() && cancelTaskUI.Key == taskAttributes.data.code)
+            {
+                CancelAttackAction(playerCommand: true);
                 return true;
             }
 
             return false;
         }
+        #endregion
+
+        #region Cancel Attack
+        public ErrorMessage CanCancelAttack()
+        {
+            if (!HasTarget)
+                return ErrorMessage.targetUnassigned;
+
+            return ErrorMessage.none;
+        }
+
+        public ErrorMessage CancelAttackAction(bool playerCommand)
+        {
+            ErrorMessage errorMessage;
+            if ((errorMessage = CanCancelAttack()) != ErrorMessage.none)
+                return errorMessage;
+
+            return LaunchAction((byte)ActionType.cancelAttack, new SetTargetInputData { playerCommand = playerCommand });
+        }
+
+        private ErrorMessage CancelAttackActionLocal(bool playerCommand)
+        {
+            Stop();
+            if(factionEntity.CanMove())
+            {
+                factionEntity.MovementComponent.Stop();
+            }
+            return ErrorMessage.none;
+        }
+        #endregion
+
+        #region Editor
+#if UNITY_EDITOR
+        [SerializeField, HideInInspector]
+        private bool showAttackIterationGizmos = true;
+
+        protected override void OnDrawGizmosSelected()
+        {
+            DrawTargetGizmo();
+
+            if (HasTarget && showAttackIterationGizmos)
+            {
+
+                bool inAttackRange = IsTargetInRange(factionEntity.transform.position, Target);
+
+                if (!inAttackRange)
+                {
+                    Gizmos.color = Color.yellow;
+                    Gizmos.DrawWireSphere(Target.position, factionEntity.Radius);
+                }
+
+                Gizmos.color = inAttackRange ? Color.green : Color.red;
+                float minAttackDistance = AttackDistanceHandler.GetStoppingDistance(Target.instance, min: true);
+                float maxAttackDistance = AttackDistanceHandler.GetStoppingDistance(Target.instance, min: false);
+
+                Vector3 attackPosition = factionEntity.transform.position;
+                Gizmos.DrawWireSphere(attackPosition, minAttackDistance);
+                Gizmos.DrawWireSphere(attackPosition, maxAttackDistance);
+            }
+        }
+#endif
         #endregion
     }
 }

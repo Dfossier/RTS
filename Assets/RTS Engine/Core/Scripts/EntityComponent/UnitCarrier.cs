@@ -50,11 +50,11 @@ namespace RTSEngine.EntityComponent
         public int CurrAmount { private set; get; }
         public bool HasMaxAmount => CurrAmount >= MaxAmount;
 
-        private IUnit[] storedUnits = new IUnit[0];
-        public IEnumerable<IUnit> StoredUnits => storedUnits.Where(unit => unit.IsValid());
+        private IUnit[] carrierSlots = new IUnit[0];
+        public IReadOnlyList<IUnit> CarrierSlots => carrierSlots;
 
         [SerializeField, Tooltip("The possible positions that units can use to enter the carrier. Each unit added unit will seek the closest position to enter the carrier.")]
-        private ModelCacheAwareTransformInput[] addablePositions = new ModelCacheAwareTransformInput[0];
+        private Transform[] addablePositions = new Transform[0];
 
         [SerializeField, Tooltip("If populated, then this defines the types of terrain areas where units can interact with this carrier.")]
         private TerrainAreaType[] forcedTerrainAreas = new TerrainAreaType[0];
@@ -63,12 +63,13 @@ namespace RTSEngine.EntityComponent
         private AudioClipFetcher addUnitAudio = new AudioClipFetcher();
 
         [SerializeField, Tooltip("The possible positions that units can occupy when inside the carrier. When there is no carrier position available for a unit, it will be deactivated.")]
-        private ModelCacheAwareTransformInput[] carrierPositions = new ModelCacheAwareTransformInput[0];
+        private Transform[] carrierPositions = new Transform[0];
         private Dictionary<IUnit, int> unitToCarrierPositionIndex;
+        [SerializeField, HideInInspector]
         private List<int> freeCarrierPositionIndexes;
 
         [SerializeField, Tooltip("The possible positions that a unit inside the carrier transports to when ejected from the carrier. Leave empty to use the same addable positions for ejectable positions.")]
-        private ModelCacheAwareTransformInput[] ejectablePositions = new ModelCacheAwareTransformInput[0];
+        private Transform[] ejectablePositions = new Transform[0];
 
         [SerializeField, Tooltip("Can stored units be ejected individually through a task?")]
         private bool canEjectSingleUnit = true;
@@ -172,7 +173,7 @@ namespace RTSEngine.EntityComponent
                   $"[{GetType().Name} - {Entity.Code}] The 'Forced Terrain Areas' field must be either empty or populated with valid elements!"))
                 return;
 
-            storedUnits = new IUnit[capacity];
+            carrierSlots = new IUnit[capacity];
 
             unitToCarrierPositionIndex = new Dictionary<IUnit, int>();
             freeCarrierPositionIndexes = new List<int>(capacity);
@@ -202,8 +203,11 @@ namespace RTSEngine.EntityComponent
             if (!sourceUnitCarrier.IsValid())
                 return;
 
-            foreach (IUnit storedUnit in sourceUnitCarrier.StoredUnits.ToArray())
+            foreach (IUnit storedUnit in sourceUnitCarrier.CarrierSlots.ToArray())
             {
+                if (!storedUnit.IsValid())
+                    continue;
+
                 sourceUnitCarrier.EjectActionLocal(storedUnit, destroyed: false, playerCommand: false);
                 storedUnit.CarriableUnit.SetTargetLocal(Entity.ToTargetData(), playerCommand: false);
             }
@@ -275,22 +279,26 @@ namespace RTSEngine.EntityComponent
 
             Vector3 addablePosition = GetAddablePosition(unit);
 
-            return mvtMgr.SetPathDestination(unit,
-                addablePosition,
-                0.0f,
-                Entity,
-                new MovementSource
+            return mvtMgr.SetPathDestination(
+                new SetPathDestinationData<IEntity>
                 {
-                    sourceTargetComponent = addableData.sourceTargetComponent,
+                    source = unit,
+                    destination = addablePosition,
+                    offsetRadius = 0.0f,
+                    target = Entity,
+                    mvtSource = new MovementSource
+                    {
+                        sourceTargetComponent = addableData.sourceTargetComponent,
 
-                    targetAddableUnit = this,
-                    targetAddableUnitPosition = addablePosition,
+                        targetAddableUnit = this,
+                        targetAddableUnitPosition = addablePosition,
 
-                    playerCommand = addableData.playerCommand,
+                        playerCommand = addableData.playerCommand,
 
-                    isMoveAttackRequest = addableData.isMoveAttackRequest,
+                        isMoveAttackRequest = addableData.isMoveAttackRequest,
 
-                    disableMarker = true
+                        disableMarker = true
+                    }
                 });
         }
 
@@ -305,11 +313,10 @@ namespace RTSEngine.EntityComponent
 
             int positionIndex = addableData.forceSlot ? addableData.forcedSlotID : freeCarrierPositionIndexes[0];
 
-            ModelCacheAwareTransformInput nextCarrierSlot = null;
+            Transform nextCarrierSlot = null;
 
             if (positionIndex.IsValidIndex(carrierPositions) && carrierPositions[positionIndex].IsValid())
             {
-                //unit.MovementComponent.Controller.Enabled = false;
                 unit.MovementComponent.TargetPositionMarker.Toggle(false);
                 unit.MovementComponent.SetActiveLocal(false, playerCommand: false);
 
@@ -326,7 +333,7 @@ namespace RTSEngine.EntityComponent
             unit.SetIdle();
             selectionMgr.Remove(unit);
 
-            storedUnits[positionIndex] = unit;
+            carrierSlots[positionIndex] = unit;
             unitToCarrierPositionIndex.Add(unit, positionIndex);
             freeCarrierPositionIndexes.Remove(positionIndex);
 
@@ -347,7 +354,9 @@ namespace RTSEngine.EntityComponent
                 factionEntity.Health.CanBeAttacked = freeFactionBehaviour.canBeAttackedOnValidFaction;
             }
 
-            RaiseUnitAdded(new UnitCarrierEventArgs(unit, nextCarrierSlot, positionIndex));
+            var args = new UnitCarrierEventArgs(unit, nextCarrierSlot, positionIndex);
+            unit.CarriableUnit.OnCarrierUnitAdded(this, args);
+            RaiseUnitAdded(args);
             globalEvent.RaiseEntityComponentTaskUIReloadRequestGlobal(this);
 
             return ErrorMessage.none;
@@ -415,7 +424,7 @@ namespace RTSEngine.EntityComponent
                 return ErrorMessage.inactive;
 
             ErrorMessage errorMessage;
-            foreach(IUnit storedUnit in storedUnits)
+            foreach(IUnit storedUnit in carrierSlots)
                 if (storedUnit.IsValid() && (errorMessage = EjectActionLocal(storedUnit, destroyed, playerCommand)) != ErrorMessage.none)
                     return errorMessage;
 
@@ -442,7 +451,7 @@ namespace RTSEngine.EntityComponent
 
         private ErrorMessage EjectActionLocal(IUnit unit, bool destroyed, bool playerCommand)
         {
-            if (!unit.IsValid() || !storedUnits.Contains(unit))
+            if (!unit.IsValid() || !carrierSlots.Contains(unit))
                 return ErrorMessage.invalid;
 
             if(!terrainMgr.GetTerrainAreaPosition(
@@ -490,7 +499,7 @@ namespace RTSEngine.EntityComponent
 
             unit.SetIdle();
 
-            storedUnits[positionIndex] = null;
+            carrierSlots[positionIndex] = null;
             unitToCarrierPositionIndex.Remove(unit);
             freeCarrierPositionIndexes.Add(positionIndex);
 
@@ -527,9 +536,9 @@ namespace RTSEngine.EntityComponent
         #endregion
 
         #region Calling Units Action
-        public ErrorMessage CanCallUnit(TargetData<IEntity> testTarget, bool playerCommand)
+        public ErrorMessage CanCallUnit(SetTargetInputData data)
         {
-            IUnit unit = testTarget.instance as IUnit;
+            IUnit unit = data.target.instance as IUnit;
 
             ErrorMessage errorMsg;
             if ((errorMsg = CanAdd(unit)) != ErrorMessage.none)
@@ -572,13 +581,8 @@ namespace RTSEngine.EntityComponent
         #endregion
 
         #region Task UI
-        public override bool OnTaskUIRequest(
-            out IEnumerable<EntityComponentTaskUIAttributes> taskUIAttributes,
-            out IEnumerable<string> disabledTaskCodes)
+        protected override bool OnTaskUICacheUpdate(List<EntityComponentTaskUIAttributes> taskUIAttributesCache, List<string> disabledTaskCodesCache)
         {
-            taskUIAttributes = Enumerable.Empty<EntityComponentTaskUIAttributes>();
-            disabledTaskCodes = Enumerable.Empty<string>();
-
             if (!Entity.CanLaunchTask
                 || !IsActive
                 || !RTSHelper.IsLocalPlayerFaction(Entity))
@@ -588,14 +592,14 @@ namespace RTSEngine.EntityComponent
             // Not all properties used in the single unit ejection task are used: displayType is forced to single, fixedSlotIndex is disabled and icon is replaced by unit's icon.
             if (canEjectSingleUnit && ejectSingleUnitTaskUI.IsValid())
             {
-                IEnumerable<int> storedUnitIDs = Enumerable.Range(0, storedUnits.Length);
-                for (int ID = 0; ID < storedUnits.Length; ID++)
+                IEnumerable<int> storedUnitIDs = Enumerable.Range(0, carrierSlots.Length);
+                for (int ID = 0; ID < carrierSlots.Length; ID++)
                 {
-                    if (!ejectSingleUnitTaskUI.Data.enabled || !storedUnits[ID].IsValid())
-                        disabledTaskCodes = disabledTaskCodes.Append($"{ejectSingleUnitTaskUI.Data.code}_{ID}");
+                    if (!ejectSingleUnitTaskUI.Data.enabled || !carrierSlots[ID].IsValid())
+                        disabledTaskCodesCache.Add($"{ejectSingleUnitTaskUI.Data.code}_{ID}");
                     else
                     {
-                        taskUIAttributes = taskUIAttributes.Append(
+                        taskUIAttributesCache.Add(
                             new EntityComponentTaskUIAttributes
                             {
                                 data = new EntityComponentTaskUIData
@@ -604,7 +608,7 @@ namespace RTSEngine.EntityComponent
 
                                     code = $"{ejectSingleUnitTaskUI.Data.code}_{ID}",
                                     displayType = EntityComponentTaskUIData.DisplayType.singleSelection,
-                                    icon = storedUnits[ID].Icon,
+                                    icon = carrierSlots[ID].Icon,
 
                                     forceSlot = false,
 
@@ -623,9 +627,9 @@ namespace RTSEngine.EntityComponent
             if (canEjectAllUnits && ejectAllUnitsTaskUI.IsValid())
             {
                 if (CurrAmount == 0 || !ejectAllUnitsTaskUI.Data.enabled)
-                    disabledTaskCodes = disabledTaskCodes.Append(ejectAllUnitsTaskUI.Data.code);
+                    disabledTaskCodesCache.Add(ejectAllUnitsTaskUI.Data.code);
                 else
-                    taskUIAttributes = taskUIAttributes.Append(new EntityComponentTaskUIAttributes
+                    taskUIAttributesCache.Add(new EntityComponentTaskUIAttributes
                     {
                         data = ejectAllUnitsTaskUI.Data,
                     });
@@ -634,9 +638,9 @@ namespace RTSEngine.EntityComponent
             if (callUnitsTaskUI.IsValid())
             {
                 if (HasMaxAmount || !callUnitsTaskUI.Data.enabled)
-                    disabledTaskCodes = disabledTaskCodes.Append(callUnitsTaskUI.Data.code);
+                    disabledTaskCodesCache.Add(callUnitsTaskUI.Data.code);
                 else
-                    taskUIAttributes = taskUIAttributes.Append(new EntityComponentTaskUIAttributes
+                    taskUIAttributesCache.Add(new EntityComponentTaskUIAttributes
                     {
                         data = callUnitsTaskUI.Data,
                     });
@@ -657,7 +661,7 @@ namespace RTSEngine.EntityComponent
             {
                 // Check the creation of the eject single unit tasks in "OnTaskUIRequest()" for info on how the task code is set.
                 string[] splits = taskCode.Split('_');
-                EjectAction(storedUnits[int.Parse(splits[splits.Length - 1])], false, true);
+                EjectAction(carrierSlots[int.Parse(splits[splits.Length - 1])], false, true);
             }
 
             return true;
@@ -672,12 +676,12 @@ namespace RTSEngine.EntityComponent
         #endregion
 
         #region Helper Methods
-        public bool IsUnitStored(IUnit unit) => storedUnits.Contains(unit);
+        public bool IsUnitStored(IUnit unit) => carrierSlots.Contains(unit);
 
-        private Vector3 GetClosestPosition(IUnit unit, ModelCacheAwareTransformInput[] transforms)
+        private Vector3 GetClosestPosition(IUnit unit, Transform[] transforms)
         {
             Vector3 closestPosition = transforms
-                .Select(t => t.Position)
+                .Select(t => t.position)
                 .OrderBy(pos => (pos - unit.MovementComponent.StartPosition).sqrMagnitude)
                 .First();
 
@@ -686,6 +690,29 @@ namespace RTSEngine.EntityComponent
 
             return closestPositionAdjusted;
         }
+        #endregion
+
+        #region Editor
+#if UNITY_EDITOR
+        [SerializeField, HideInInspector]
+        private bool showStoredUnitsGizmos = true;
+        [HideInInspector]
+        public bool storedUnitsFoldout;
+
+        protected void OnDrawGizmosSelected()
+        {
+            if (showStoredUnitsGizmos)
+            {
+                Gizmos.color = Color.green;
+                foreach(var slot in CarrierSlots)
+                {
+                    if (slot.IsValid())
+                        Gizmos.DrawWireSphere(slot.transform.position, slot.Radius);
+                }
+            }
+        }
+#endif
+
         #endregion
     }
 }

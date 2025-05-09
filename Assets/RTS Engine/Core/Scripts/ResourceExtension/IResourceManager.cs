@@ -12,6 +12,7 @@ namespace RTSEngine.ResourceExtension
         IEnumerable<IResource> AllResources { get; }
 
         IReadOnlyDictionary<int, IFactionSlotResourceManager> FactionResources { get; }
+        IReadOnlyList<ResourceTypeInfo> MapResourceTypes { get; }
 
         bool HasResources(ResourceInput resourceInput, int factionID);
         bool HasResources(IEnumerable<ResourceInput> resourceInputArray, int factionID);
@@ -28,6 +29,8 @@ namespace RTSEngine.ResourceExtension
         IResource CreateResourceLocal(IResource resourcePrefab, Vector3 spawnPosition, Quaternion spawnRotation, InitResourceParameters initParams);
 
         bool IsResourceTypeValidInGame(ResourceInput resourceInput, int factionID);
+        bool IsResourceTypeValidInGame(ResourceTypeInfo resourceType, int factionID);
+        bool IsResourceTypeValidInGame(ResourceTypeInfo resourceType);
 
         void UpdateReserveResources(IEnumerable<ResourceInput> requiredResources, int factionID);
         void UpdateReserveResources(ResourceInput resourceInput, int factionID);

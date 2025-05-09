@@ -56,7 +56,7 @@ namespace RTSEngine.Selection.Box
         protected IGameManager gameMgr { private set; get; }
         protected IGameUIManager gameUIMgr { private set; get; } 
         protected ISelectionManager selectionMgr { private set; get; }
-        protected IMouseSelector mouseSelector { private set; get; }
+        protected ISelector selector { private set; get; }
         protected IMainCameraController mainCameraController { private set; get; }
         protected IGameLoggingService logger { private set; get; }
         protected IBuildingPlacement placementMgr { private set; get; }
@@ -73,7 +73,7 @@ namespace RTSEngine.Selection.Box
 
             this.gameUIMgr = gameMgr.GetService<IGameUIManager>(); 
             this.selectionMgr = gameMgr.GetService<ISelectionManager>();
-            this.mouseSelector = gameMgr.GetService<IMouseSelector>(); 
+            this.selector = gameMgr.GetService<ISelector>(); 
             this.mainCameraController = gameMgr.GetService<IMainCameraController>();
             this.logger = gameMgr.GetService<IGameLoggingService>();
             this.placementMgr = gameMgr.GetService<IBuildingPlacement>();
@@ -83,9 +83,9 @@ namespace RTSEngine.Selection.Box
             this.terrainMgr = gameMgr.GetService<ITerrainManager>();
 
             if (!logger.RequireValid(canvas,
-                $"[{GetType().Name}] The 'Canvas' field must be assigned")
+                $"[{GetType().Name}] The 'Canvas' field must be assigned", this)
                 || !logger.RequireValid(image,
-                $"[{GetType().Name} The 'Image' field must be assigned"))
+                $"[{GetType().Name} The 'Image' field must be assigned", this))
                 return;
 
             minSize = Mathf.Clamp(minSize, 0.0f, minSize);
@@ -162,7 +162,7 @@ namespace RTSEngine.Selection.Box
                 IsActive = true;
 
                 // lock mouse selector so no selection can occur outside of the drawn box selector
-                mouseSelector.Lock(this);
+                selector.Lock(this);
 
                 // Reserve a slot to prioritize this service to handle its box drawing UI.
                 UIMgr.PrioritizeServiceUI(this);
@@ -180,7 +180,7 @@ namespace RTSEngine.Selection.Box
                 return;
 
             // If the player is not holding down the multiple selection key down then deselect all currently selected entities
-            if (!mouseSelector.MultipleSelectionKeyDown)
+            if (!selector.MultipleSelectionModeEnabled)
                 selectionMgr.RemoveAll();
 
             if (!gameMgr.LocalFactionSlot.IsValid())
@@ -197,14 +197,14 @@ namespace RTSEngine.Selection.Box
             selectionMgr.Add(targets);
         }
 
-        private ErrorMessage IsTargetInSelectionBox(TargetData<IEntity> target, bool playerCommand)
+        private ErrorMessage IsTargetInSelectionBox(SetTargetInputData data)
         {
-            if (target.instance.IsDummy
-                || !target.instance.IsEntityTypeMatch(selectableTypes)
-                || (localPlayerOnly && !target.instance.IsLocalPlayerFaction()))
+            if (data.target.instance.IsDummy
+                || !data.target.instance.IsEntityTypeMatch(selectableTypes)
+                || (localPlayerOnly && !data.target.instance.IsLocalPlayerFaction()))
                 return ErrorMessage.invalid;
 
-            Vector3 unitScreenPosition = mainCameraController.MainCamera.WorldToScreenPoint(target.instance.Selection.transform.position);
+            Vector3 unitScreenPosition = mainCameraController.MainCamera.WorldToScreenPoint(data.target.instance.Selection.transform.position);
 
             // Make sure the unit screen position fits inside the current selection box
             return unitScreenPosition.x >= lowerLeftCorner.x && unitScreenPosition.x <= upperRightCorner.x
@@ -220,7 +220,7 @@ namespace RTSEngine.Selection.Box
             image.gameObject.SetActive(false);
 
             // unlock mouse selector to resume mouse selection regular mechanics.
-            mouseSelector.Unlock(this);
+            selector.Unlock(this);
 
             UIMgr.DeprioritizeServiceUI(this);
         }

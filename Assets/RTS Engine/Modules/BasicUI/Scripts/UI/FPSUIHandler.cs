@@ -3,6 +3,7 @@ using UnityEngine.UI;
 
 using RTSEngine.Game;
 using RTSEngine.Determinism;
+using TMPro;
 
 namespace RTSEngine.UI
 {
@@ -18,7 +19,7 @@ namespace RTSEngine.UI
         private TimeModifiedTimer fpsCounterTimer;
 
         [SerializeField, Tooltip("UI Text to display the current FPS counter.")]
-        private Text fpsCounterText = null;
+        private TMP_Text fpsCounterText = null;
 
         public void Init(IGameManager gameMgr)
         {

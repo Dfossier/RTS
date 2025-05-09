@@ -105,7 +105,8 @@ namespace RTSEngine.NPC.Upgrades
 
             foreach (IUpgradeLauncher upgradeLauncher in npcTracker.UpgradeLauncherTracker.Components)
             {
-                if (upgradeLauncher.Tasks.Count <= 0)
+                if (!upgradeLauncher.IsActive
+                    || upgradeLauncher.Tasks.Count <= 0)
                     continue;
 
                 IsActive = true;
@@ -126,7 +127,8 @@ namespace RTSEngine.NPC.Upgrades
         private bool OnUpgradeLaunchRequestInternal(IUpgradeLauncher upgradeLauncher, int upgradeTaskID)
         {
             if (!upgradeLauncher.IsValid()
-                || !upgradeLauncher.Tasks.ElementAtOrDefault(upgradeTaskID).IsValid()
+                || !upgradeLauncher.IsActive
+                || !upgradeTaskID.IsValidIndex(upgradeLauncher.Tasks)
                 || UnityEngine.Random.value > acceptanceRange.RandomValue)
                 return false;
 
@@ -135,11 +137,11 @@ namespace RTSEngine.NPC.Upgrades
             switch (errorMessage)
             {
                 case ErrorMessage.taskMissingResourceRequirements:
-                    npcResourceMgr.OnIncreaseMissingResourceRequest(upgradeLauncher.Tasks.ElementAt(upgradeTaskID).RequiredResources);
+                    npcResourceMgr.OnIncreaseMissingResourceRequest(upgradeLauncher.Tasks[upgradeTaskID].RequiredResources);
                     break;
             }
 
-            LogEvent($"Launching upgrade on {upgradeLauncher.Tasks.ElementAt(upgradeTaskID).Entity.Code}: Success? {errorMessage == ErrorMessage.none} - Error: {errorMessage}");
+            LogEvent($"Launching upgrade on {upgradeLauncher.Tasks[upgradeTaskID].Entity.Code}: Success? {errorMessage == ErrorMessage.none} - Error: {errorMessage}");
 
             return errorMessage == ErrorMessage.none;
         }

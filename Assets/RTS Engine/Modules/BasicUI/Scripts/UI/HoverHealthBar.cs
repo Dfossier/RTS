@@ -60,7 +60,6 @@ namespace RTSEngine.UI
 
             // Make the hover health bar canvas a child object of the source entity
             // And update its position so that it shown over the entity
-            canvas.transform.SetParent(Entity.transform, true);
             canvas.transform.localPosition = input.data.offset;
             canvas.transform.localScale = input.data.size;
 

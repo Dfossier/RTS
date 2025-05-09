@@ -20,7 +20,7 @@ namespace RTSEngine.Lobby.UI
 
         public DefeatConditionDropdownSelector() : base(DefeatConditionType.eliminateMain, "Defeat Condition") { }
 
-        public void Init(ILobbyManager lobbyMgr)
+        public void Init(ILobbyManagerBase lobbyMgr)
         {
             elementsDic.Clear();
             foreach (Option element in options)

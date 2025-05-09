@@ -7,9 +7,9 @@ namespace RTSEngine.BuildingExtension
 {
     public interface IBuildingPlacementTask
     {
-        IBuilding Prefab { get; }
-        IEnumerable<ResourceInput> RequiredResources { get; }
-        IEnumerable<FactionEntityRequirement> FactionEntityRequirements { get; }
+        IBuilding TargetObject { get; }
+        IReadOnlyList<ResourceInput> RequiredResources { get; }
+        IReadOnlyList<FactionEntityRequirement> FactionEntityRequirements { get; }
         int FactionID { get; }
 
         ErrorMessage CanStart();

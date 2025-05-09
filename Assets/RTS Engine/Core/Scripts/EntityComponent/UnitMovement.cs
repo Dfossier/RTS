@@ -12,13 +12,20 @@ using RTSEngine.Determinism;
 using RTSEngine.Audio;
 using RTSEngine.Terrain;
 using RTSEngine.UnitExtension;
+using UnityEngine.Serialization;
 
 namespace RTSEngine.EntityComponent
 {
-    public class UnitMovement : FactionEntityTargetComponent<IEntity>, IMovementComponent 
+    public class UnitMovement : FactionEntityTargetComponent<IEntity>, IMovementComponent
     {
         #region Class Attributes
-        protected IUnit unit { private set; get; }
+        /*
+         * Action types and their parameters:
+         * setPosition: target.position as Vector3 position to set the unit at
+         * */
+        public enum ActionType : byte { setPosition, toggleMovementRotation }
+
+        public IUnit Unit { private set; get; }
 
         [SerializeField, Tooltip("Pick the terrain are types that the unit is able to move within. Leave empty to allow all terrain area types registered in the Terrain Manager.")]
         private TerrainAreaType[] movableTerrainAreas = new TerrainAreaType[0];
@@ -40,10 +47,13 @@ namespace RTSEngine.EntityComponent
         /// </summary>
         public int MovementPriority => movementPriority;
 
+        [SerializeField, HideInInspector]
         private bool isMoving;
+        [SerializeField, HideInInspector]
         private bool isMovementPending;
+        [SerializeField, HideInInspector]
         private Vector3 startPosition;
-        public Vector3 StartPosition => HasTarget ? startPosition : unit.transform.position;
+        public Vector3 StartPosition => HasTarget ? startPosition : Unit.transform.position;
         public override bool HasTarget => isMovementPending || isMoving;
         public override bool IsIdle => !isMoving;
 
@@ -55,14 +65,14 @@ namespace RTSEngine.EntityComponent
         /// <summary>
         /// The current corner that the unit is moving towards in its current path.
         /// </summary>
-        private Vector3 NextCorner;
+        public Vector3 NextCorner { private set; get; }
 
         /// <summary>
         /// Has the unit reached its current's path destination?
         /// </summary>
         public bool DestinationReached { private set; get; }
         //public Vector3 Destination => Target.position;
-        public Vector3 Destination => Controller.Destination;
+        public Vector3 Destination => Controller.IsValid() ? Controller.Destination : Vector3.zero;
 
         [SerializeField, Tooltip("Default movement speed.")]
         private TimeModifiedFloat speed = new TimeModifiedFloat(10.0f);
@@ -70,11 +80,14 @@ namespace RTSEngine.EntityComponent
         [SerializeField, Tooltip("How fast will the unit reach its movement speed?")]
         private TimeModifiedFloat acceleration = new TimeModifiedFloat(10.0f);
 
+        [SerializeField, Tooltip("When disabled, the rotation speed will be set to 0 and rotatin will not be handled by this component.")]
+        private bool movementRotationEnabled = true;
+
         [SerializeField, Tooltip("How fast does the unit rotate while moving?")]
         private TimeModifiedFloat mvtAngularSpeed = new TimeModifiedFloat(250.0f);
 
-        [SerializeField, Tooltip("When disabled, the unit will have to rotate to face the next corner of the path before moving to it.")]
-        private bool canMoveRotate = true; //can the unit rotate and move at the same time? 
+        [SerializeField, Tooltip("When disabled, the unit will have to rotate to face the next corner of the path before moving to it."), FormerlySerializedAs("canMoveRotate")]
+        private bool canMoveAndRotate = true; //can the unit rotate and move at the same time? 
 
         [SerializeField, Tooltip("If 'Can Move Rotate' is disabled, this value represents the angle that the unit must face in each corner of the path before moving towards it.")]
         private float minMoveAngle = 40.0f; //the close this value to 0.0f, the closer must the unit face its next destination in its path to move.
@@ -107,41 +120,47 @@ namespace RTSEngine.EntityComponent
         #region Raising Events
         public event CustomEventHandler<IMovementComponent, MovementEventArgs> MovementStart;
         public event CustomEventHandler<IMovementComponent, EventArgs> MovementStop;
+        public event CustomEventHandler<IMovementComponent, EventArgs> PositionSet;
 
-        private void RaiseMovementStart (IMovementComponent sender, MovementEventArgs args)
+        private void RaiseMovementStart(MovementEventArgs args)
         {
             var handler = MovementStart;
-            handler?.Invoke(sender, args);
+            handler?.Invoke(this, args);
         }
-        private void RaiseMovementStop (IMovementComponent sender)
+        private void RaiseMovementStop()
         {
             var handler = MovementStop;
-            handler?.Invoke(sender, EventArgs.Empty);
+            handler?.Invoke(this, EventArgs.Empty);
+        }
+        private void RaisePositionSet()
+        {
+            var handler = PositionSet;
+            handler?.Invoke(this, EventArgs.Empty);
         }
         #endregion
 
         #region Initializing/Terminating
         protected override void OnTargetInit()
         {
-            this.unit = Entity as IUnit;
+            this.Unit = Entity as IUnit;
 
             this.timeModifier = gameMgr.GetService<ITimeModifier>();
 
             this.timeModifier.ModifierUpdated += HandleTimeModifierUpdated;
 
-            Controller = unit.gameObject.GetComponentInChildren<IMovementController>();
+            Controller = Unit.gameObject.GetComponentInChildren<IMovementController>();
 
-            if (!logger.RequireValid(this.unit,
+            if (!logger.RequireValid(this.Unit,
               $"[{GetType().Name}] This component must be initialized with a valid instane of {typeof(IUnit).Name}!")
 
                 || !logger.RequireValid(Controller,
-                $"[{GetType().Name} - '{unit.Code}'] A component that implements the '{typeof(IMovementController).Name}' interface must be attached to the object.")
+                $"[{GetType().Name} - '{Unit.Code}'] A component that implements the '{typeof(IMovementController).Name}' interface must be attached to the object.")
 
                 || !logger.RequireValid(formation.type,
-                $"[{GetType().Name} - '{unit.Code}'] The movement formation type must be assigned!")
+                $"[{GetType().Name} - '{Unit.Code}'] The movement formation type must be assigned!")
 
                 || !logger.RequireTrue(movableTerrainAreas.Length == 0 || movableTerrainAreas.All(area => area.IsValid()),
-                $"[{GetType().Name} - '{unit.Code}'] The field 'Movable Terrain Areas' must be either empty or have valid elements assigned!"))
+                $"[{GetType().Name} - '{Unit.Code}'] The field 'Movable Terrain Areas' must be either empty or have valid elements assigned!"))
                 return;
 
             formation.Init();
@@ -152,7 +171,8 @@ namespace RTSEngine.EntityComponent
             TargetPositionMarker = new UnitTargetPositionMarker(gameMgr, this);
 
             // Movement component requires no auto-target search
-            TargetFinder.Enabled = false;
+            if (targetFinder.IsValid())
+                targetFinder.IsActive = false;
 
             isMoving = false;
             isMovementPending = false;
@@ -160,7 +180,7 @@ namespace RTSEngine.EntityComponent
             UpdateRotationTarget(Entity.transform.rotation);
         }
 
-        protected override void OnTargetDisabled() 
+        protected override void OnTargetDisabled()
         {
             TargetPositionMarker.Toggle(enable: false);
             this.timeModifier.ModifierUpdated -= HandleTimeModifierUpdated;
@@ -170,10 +190,10 @@ namespace RTSEngine.EntityComponent
         #endregion
 
         #region Handling Component Upgrade
-        protected override void OnComponentUpgraded(FactionEntityTargetComponent<IEntity> sourceFactionEntityTargetComponent) 
+        protected override void OnComponentUpgraded(FactionEntityTargetComponent<IEntity> sourceFactionEntityTargetComponent)
         {
             // Reset animator state (to the same previous state) post upgrade
-            unit.AnimatorController.SetState(unit.AnimatorController.CurrState);
+            Unit.AnimatorController.SetState(Unit.AnimatorController.CurrState);
 
             UnitMovement sourceMovementComp = sourceFactionEntityTargetComponent as UnitMovement;
 
@@ -188,7 +208,7 @@ namespace RTSEngine.EntityComponent
             speed = speed.Value,
             acceleration = acceleration.Value,
 
-            angularSpeed = mvtAngularSpeed.Value,
+            angularSpeed = movementRotationEnabled ? mvtAngularSpeed.Value : 0.0f,
             stoppingDistance = mvtMgr.StoppingDistance
         };
 
@@ -200,9 +220,9 @@ namespace RTSEngine.EntityComponent
         #endregion
 
         #region Activating/Deactivating Component
-        protected override void OnTargetActiveStatusUpdated() 
+        protected override void OnTargetActiveStatusUpdated()
         {
-           Controller.Enabled = IsActive;
+            Controller.Enabled = IsActive;
         }
         #endregion
 
@@ -212,7 +232,7 @@ namespace RTSEngine.EntityComponent
         /// </summary>
         void FixedUpdate()
         {
-            if (unit.Health.IsDead) //if the unit is already dead
+            if (Unit.Health.IsDead) //if the unit is already dead
                 return; //do not update movement
 
             if (isMoving == false)
@@ -222,26 +242,24 @@ namespace RTSEngine.EntityComponent
             }
 
             //to sync the unit's movement with its animation state, only handle movement if the unit is in its mvt animator state.
-            if (!unit.AnimatorController.IsInMvtState == true)
+            if (!Unit.AnimatorController.IsInMvtState == true)
                 return;
 
-            UpdateMovementRotation();
+            if(movementRotationEnabled)
+                UpdateMovementRotation();
 
             if (Controller.LastSource.targetAddableUnit.IsValid() //we have an addable target
-                //and it moved further away from the fetched addable position when the path was calculated and movement started.
-                && Vector3.Distance(Controller.LastSource.targetAddableUnitPosition, Controller.LastSource.targetAddableUnit.GetAddablePosition(unit)) > mvtMgr.StoppingDistance)
+                                                                  //and it moved further away from the fetched addable position when the path was calculated and movement started.
+                && !mvtMgr.IsPositionReached(Controller.LastSource.targetAddableUnitPosition, Controller.LastSource.targetAddableUnit.GetAddablePosition(Unit)))
             {
                 OnHandleAddableUnitStop();
                 return;
             }
 
             if (DestinationReached == false) //check if the unit has reached its target position or not
-                if ((DestinationReached = IsPositionReached(Destination)))
+                if ((DestinationReached = mvtMgr.IsPositionReached(Unit.transform.position, Destination)))
                     OnHandleAddableUnitStop();
         }
-
-        public bool IsPositionReached(Vector3 position)
-            => Vector3.Distance(unit.transform.position, position) <= mvtMgr.StoppingDistance;
 
         public void OnHandleAddableUnitStop()
         {
@@ -252,11 +270,18 @@ namespace RTSEngine.EntityComponent
             {
                 //so that the unit does not look at the IAddableUnit entity after it is added.
                 Target = new TargetData<IEntity> { opPosition = Target.opPosition };
-                lastSource.targetAddableUnit.Add(
-                    unit,
-                    lastSource.sourceTargetComponent.IsValid() && lastSource.sourceTargetComponent != unit.CarriableUnit
+                AddableUnitData addableUnitData = lastSource.sourceTargetComponent.IsValid() && lastSource.sourceTargetComponent != Unit.CarriableUnit
                         ? new AddableUnitData(lastSource.sourceTargetComponent, playerCommand: false)
-                        : unit.CarriableUnit.GetAddableData(playerCommand: false));
+                        : Unit.CarriableUnit.GetAddableData(playerCommand: false);
+
+                if (DestinationReached)
+                    lastSource.targetAddableUnit.Add(
+                        Unit,
+                        addableUnitData);
+                else
+                    lastSource.targetAddableUnit.Move(
+                        Unit,
+                        addableUnitData);
             }
         }
 
@@ -265,29 +290,29 @@ namespace RTSEngine.EntityComponent
         /// </summary>
         private void UpdateIdleRotation ()
         {
-            if (!canIdleRotate || NextRotationTarget == Quaternion.identity) //can the unit rotate when idle + there's a valid rotation target
+            if (!canIdleRotate) //can the unit rotate when idle + there's a valid rotation target
                 return;
 
             if (Target.instance.IsValid()) //if there's a target object to look at.
-                NextRotationTarget = RTSHelper.GetLookRotation(unit.transform, Target.instance.transform.position); //keep updating the rotation target as the target object might keep changing position
+                NextRotationTarget = RTSHelper.GetLookRotation(Unit.transform, Target.instance.transform.position); //keep updating the rotation target as the target object might keep changing position
 
             if (smoothIdleRotation)
-                unit.transform.rotation = Quaternion.Slerp(unit.transform.rotation, NextRotationTarget, Time.deltaTime * idleAngularSpeed.Value);
+                Unit.transform.rotation = Quaternion.Slerp(Unit.transform.rotation, NextRotationTarget, Time.deltaTime * idleAngularSpeed.Value);
             else
-                unit.transform.rotation = NextRotationTarget;
+                Unit.transform.rotation = NextRotationTarget;
         }
 
         /// <summary>
         /// Deactivates the movement controller and sets the unit's rotation target to the next corner in the path.
         /// </summary>
-        private void EnableMovementRotation ()
+        private void EnableMovementHaltingRotation ()
         {
             facingNextCorner = false; //to trigger checking for correct rotation properties
             Controller.IsActive = false; //stop handling rotation using the movement controller
 
             NextCorner = Controller.NextPathTarget; //assign new corner in path
             //set the rotation target to the next corner.
-            NextRotationTarget = RTSHelper.GetLookRotation(unit.transform, NextCorner);
+            NextRotationTarget = RTSHelper.GetLookRotation(Unit.transform, NextCorner);
         }
 
         /// <summary>
@@ -296,11 +321,11 @@ namespace RTSEngine.EntityComponent
         /// </summary>
         private void UpdateMovementRotation()
         {
-            if (canMoveRotate) //can move and rotate? do not proceed.
+            if (canMoveAndRotate) //can move and rotate? do not proceed.
                 return;
 
             if (NextCorner != Controller.NextPathTarget) //if the next corner/destination on path has been updated
-                EnableMovementRotation();
+                EnableMovementHaltingRotation();
 
             if (facingNextCorner) //facing next corner? we good
                 return;
@@ -309,20 +334,20 @@ namespace RTSEngine.EntityComponent
                 Controller.IsActive = false;
 
             //keep checking if the angle between the unit and its next destination
-            Vector3 IdleLookAt = NextCorner - unit.transform.position;
+            Vector3 IdleLookAt = NextCorner - Unit.transform.position;
             IdleLookAt.y = 0.0f;
 
             //as long as the angle is still over the min allowed movement angle, then do not proceed to keep moving
             //allow the controller to retake control of the movement if we're correctly facing the next path corner.
-            if(facingNextCorner = Vector3.Angle(unit.transform.forward, IdleLookAt) <= minMoveAngle)
+            if(facingNextCorner = Vector3.Angle(Unit.transform.forward, IdleLookAt) <= minMoveAngle)
             { 
                 Controller.IsActive = true;
                 return;
             }
 
             //update the rotation as long as the unit is attempting to look at the next target in the path before it the Controller takes over movement (and rotation)
-            unit.transform.rotation = Quaternion.Slerp(
-                unit.transform.rotation,
+            Unit.transform.rotation = Quaternion.Slerp(
+                Unit.transform.rotation,
                 NextRotationTarget,
                 Time.deltaTime * idleAngularSpeed.Value);
         }
@@ -342,48 +367,38 @@ namespace RTSEngine.EntityComponent
                 });
             }
 
-            return mvtMgr.SetPathDestination(
-                unit,
-                input.target.position,
-                0.0f,
-                input.target.instance,
-                new MovementSource { 
-                    playerCommand = input.playerCommand,
-                    isMoveAttackRequest = input.isMoveAttackRequest,
-                    fromTasksQueue = input.fromTasksQueue });
+            return mvtMgr.SetPathDestination(input.ToSetPathDestinationData<IEntity>(Unit));
         }
 
         public override ErrorMessage SetTargetLocal(SetTargetInputData input)
         {
-            return mvtMgr.SetPathDestinationLocal(
-                unit,
-                input.target.position,
-                0.0f,
-                input.target.instance,
-                new MovementSource { 
-                    playerCommand = input.playerCommand,
-                    isMoveAttackRequest = input.isMoveAttackRequest,
-                    fromTasksQueue = input.fromTasksQueue });
+            return mvtMgr.SetPathDestinationLocal(input.ToSetPathDestinationData<IEntity>(Unit));
         }
 
         public ErrorMessage SetTarget(TargetData<IEntity> newTarget, float stoppingDistance, MovementSource source)
         {
             return mvtMgr.SetPathDestination(
-                unit, 
-                newTarget.position, 
-                stoppingDistance, 
-                newTarget.instance,
-                source);
+                new SetPathDestinationData<IEntity>
+                {
+                    source = Unit,
+                    destination = newTarget.position,
+                    offsetRadius = stoppingDistance,
+                    target = newTarget.instance,
+                    mvtSource = source
+                });
         }
 
         public ErrorMessage SetTargetLocal(TargetData<IEntity> newTarget, float stoppingDistance, MovementSource source)
         {
             return mvtMgr.SetPathDestinationLocal(
-                unit, 
-                newTarget.position, 
-                stoppingDistance, 
-                newTarget.instance,
-                source);
+                new SetPathDestinationData<IEntity>
+                {
+                    source = Unit,
+                    destination = newTarget.position,
+                    offsetRadius = stoppingDistance,
+                    target = newTarget.instance,
+                    mvtSource = source
+                });
         }
 
         public ErrorMessage OnPathDestination(TargetData<IEntity> newTarget, MovementSource source)
@@ -395,26 +410,26 @@ namespace RTSEngine.EntityComponent
             if(!source.disableMarker)
                 TargetPositionMarker.Toggle(true, Target.position);
 
-            if (unit.CarriableUnit.IsValid() 
-                && unit.CarriableUnit.CurrCarrier.IsValid()
-                && unit.CarriableUnit.CurrCarrier.AllowMovementToExitCarrier)
+            if (Unit.CarriableUnit.IsValid() 
+                && Unit.CarriableUnit.CurrCarrier.IsValid()
+                && Unit.CarriableUnit.CurrCarrier.AllowMovementToExitCarrier)
                 Controller.Enabled = true;
 
-            Controller.Prepare(newTarget.position, source);
-
             isMovementPending = true;
+
+            Controller.Prepare(newTarget.position, source);
 
             return ErrorMessage.none;
         }
 
         public void OnPathFailure()
         {
-            unit.SetIdle(); //stop all unit activities in case path was supposed to be for a certain activity
+            Unit.SetIdle(); //stop all unit activities in case path was supposed to be for a certain activity
 
-            TargetPositionMarker.Toggle(true, unit.transform.position);
+            TargetPositionMarker.Toggle(true, Unit.transform.position);
 
-            if (Controller.LastSource.playerCommand && RTSHelper.IsLocalPlayerFaction(unit)) //if the local player owns this unit and the player called this
-                audioMgr.PlaySFX(invalidMvtPathAudio.Fetch());
+            if (Controller.LastSource.playerCommand && RTSHelper.IsLocalPlayerFaction(Unit)) //if the local player owns this unit and the player called this
+                audioMgr.PlaySFX(invalidMvtPathAudio.Fetch(), Unit);
         }
 
         public void OnPathPrepared(MovementSource source)
@@ -422,32 +437,33 @@ namespace RTSEngine.EntityComponent
             isMoving = true; //player is now marked as moving
             isMovementPending = false;
 
-            if (unit.AnimatorController?.CurrState == AnimatorState.moving) //if the unit was already moving, then lock changing the animator state briefly
-                unit.AnimatorController.LockState = true;
+            if (Unit.AnimatorController?.CurrState == AnimatorState.moving) //if the unit was already moving, then lock changing the animator state briefly
+                Unit.AnimatorController.LockState = true;
 
             globalEvent.RaiseMovementStartGlobal(this);
-            startPosition = unit.transform.position;
-            RaiseMovementStart(this, new MovementEventArgs(source));
+            startPosition = Unit.transform.position;
+            RaiseMovementStart(new MovementEventArgs(source));
+            RaiseTargetUpdated();
 
-            unit.SetIdle(source.sourceTargetComponent, false);
+            Unit.SetIdle(source.sourceTargetComponent, false);
 
             DestinationReached = false; //destination is not reached by default
 
-            if (unit.AnimatorController.IsValid())
+            if (Unit.AnimatorController.IsValid())
             {
-                unit.AnimatorController.LockState = false; //unlock animation state and play the movement anim
-                unit.AnimatorController.SetState(AnimatorState.moving);
+                Unit.AnimatorController.LockState = false; //unlock animation state and play the movement anim
+                Unit.AnimatorController.SetState(AnimatorState.moving);
             }
 
             Controller.Launch();
             NextCorner = Controller.NextPathTarget; //set the current target destination corner
 
-            if (!canMoveRotate) //can not move before facing the next corner in the path by a certain angle?
-                EnableMovementRotation();
+            if (!canMoveAndRotate) //can not move before facing the next corner in the path by a certain angle?
+                EnableMovementHaltingRotation();
 
-            if (Controller.LastSource.playerCommand && RTSHelper.IsLocalPlayerFaction(unit))
+            if (Controller.LastSource.playerCommand && RTSHelper.IsLocalPlayerFaction(Unit))
             {
-                audioMgr.PlaySFX(unit.AudioSourceComponent, mvtAudio.Fetch(), true);
+                audioMgr.PlaySFX(Unit.AudioSourceComponent, mvtAudio.Fetch(), true);
             }
         }
 
@@ -458,13 +474,13 @@ namespace RTSEngine.EntityComponent
         /// <param name="prepareNextMovement">When true, not all movement settings will be reset since a new movement command will be followed.</param>
         protected override void OnStop()
         {
-            audioMgr.StopSFX(unit.AudioSourceComponent); //stop the movement audio from playing
+            audioMgr.StopSFX(Unit.AudioSourceComponent); //stop the movement audio from playing
 
             isMoving = false; //marked as not moving
             isMovementPending = false;
 
             globalEvent.RaiseMovementStopGlobal(this);
-            RaiseMovementStop(this);
+            RaiseMovementStop();
 
             Controller.IsActive = false; 
 
@@ -475,18 +491,18 @@ namespace RTSEngine.EntityComponent
                 LastTarget.instance.IsValid() ? LastTarget.instance.transform.position : LastTarget.opPosition
             );
 
-            TargetPositionMarker.Toggle(true, unit.transform.position);
+            TargetPositionMarker.Toggle(true, Unit.transform.position);
 
-            if (!unit.Health.IsDead) //if the unit is not dead
+            if (!Unit.Health.IsDead) //if the unit is not dead
             {
-                unit.AnimatorController?.SetState(AnimatorState.idle); //get into idle state
+                Unit.AnimatorController?.SetState(AnimatorState.idle); //get into idle state
 
                 if (!Controller.LastSource.sourceTargetComponent.IsValid())
-                    unit.SetIdle(exception: this, includeMovement: false);
+                    Unit.SetIdle(exception: this, includeMovement: false);
             }
         }
 
-        public override ErrorMessage IsTargetValid(TargetData<IEntity> potentialTarget, bool playerCommand) => ErrorMessage.none;
+        public override ErrorMessage IsTargetValid(SetTargetInputData data) => ErrorMessage.none;
         public override bool IsTargetInRange(Vector3 sourcePosition, TargetData<IEntity> target) => true;
         public override bool CanSearch => false;
 
@@ -501,7 +517,7 @@ namespace RTSEngine.EntityComponent
             };
 
             UpdateRotationTarget(
-                RTSHelper.GetLookRotation(unit.transform, Target.opPosition, reversed: lookAway, fixYRotation: true),
+                RTSHelper.GetLookRotation(Unit.transform, Target.opPosition, reversed: lookAway, fixYRotation: true),
                 setImmediately);
         }
 
@@ -511,8 +527,103 @@ namespace RTSEngine.EntityComponent
             NextRotationTarget = targetRotation;
 
             if (setImmediately)
-                unit.transform.rotation = NextRotationTarget;
+                Unit.transform.rotation = NextRotationTarget;
         }
+        #endregion
+
+        #region Handling Actions
+        public override ErrorMessage LaunchActionLocal(byte actionID, SetTargetInputData input)
+        {
+            switch((ActionType)actionID)
+            {
+                case ActionType.setPosition:
+                    return SetPositionLocal(input.target.position);
+                default:
+                    return base.LaunchActionLocal(actionID, input);
+            }
+        }
+        #endregion
+
+        #region ToggleRotation
+        public void ToggleMovementRotation(bool enable)
+        {
+            movementRotationEnabled = enable;
+
+            Controller.Data = TimeModifiedControllerData;
+        }
+        #endregion
+
+        #region SetPosition
+        public ErrorMessage SetPosition(Vector3 position)
+        {
+            ErrorMessage positionClearError = mvtMgr.IsPositionClear(ref position, this, playerCommand: false);
+            if (positionClearError != ErrorMessage.none)
+                return positionClearError;
+
+            return LaunchAction((byte)ActionType.setPosition, new SetTargetInputData { target = position });
+        }
+
+        private ErrorMessage SetPositionLocal(Vector3 position)
+        {
+            bool wasActive = false;
+
+            if (!IsIdle)
+            {
+                Stop();
+            }
+
+            if (IsActive)
+            {
+                wasActive = true;
+
+                SetActiveLocal(false, playerCommand: false);
+            }
+
+            Unit.transform.position = position;
+            TargetPositionMarker.Toggle(true, Unit.transform.position);
+
+            if (wasActive)
+            {
+                SetActiveLocal(true, playerCommand: false);
+            }
+
+            RaisePositionSet();
+
+            return ErrorMessage.none;
+        }
+        #endregion
+
+        #region Editor
+#if UNITY_EDITOR
+        [SerializeField, HideInInspector]
+        private bool showPathDestination = true;
+        [SerializeField, HideInInspector]
+        private bool showPathNextCorner = true;
+
+        protected override void OnDrawGizmosSelected()
+        {
+            DrawTargetGizmo();
+            DrawMovementGizmo();
+        }
+
+        protected void DrawMovementGizmo()
+        {
+            if (!isMoving)
+                return;
+
+            Gizmos.color = Color.yellow;
+
+            if (showPathDestination)
+            {
+                Gizmos.DrawWireSphere(Destination, mvtMgr.StoppingDistance);
+            }
+
+            if (showPathNextCorner)
+            {
+                Gizmos.DrawLine(Entity.transform.position, NextCorner);
+            }
+        }
+#endif
         #endregion
     }
 }

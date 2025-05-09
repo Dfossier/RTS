@@ -4,14 +4,14 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-using RTSEngine.UI.Utilities;
 using RTSEngine.Logging;
 using RTSEngine.Lobby.Logging;
 using UnityEngine.Serialization;
+using TMPro;
 
 namespace RTSEngine.Lobby
 {
-    public class LobbyUIManagerBase : MonoBehaviour, ILobbyManagerUI
+    public abstract class LobbyUIManagerBase<T> : MonoBehaviour, ILobbyManagerUI where T : ILobbyFactionSlot
     {
         #region Attributes
         [SerializeField, Tooltip("Main canvas that is the parent object of all lobby UI elements.")]
@@ -21,12 +21,20 @@ namespace RTSEngine.Lobby
         private GridLayoutGroup lobbyFactionSlotParent = null; 
 
         [SerializeField, Tooltip("UI Dropdown Menu used to represent the maps that can be selected in the lobby.")]
-        private Dropdown mapDropdownMenu = null;
+        private TMP_Dropdown mapDropdown = null;
+        protected LobbyGameData UIToLobbyGameData => new LobbyGameData
+        {
+            mapID = mapDropdown.value,
+
+            defeatConditionID = lobbyMgr.DefeatConditionSelector.CurrentOptionID,
+            timeModifierID = lobbyMgr.TimeModifierSelector.CurrentOptionID,
+            initialResourcesID = lobbyMgr.InitialResourcesSelector.CurrentOptionID
+        };
 
         [SerializeField, Tooltip("UI Text used to display the selected map's description.")]
-        private Text mapDescriptionText = null; 
+        private TextMeshProUGUI mapDescriptionUIText = null; 
         [SerializeField, Tooltip("UI Text used to display the selected map's min and max allowed faction amount.")]
-        private Text mapFactionAmountText = null;
+        private TextMeshProUGUI mapFactionAmountUIText = null;
 
         [SerializeField, Tooltip("UI Button used to add a faction slot to the lobby."), FormerlySerializedAs("addFactionButton")]
         protected Button addNPCFactionButton = null;
@@ -38,29 +46,29 @@ namespace RTSEngine.Lobby
         protected ILoggingService logger { private set; get; }
 
         // Other components
-        protected ILobbyManager lobbyMgr { private set; get; }
+        protected ILobbyManager<T> lobbyMgr { private set; get; }
         #endregion
 
         #region Initializing/Terminating
-        public void Init(ILobbyManager manager)
+        public void Init(ILobbyManagerBase manager)
         {
-            this.lobbyMgr = manager;
+            this.lobbyMgr = manager as ILobbyManager<T>;
 
             this.logger = lobbyMgr.GetService<ILobbyLoggingService>();
 
-
             if (!logger.RequireValid(canvas, $"[{GetType().Name}] The 'Canvas' field must be assigned")
                 || !logger.RequireValid(lobbyFactionSlotParent, $"[{GetType().Name}] The 'Lobby Fation Slot Parent' field must be assigned")
-                || !logger.RequireValid(mapDropdownMenu, $"[{GetType().Name}] The 'Map Dropdown menu' field must be assigned"))
+                || !logger.RequireValid(mapDropdown, $"[{GetType().Name}] The 'Map Dropdown menu' field must be assigned"))
                 return;
 
-            mapDropdownMenu.ClearOptions();
-            mapDropdownMenu.AddOptions(manager.Maps.Select(map => map.name).ToList());
+            mapDropdown.onValueChanged.AddListener(OnLobbyGameDataUIUpdated);
+            mapDropdown.ClearOptions();
+            mapDropdown.AddOptions(lobbyMgr.Maps.Select(map => map.name).ToList());
 
-            HandleLobbyGameDataUpdated(manager.CurrentLobbyGameData, EventArgs.Empty);
+            HandleLobbyGameDataUpdated(lobbyMgr.CurrentLobbyGameData, EventArgs.Empty);
 
-            manager.FactionSlotAdded += HandleFactionSlotAdded;
-            manager.LobbyGameDataUpdated += HandleLobbyGameDataUpdated;
+            lobbyMgr.FactionSlotAdded += HandleFactionSlotAdded;
+            lobbyMgr.LobbyGameDataUpdated += HandleLobbyGameDataUpdated;
 
             OnInit();
         }
@@ -86,7 +94,7 @@ namespace RTSEngine.Lobby
         #region General UI Handling
         public void SetInteractable (bool interactable)
         {
-            mapDropdownMenu.interactable = interactable;
+            mapDropdown.interactable = interactable;
 
             lobbyMgr.DefeatConditionSelector.Interactable = interactable;
             lobbyMgr.TimeModifierSelector.Interactable = interactable;
@@ -111,36 +119,24 @@ namespace RTSEngine.Lobby
         #endregion
 
         #region Updating Lobby Game Data
-        public void OnLobbyGameDataUIUpdated()
-        {
-            if (!lobbyMgr.IsLobbyGameDataMaster())
-                return;
+        private void OnLobbyGameDataUIUpdated(int optionID) => OnLobbyGameDataUIUpdated();
 
-            lobbyMgr.UpdateLobbyGameDataRequest(
-                new LobbyGameData
-                {
-                    mapID = mapDropdownMenu.value,
-
-                    defeatConditionID = lobbyMgr.DefeatConditionSelector.CurrentOptionID,
-                    timeModifierID = lobbyMgr.TimeModifierSelector.CurrentOptionID,
-                    initialResourcesID = lobbyMgr.InitialResourcesSelector.CurrentOptionID
-                });
-        }
+        public abstract void OnLobbyGameDataUIUpdated();
 
         private void HandleLobbyGameDataUpdated(LobbyGameData prevLobbyGameData, EventArgs args)
         {
             if(!lobbyMgr.IsLobbyGameDataMaster())
-                mapDropdownMenu.value = lobbyMgr.CurrentLobbyGameData.mapID;
+                mapDropdown.value = lobbyMgr.CurrentLobbyGameData.mapID;
 
-            if(mapDescriptionText)
-                mapDescriptionText.text = lobbyMgr.CurrentMap.description;
-            if(mapFactionAmountText)
-                mapFactionAmountText.text = $"{lobbyMgr.CurrentMap.factionsAmount.min} - {lobbyMgr.CurrentMap.factionsAmount.max}";
+            if(mapDescriptionUIText)
+                mapDescriptionUIText.text = lobbyMgr.CurrentMap.description;
+            if(mapFactionAmountUIText)
+                mapFactionAmountUIText.text = $"{lobbyMgr.CurrentMap.factionsAmount.min} - {lobbyMgr.CurrentMap.factionsAmount.max}";
         }
         #endregion
 
         #region Updating Faction Slots
-        private void HandleFactionSlotAdded(ILobbyFactionSlot newSlot, EventArgs args)
+        private void HandleFactionSlotAdded(T newSlot, EventArgs args)
         {
             newSlot.transform.SetParent(lobbyFactionSlotParent.transform, false);
             newSlot.transform.localScale = Vector3.one;

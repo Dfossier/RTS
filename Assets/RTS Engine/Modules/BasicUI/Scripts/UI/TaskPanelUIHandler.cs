@@ -22,9 +22,20 @@ namespace RTSEngine.UI
             public GridLayoutGroup parent;
             [Tooltip("Amount of task panel slots to pre-create, in case tasks have pre-assigned slot indexes, this should cover them.")]
             public int preCreatedAmount;
+
+            [EnforceType(prefabOnly: true), Tooltip("Alternative prefab of the task to be used as the base task in the task panel in this category only. Leave unassigned to use the task UI prefab for this category.")]
+            public GameObject taskUIPrefab;
+
+            [Tooltip("Enable this option to disable individual task UI elements to force their slot index in this category.")]
+            public bool disableForceSlot;
         }
         [SerializeField, Tooltip("Task panel can be broken down into different categories where each category is defined by its index in this array. At least one category must be defined!")]
         private Category[] categories = new Category[0];
+
+        [SerializeField, Tooltip("Enable this option to re-direct category IDs defined in the task UI data to category IDs in the 'Directed Categories' array.")]
+        private bool enableRedirectCategories = false;
+        [SerializeField, Tooltip("When redirecting categories is enabled, each element of this integer array with index 'i' will redirect the category of ID 'i' to the value of the element 'j'.")]
+        private int[] redicretedCategories = new int[0];
 
         //the index of the tasks array represents the category of the task panel
         //each element tasks[i] of the array is a list that holds all the created tasks inside the panel of index i
@@ -44,10 +55,16 @@ namespace RTSEngine.UI
         protected override void OnInit()
         {
             if (!logger.RequireTrue(categories.Length > 0,
-                $"[TaskPanelUIHandler] At least one task panel category must be defined through the 'Categories' field!"))
+                $"[{GetType().Name}] At least one task panel category must be defined through the 'Categories' field!"))
                 return;
 
             this.placementMgr = gameMgr.GetService<IBuildingPlacement>();
+
+            foreach(Category category in categories)
+            {
+                if (!category.parent.IsValid())
+                    logger.LogError($"[{GetType().Name}] One or more categories has the 'Parent' field unassigned!");
+            }
 
             //initialize each task panel category with its pre created tasks.
             tasks = new List<ITaskUI<EntityComponentTaskUIAttributes>>[categories.Length];
@@ -56,7 +73,7 @@ namespace RTSEngine.UI
                 tasks[categoryID] = new List<ITaskUI<EntityComponentTaskUIAttributes>>();
 
                 while (tasks[categoryID].Count < categories[categoryID].preCreatedAmount)
-                    Create(tasks[categoryID], categories[categoryID].parent.transform);
+                    Create(tasks[categoryID], categories[categoryID].parent.transform, categories[categoryID].taskUIPrefab);
             }
 
             isLocked = false; //by default, the task panel is not locked.
@@ -180,6 +197,12 @@ namespace RTSEngine.UI
 
         private ITaskUI<EntityComponentTaskUIAttributes> Add(int categoryID, bool forceSlot = false, int slotIndex = 0)
         {
+            if (enableRedirectCategories && categoryID < redicretedCategories.Length)
+                categoryID = redicretedCategories[categoryID];
+
+            if(categories[categoryID].disableForceSlot)
+                forceSlot = false;
+
             if (!logger.RequireTrue(categoryID >= 0 && categoryID < tasks.Length,
                 $"[{GetType().Name}] Invalid category ID: {categoryID}"))
                 return null;
@@ -204,7 +227,7 @@ namespace RTSEngine.UI
                     return task;
 
             //no forced slot and no available task slot? create one!
-            return Create(tasks[categoryID], categories[categoryID].parent.transform);
+            return Create(tasks[categoryID], categories[categoryID].parent.transform, categories[categoryID].taskUIPrefab);
         }
 
         private void Hide()
@@ -212,7 +235,9 @@ namespace RTSEngine.UI
             for (int categoryID = 0; categoryID < tasks.Length; categoryID++)
                 foreach (var task in tasks[categoryID])
                     if (task.enabled)
+                    {
                         task.Disable();
+                    }
 
             componentTasks.Clear();
         }
@@ -249,42 +274,62 @@ namespace RTSEngine.UI
             IEntity refEntity = entities.First();
             foreach (IEntityComponent refEntityComponent in refEntity.EntityComponents.Values)
             {
-                if (!refEntityComponent.OnTaskUIRequest(out IEnumerable<EntityComponentTaskUIAttributes> attributes, out IEnumerable<string> disabledTaskCodes))
+                if (!refEntityComponent.OnTaskUIRequest(out IReadOnlyList<EntityComponentTaskUIAttributes> attributes, out IReadOnlyList<string> disabledTaskCodes))
                 {
-                    disabledTaskCodes = disabledTaskCodes.Concat(attributes.Select(attr => attr.data.code));
-                    attributes = Enumerable.Empty<EntityComponentTaskUIAttributes>();
+                    if (attributes != null)
+                    {
+                        for (int i = 0; i < attributes.Count; i++)
+                        {
+                            DisableEntityComponentTask(attributes[i].data.code);
+                        }
+                        attributes = null;
+                    }
                 }
 
                 if (disabledTaskCodes != null)
-                    foreach (string code in disabledTaskCodes)
-                        DisableEntityComponentTask(code);
+                    for (int i = 0; i < disabledTaskCodes.Count; i++)
+                    {
+                        DisableEntityComponentTask(disabledTaskCodes[i]);
+                    }
 
                 if (attributes != null)
                 {
                     IEnumerable<IEntityComponent> nextEntityComponents = entities.Select(entity => entity.EntityComponents[refEntityComponent.Code]);
-                    foreach (EntityComponentTaskUIAttributes attr in attributes) //attempt to add them to the task panel
-                        AddEntityComponentTask(nextEntityComponents, attr);
+                    for (int i = 0; i < attributes.Count; i++) //attempt to add them to the task panel
+                    {
+                        AddEntityComponentTask(nextEntityComponents, attributes[i]);
+                    }
                 }
             }
         }
 
         private void FetchSingleEntityComponentTasks (IEntityComponent component)
         {
-            if (!component.OnTaskUIRequest(out IEnumerable<EntityComponentTaskUIAttributes> attributes, out IEnumerable<string> disabledTaskCodes))
+            if (!component.OnTaskUIRequest(out IReadOnlyList<EntityComponentTaskUIAttributes> attributes, out IReadOnlyList<string> disabledTaskCodes))
             {
-                disabledTaskCodes = disabledTaskCodes.Concat(attributes.Select(attr => attr.data.code));
-                attributes = Enumerable.Empty<EntityComponentTaskUIAttributes>();
+                if (attributes != null)
+                {
+                    for (int i = 0; i < attributes.Count; i++)
+                    {
+                        DisableEntityComponentTask(attributes[i].data.code);
+                    }
+                    attributes = null;
+                }
             }
 
             if (disabledTaskCodes != null)
-                foreach (string code in disabledTaskCodes)
-                    DisableEntityComponentTask(code);
+                for (int i = 0; i < disabledTaskCodes.Count; i++)
+                {
+                    DisableEntityComponentTask(disabledTaskCodes[i]);
+                }
 
             if (attributes != null)
             {
                 IEnumerable<IEntityComponent> nextEntityComponents = Enumerable.Repeat(component, 1);
-                foreach (EntityComponentTaskUIAttributes attr in attributes) //attempt to add them to the task panel
-                    AddEntityComponentTask(nextEntityComponents, attr);
+                for (int i = 0; i < attributes.Count; i++) //attempt to add them to the task panel
+                {
+                    AddEntityComponentTask(nextEntityComponents, attributes[i]);
+                }
             }
         }
 
@@ -340,6 +385,8 @@ namespace RTSEngine.UI
                     attributes.data.panelCategory,
                     attributes.data.forceSlot,
                     attributes.data.slotIndex);
+
+                //newTask.gameObject.SetActive(true);
 
                 //create a new tracker for the task:
                 tracker = new EntityComponentTaskUITracker(newTask);

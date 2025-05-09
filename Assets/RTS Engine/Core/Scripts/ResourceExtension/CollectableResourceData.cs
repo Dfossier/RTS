@@ -24,7 +24,7 @@ namespace RTSEngine.ResourceExtension
         public AnimatorOverrideControllerFetcher animatorOverrideController;
 
         [Space(), Tooltip("Child object of the collector that gets activated when the above resource type is being actively collected/dropped off."), Space(), FormerlySerializedAs("obj")]
-        public ModelCacheAwareTransformInput enableObject;
+        public GameObject enableObject;
         [SerializeField, Tooltip("What audio clip to play when the unit starts collecting/dropping off the resource?"), FormerlySerializedAs("audio")]
         public AudioClipFetcher enableAudio;
 

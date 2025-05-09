@@ -100,16 +100,6 @@ namespace RTSEngine.Logging
             return true;
         }
 
-        public bool RequireValid<T>(ModelCacheAwareInput<T> target, string message, IMonoBehaviour source = null, LoggingType type = LoggingType.error) where T : Component
-        {
-            if (!target.IsValid())
-            {
-                Log(message, source, type);
-                return false;
-            }
-
-            return true;
-        }
 
         public bool RequireValid<T>(GameObjectToComponentInput<T> target, string message, IMonoBehaviour source = null, LoggingType type = LoggingType.error) where T : IMonoBehaviour 
         {

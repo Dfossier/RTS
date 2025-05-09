@@ -7,7 +7,7 @@ namespace RTSEngine.EditorOnly.NPC
     {
         private const string NewNPCManagerPrefabName = "basic_npc_manager_prefab";
 
-        [MenuItem("RTS Engine/Basic NPC/New NPC Manager", false, 501)]
+        [MenuItem("RTS Engine/Modules/Basic NPC/New NPC Manager", false, 201)]
         private static void ConfigNewMapOption()
         {
             var prefab = Resources.Load(NewNPCManagerPrefabName, typeof(GameObject));

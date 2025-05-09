@@ -13,9 +13,10 @@ MonoBehaviour:
   m_Name: faction_power
   m_EditorClassIdentifier: 
   key: faction_power
-  displayName: Faction Power
+  displayName: Power
   description: A number that indicates the attacking power of a faciton.
   hasCapacity: 0
+  capacityType: 1
   startingAmount:
     amount: 0
     capacity: 0

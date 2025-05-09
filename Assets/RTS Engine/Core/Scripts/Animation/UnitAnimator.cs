@@ -11,7 +11,8 @@ namespace RTSEngine.Animation
         {
             {AnimatorState.idle, "IsIdle" },
 
-            {AnimatorState.takeDamage, "IsTakeDamage" },
+            {AnimatorState.startTakeDamage, "StartTakeDamage" },
+            {AnimatorState.inTakeDamage, "InTakeDamage" },
             {AnimatorState.dead, "IsDead" },
 
             {AnimatorState.moving, "IsMoving" },
@@ -23,7 +24,7 @@ namespace RTSEngine.Animation
         public static readonly AnimatorState[] States = new AnimatorState[] {
             AnimatorState.idle,
 
-            AnimatorState.takeDamage, 
+            AnimatorState.startTakeDamage, 
             AnimatorState.dead, 
 
             AnimatorState.moving, 

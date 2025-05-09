@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using UnityEngine;
+
+using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace RTSEngine.Utilities
 {
@@ -22,7 +23,7 @@ namespace RTSEngine.Utilities
             ddolObjects.Add(obj);
         }
 
-        internal static void Destroy(GameObject obj)
+        public static void Destroy(GameObject obj)
         {
             ddolObjects.Remove(obj);
             GameObject.Destroy(obj);

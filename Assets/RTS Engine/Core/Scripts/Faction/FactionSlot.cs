@@ -18,7 +18,6 @@ namespace RTSEngine.Faction
     public class FactionSlot : IFactionSlot
     {
         #region Attributes
-
         public FactionSlotState State { private set; get; } = FactionSlotState.inactive;
 
         // Unique ID for each faction slot.
@@ -40,6 +39,8 @@ namespace RTSEngine.Faction
         public Vector3 FactionSpawnPosition { private set; get; }
 
         [Space(), SerializeField, FormerlySerializedAs("defaultFactionEntities"), Tooltip("Units and buildings that are spawned initially for the faction, depending on the type it is assigned.")]
+        // It makes sense to have the building centers come up first in the initial faction entities array.
+        // So that their border components are initiated and other buildings can recongize them as building centers.
         private FactionTypeFilteredFactionEntities initialFactionEntities = new FactionTypeFilteredFactionEntities();
         // Keeps track of whether the above initial faction entities have been initialized or not.
         private bool initialFactionEntitiesInitialized = false;
@@ -115,9 +116,15 @@ namespace RTSEngine.Faction
                 return;
             }
 
-            CurrentNPCMgr = UnityEngine.Object.Instantiate(npcMgrPrefab.gameObject).GetComponent<INPCManager>();
-
-            CurrentNPCMgr.Init(data.npcType, gameMgr, FactionMgr);
+            // We only create NPC managers for the master instance
+            // In case of a singleplayer game, the master instance is the only available instance
+            // In case of a multiplayer game, the master instance is where the server is running (either on the host machine or headless server)
+            // This guarantees that there is only one instance of the NPC manager in one of the machines in the multiplayer game (always where the server is).
+            if (RTSHelper.IsMasterInstance())
+            {
+                CurrentNPCMgr = UnityEngine.Object.Instantiate(npcMgrPrefab.gameObject).GetComponent<INPCManager>();
+                CurrentNPCMgr.Init(data.npcType, gameMgr, FactionMgr);
+            }
         }
 
         public void InitDefaultFactionEntities ()
@@ -126,75 +133,13 @@ namespace RTSEngine.Faction
                 $"[FactionSlot - ID: {ID}] The initial faction entities have been already initialized. Unable to initialize them again!"))
                 return;
 
-            var buildingInitParams = new InitBuildingParameters
-            {
-                factionID = ID,
-                free = false,
+            IReadOnlyList<IFactionEntity> usedEntities = initialFactionEntities.GetFiltered(data.type, out IReadOnlyList<IFactionEntity> unusedEntities);
 
-                setInitialHealth = false,
-
-                giveInitResources = true
-            };
-
-            var unitInitParams = new InitUnitParameters
-            {
-                factionID = ID,
-                free = false,
-
-                setInitialHealth = false,
-
-                rallypoint = null,
-
-                giveInitResources = true
-            };
-
-            IEnumerable<IFactionEntity> usedEntities = initialFactionEntities.GetFiltered(data.type, out IEnumerable<IFactionEntity> unusedEntities);
-
-            foreach (IFactionEntity instance in usedEntities)
-            {
-                if(gameMgr.ClearDefaultEntities)
-                {
+            if (gameMgr.ClearDefaultEntities)
+                foreach (IFactionEntity instance in usedEntities)
                     UnityEngine.Object.DestroyImmediate(instance.gameObject);
-                    continue;
-                }
-
-                if (instance.IsBuilding())
-                {
-                    // It makes sense to have the building centers come up first in the initial faction entities array.
-                    // So that their border components are initiated and other buildings can recongize them as building centers.
-                    buildingInitParams.buildingCenter = RTSHelper.GetClosestEntity(
-                        instance.transform.position,
-                        FactionMgr.BuildingCenters,
-                        center => center.BorderComponent.IsInBorder(instance.transform.position))?.BorderComponent;
-
-                    //this is code added by Derek to place buildings on a procedural navmesh
-                    int layerMask = 1 << 6;
-                    Vector3 rayOriginPos = new Vector3(instance.transform.position.x, instance.transform.position.y + 4, instance.transform.position.z);
-                    if (Physics.Raycast(rayOriginPos, -Vector3.up, out RaycastHit hitInfo, 6, layerMask))
-                    {
-                        Debug.Log("Capital position was" + instance.transform.position);
-                        instance.transform.position = hitInfo.point;
-                        Debug.Log("Hit " + hitInfo.collider.gameObject.layer + " and capital position is " + instance.transform.position);
-                    }
-                    (instance as IBuilding).Init(gameMgr, buildingInitParams);
-                }
-                else if (instance.IsUnit())
-                {
-                    unitInitParams.gotoPosition = instance.transform.position;
-
-                    //this is code added by Derek to place buildings on a procedural navmesh
-                    int layerMask = 1 << 6;
-                    Vector3 rayOriginPos = new Vector3(instance.transform.position.x, instance.transform.position.y + 4, instance.transform.position.z);
-                    if (Physics.Raycast(rayOriginPos, -Vector3.up, out RaycastHit hitInfo, 6, layerMask))
-                    {
-                        Debug.Log(instance + " was" + instance.transform.position);
-                        instance.transform.position = hitInfo.point;
-                        Debug.Log("Hit " + hitInfo.collider.gameObject.layer + " and new position is " + instance.transform.position);
-                    }
-
-                    (instance as IUnit).Init(gameMgr, unitInitParams);
-                }
-            }
+            else
+                RTSHelper.InitFactionEntities(usedEntities, ID);
 
             // Destroy the unusued entities (ones that do not fit the current faction's type)
             foreach (IFactionEntity instance in unusedEntities)

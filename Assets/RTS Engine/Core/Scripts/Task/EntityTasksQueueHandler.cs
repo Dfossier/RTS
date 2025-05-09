@@ -92,7 +92,7 @@ namespace RTSEngine.Task
             //print($"upgarded queue: {queue.Count}");
         }
 
-        private void HandleComponentTargetStop(IEntityTargetComponent sender, EventArgs args)
+        private void HandleComponentTargetStop(IEntityTargetComponent sender, TargetDataEventArgs args)
         {
             sender.TargetStop -= HandleComponentTargetStop;
 

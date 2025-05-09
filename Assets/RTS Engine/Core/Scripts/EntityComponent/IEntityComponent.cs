@@ -17,10 +17,12 @@ namespace RTSEngine.EntityComponent
 
         EntityComponentData Data { get; }
 
+        event CustomEventHandler<IEntityComponent, EventArgs> ActiveStatusUpdate;
+
         ErrorMessage SetActive(bool active, bool playerCommand);
         ErrorMessage SetActiveLocal(bool active, bool playerCommand);
 
-        bool OnTaskUIRequest(out IEnumerable<EntityComponentTaskUIAttributes> taskUIAttributes, out IEnumerable<string> disabledTaskCodes);
+        bool OnTaskUIRequest(out IReadOnlyList<EntityComponentTaskUIAttributes> taskUIAttributes, out IReadOnlyList<string> disabledTaskCodes);
 
         bool OnTaskUIClick(EntityComponentTaskUIAttributes taskAttributes);
 

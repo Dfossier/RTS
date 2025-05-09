@@ -7,9 +7,9 @@ namespace RTSEngine.Lobby.Logging
 {
     public class LobbyLogger : LoggerBase, ILobbyLoggingService
     {
-        protected ILobbyManager lobbyMgr { private set; get; }
+        protected ILobbyManagerBase lobbyMgr { private set; get; }
 
-        public void Init(ILobbyManager lobbyMgr)
+        public void Init(ILobbyManagerBase lobbyMgr)
         {
             this.lobbyMgr = lobbyMgr;
         }

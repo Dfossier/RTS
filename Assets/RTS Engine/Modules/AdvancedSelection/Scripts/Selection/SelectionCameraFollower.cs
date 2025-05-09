@@ -44,35 +44,37 @@ namespace RTSEngine.Selection
             this.controls = gameMgr.GetService<IGameControlsManager>();
 
             // Initial state:
-            Reset();
+            ResetTarget();
         }
         #endregion
 
         #region Handling Event: Followed Entitiy Deselected
         private void HandleCurrentFollowedEntityDeselected(IEntity entity, EventArgs args)
         {
-            Reset();
+            ResetTarget();
         }
         #endregion
 
         #region Handling Following Selected Entities
         private void Update()
         {
-            if (!isActive
-                || placementMgr.IsLocalPlayerPlacingBuilding
-                || !controls.GetDown(key)
-                || selectionMgr.Count == 0
-                || mainCameraController.PanningHandler.IsPanning)
+            if (!controls.GetDown(key))
                 return;
 
             FollowNextEntity();
         }
 
-        private void FollowNextEntity()
+        public void FollowNextEntity()
         {
+            if (!isActive
+                || placementMgr.IsLocalPlayerPlacingBuilding
+                || selectionMgr.Count == 0
+                || mainCameraController.PanningHandler.IsPanning)
+                return;
+
             // First follow order?
             if (!mainCameraController.PanningHandler.IsFollowingTarget)
-                Reset();
+                ResetTarget();
 
             // Since a new entity will be followed, unsub to the last entity's deselection event
             if(currFollowedEntity.IsValid())
@@ -101,7 +103,7 @@ namespace RTSEngine.Selection
             }
         }
 
-        public void Reset()
+        public void ResetTarget()
         {
             followedEntities = null;
 

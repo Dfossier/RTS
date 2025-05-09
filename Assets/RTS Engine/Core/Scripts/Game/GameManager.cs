@@ -44,11 +44,13 @@ namespace RTSEngine.Game
 
         [Header("Faction Slots")]
         [SerializeField, Tooltip("Each element represents a faction slot that can be filled by a player or AI.")]
-        public List<FactionSlot> factionSlots = new List<FactionSlot>();
-        public IEnumerable<IFactionSlot> FactionSlots => factionSlots.Cast<IFactionSlot>();
+        private List<FactionSlot> factionSlots = new List<FactionSlot>();
+        private List<IFactionSlot> activeFactionSlots;
+        public IReadOnlyList<IFactionSlot> ActiveFactionSlots => activeFactionSlots.AsReadOnly();
+        public int ActiveFactionCount => activeFactionSlots.Count;
+        public IReadOnlyList<IFactionSlot> FactionSlots => factionSlots.Cast<IFactionSlot>().ToList();
         public IFactionSlot GetFactionSlot(int ID) => ID.IsValidIndex(factionSlots) ? factionSlots[ID] : null;
         public int FactionCount => factionSlots.Count;
-        public int ActiveFactionCount => factionSlots.Where(slot => slot.State == FactionSlotState.active).Count();
         public IFactionSlot LocalFactionSlot {private set; get;}
         public int LocalFactionSlotID => LocalFactionSlot.IsValid() ? LocalFactionSlot.ID : -1;
 
@@ -74,24 +76,38 @@ namespace RTSEngine.Game
 
         T IServicePublisher<IPreRunGameService>.GetService<T>()
         {
-            if (preRunServices.TryGetValue(typeof(T), out IPreRunGameService value))
-                return (T)value;
-            else
-            {
-                logger.LogError($"[GameManager] No service of type '{typeof(T)}' has been registered!");
-                return default;
-            }
+            return TryGetService<T>(isPreService: true);
         }
 
         T IServicePublisher<IPostRunGameService>.GetService<T>()
         {
-            if (postRunServices.TryGetValue(typeof(T), out IPostRunGameService value))
-                return (T)value;
+            return TryGetService<T>(isPreService: false);
+        }
+
+        private T TryGetService<T>(bool isPreService = false, bool requireValid = true)
+        {
+            Type type = typeof(T);
+            T service = default;
+            if (isPreService)
+            {
+                if (preRunServices.TryGetValue(type, out IPreRunGameService value))
+                    service = (T)value;
+            }
             else
             {
-                logger.LogError($"[GameManager] No service of type '{typeof(T)}' has been registered!");
-                return default;
+                if (postRunServices.TryGetValue(type, out IPostRunGameService value))
+                    service = (T)value;
             }
+
+            if(requireValid && !service.IsValid())
+            {
+                if (typeof(IOptionalGameService).IsAssignableFrom(type))
+                    logger.LogWarning($"[GameManager] No service of type '{type}' has been registered! This is just a warning because the service is marked as optional!");
+                else
+                    logger.LogError($"[GameManager] No service of type '{type}' has been registered!");
+            }
+
+            return service;
         }
         #endregion
 
@@ -159,22 +175,46 @@ namespace RTSEngine.Game
             SetState(GameStateType.ready);
 
             // Register the services when the game starts.
+            var registeredServices = new Dictionary<Type, IMonoBehaviour>();
             preRunServices = GetComponentsInChildren<IPreRunGameService>()
                 .ToDictionary(service =>
                 {
-                    return service is IPreRunGamePriorityService
+                    Type serviceType = service is IPreRunGamePriorityService
                     ? service.GetType().GetSuperInterfaceType<IPreRunGamePriorityService>()
                     : service.GetType().GetSuperInterfaceType<IPreRunGameService>();
+
+                    if (registeredServices.TryGetValue(serviceType, out var serviceObject))
+                    {
+                        logger.LogError($"[{GetType().Name}] Service with type '{serviceType}' has more than one instance on game objects: '{service.gameObject.name}' && '{serviceObject.gameObject.name}', only one is allowed!", serviceObject);
+                        return null;
+                    }
+
+                    registeredServices.Add(serviceType, service);
+                    return serviceType;
                 },
                 service => service);
 
+            registeredServices.Clear();
             postRunServices = GetComponentsInChildren<IPostRunGameService>()
-                .ToDictionary(service => service.GetType().GetSuperInterfaceType<IPostRunGameService>(), service => service);
+                .ToDictionary(service =>
+                {
+                    Type serviceType = service.GetType().GetSuperInterfaceType<IPostRunGameService>();
+
+                    if (registeredServices.TryGetValue(serviceType, out var serviceObject))
+                    {
+                        logger.LogError($"[{GetType().Name}] Service with type '{serviceType}' has more than one instance on game objects: '{service.gameObject.name}' && '{serviceObject.gameObject.name}', only one is allowed!", serviceObject);
+                        return null;
+                    }
+
+                    registeredServices.Add(serviceType, service);
+                    return serviceType;
+                },
+                service => service);
 
             // Initialize pre run services.
             foreach (IPreRunGameService service in preRunServices
                 .Values
-                .OrderBy(service => service is IPreRunGamePriorityService ? (service as IPreRunGamePriorityService).Priority : Mathf.Infinity))
+                .OrderBy(service => service is IPreRunGamePriorityService ? (service as IPreRunGamePriorityService).ServicePriority : Mathf.Infinity))
                 service.Init(this);
 
             RaiseGameServicesInitialized();
@@ -189,8 +229,6 @@ namespace RTSEngine.Game
             RaiseGameBuilt();
 
             PeaceTimer = new TimeModifiedTimer(peaceTimeDuration);
-
-            //Derek note: it looks like this is where the game starts.
 
             RaiseGameStartRunning();
 
@@ -210,6 +248,8 @@ namespace RTSEngine.Game
 
         private bool Build ()
         {
+            activeFactionSlots = new List<IFactionSlot>();
+
             // No pre defined builder? Use the default game settings!
             if(!CurrBuilder.IsValid())
             {
@@ -226,6 +266,7 @@ namespace RTSEngine.Game
                     }
 
                     factionSlots[i].Init(factionSlots[i].Data, ID: i, this);
+                    activeFactionSlots.Add(factionSlots[i]);
                     i++;
                 }
 
@@ -245,6 +286,7 @@ namespace RTSEngine.Game
             for (int i = 0; i < CurrBuilder.FactionSlotCount; i++)
             {
                 factionSlots[i].Init(CurrBuilder.FactionSlotDataSet.ElementAt(i), ID:i, this);
+                activeFactionSlots.Add(factionSlots[i]);
             }
 
             // Remove the extra unneeded slots
@@ -261,7 +303,7 @@ namespace RTSEngine.Game
 
         private void OnDestroy()
         {
-            globalEvent.FactionSlotDefeatConditionTriggeredGlobal += HandleFactionSlotDefeatConditionTriggeredGlobal;
+            globalEvent.FactionSlotDefeatConditionTriggeredGlobal -= HandleFactionSlotDefeatConditionTriggeredGlobal;
         }
         #endregion
 
@@ -298,6 +340,9 @@ namespace RTSEngine.Game
 
         void Update()
         {
+            if (State != GameStateType.running)
+                return;
+
             if(PeaceTimer.ModifiedDecrease())
                 enabled = false;
         }
@@ -361,7 +406,9 @@ namespace RTSEngine.Game
             factionSlots[factionID].UpdateState(FactionSlotState.eliminated);
             factionSlots[factionID].UpdateRole(FactionSlotRole.client);
 
-            gameUIText.FactionDefeatToText(factionSlots[factionID], out string defeatMsg);
+            activeFactionSlots.Remove(factionSlots[factionID]);
+
+            gameUIText.FactionSlotDefeatToText(factionSlots[factionID], out string defeatMsg);
 
             globalEvent.RaiseShowPlayerMessageGlobal(
                 this,
@@ -389,14 +436,14 @@ namespace RTSEngine.Game
         #region Handling Local Player Winning/Losing Game
         public void WinGame()
         {
-            audioMgr.PlaySFX(winGameAudio, false);
+            audioMgr.PlaySFX(winGameAudio, null, loop:false);
 
             SetState(GameStateType.won);
         }
 
         public void LooseGame()
         {
-            audioMgr.PlaySFX(loseGameAudio, false);
+            audioMgr.PlaySFX(loseGameAudio, null, loop:false);
 
             SetState(GameStateType.lost);
         }

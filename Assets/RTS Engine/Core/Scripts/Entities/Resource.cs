@@ -83,7 +83,7 @@ namespace RTSEngine.Entities
         #endregion
 
         #region Updating Colors
-        protected override void UpdateColors()
+        protected override void UpdateSelectionColor()
         {
             SelectionColor = mainColor;
         }

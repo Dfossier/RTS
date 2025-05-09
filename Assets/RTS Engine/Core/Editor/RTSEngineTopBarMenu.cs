@@ -1,15 +1,12 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 
 namespace RTSEngine.EditorOnly
 {
-    public class RTSEngineTopBarMenu
+    public static class RTSEngineTopBarMenu
     {
         private const string NewMapConfigsPrefabName = "new_map_configs";
-
-        private const string NewUnitPrefabName = "new_unit";
-        private const string NewBuildingPrefabName = "new_building";
-        private const string NewResourcePrefabName = "new_resource";
 
         private const string NewEffectObjectPrefabName = "new_effect_object";
         private const string NewAttackObjectPrefabName = "new_attack_object";
@@ -27,12 +24,14 @@ namespace RTSEngine.EditorOnly
 
             Object.DestroyImmediate(newMap);
 
+            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+
             Debug.Log("[RTS Engine] You have successfully configured this map! Please make sure to bake the navigation mesh before starting the game!");
         }
         [MenuItem("RTS Engine/Configure Demo Layers", false, 52)]
         private static void ConfigDemoLayers()
         {
-            RTSEditorHelper.AssignDemoLayers();
+            RTSEditorHelper.ImportPresetLayers();
         }
 
 
@@ -73,7 +72,7 @@ namespace RTSEngine.EditorOnly
         [MenuItem("RTS Engine/Documentation", false, 2001)]
         private static void DocOption()
         {
-            Application.OpenURL("https://docs.gamedevspice.com/rts_engine/manual/index.html");
+            RTSEditorHelper.OpenDocumentation();
         }
 
         [MenuItem("RTS Engine/Review", false, 2002)]

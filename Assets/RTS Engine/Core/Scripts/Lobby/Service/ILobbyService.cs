@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RTSEngine.Lobby.Service
 {
-    public interface ILobbyService : IServiceComponent<ILobbyManager>
+    public interface ILobbyService : IServiceComponent<ILobbyManagerBase> 
     {
     }
 }

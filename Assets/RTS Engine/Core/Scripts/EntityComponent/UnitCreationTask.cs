@@ -18,11 +18,24 @@ namespace RTSEngine.EntityComponent
     public enum UnitCreationTaskLimit { none, launchTimes, activeInstances }
 
     [System.Serializable]
+    public struct UnitSquadCreationTaskData
+    {
+        [SerializeField, Tooltip("Create a squad of this unit type? Enable and then set the count in the next field.")]
+        public bool enabled;
+        [SerializeField, Tooltip("When creating in squad mode, specify the initial count of the squad ")]
+        public int count;
+    }
+
+    [System.Serializable]
     public class UnitCreationTask : FactionEntityCreationTask<IUnit> 
     {
         [Space(), SerializeField, EnforceType(typeof(IUnit)), Tooltip("Unit prefab to be created."), Header("Unit Creation Task Properties"),]
         protected GameObject prefabObject = null;
-        public override GameObject PrefabObject => prefabObject;
+        public override GameObject Object => prefabObject;
+
+        [SerializeField, Tooltip("Unit squad settings")]
+        private UnitSquadCreationTaskData squadData = new UnitSquadCreationTaskData { enabled = false, count = 3 };
+        public UnitSquadCreationTaskData SquadData => squadData;
 
         [SerializeField, Tooltip("Choose how to limit launching the unit creation task.")]
         private UnitCreationTaskLimit limit = UnitCreationTaskLimit.none;
@@ -51,7 +64,7 @@ namespace RTSEngine.EntityComponent
         private void HandleOwnFactionEntityAdded(IFactionManager factionMgr, EntityEventArgs<IFactionEntity> args)
         {
             if (!args.Entity.IsUnit()
-                || args.Entity.Code != Prefab.Code)
+                || args.Entity.Code != TargetObject.Code)
                 return;
 
             IUnit createdUnit = args.Entity as IUnit;

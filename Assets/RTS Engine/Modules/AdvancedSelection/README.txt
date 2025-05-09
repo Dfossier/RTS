@@ -1,4 +1,4 @@
-RTS Engine Module: Advanced Selection - v2022.3.1
+RTS Engine Module: Advanced Selection - v2024.0.0
 
 - Module feaures, requirements, installation and guide: https://docs.gamedevspice.com/rtsengine/manual/08_Modules/06_Advanced_Selection.html
 

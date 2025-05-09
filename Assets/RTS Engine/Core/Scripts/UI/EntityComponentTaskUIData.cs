@@ -1,4 +1,5 @@
-﻿using RTSEngine.Task;
+﻿using RTSEngine.Controls;
+using RTSEngine.Task;
 using UnityEngine;
 
 /* EntityComponentTaskUI script created by Oussama Bouanani, SoumiDelRio.
@@ -20,16 +21,16 @@ namespace RTSEngine.UI
         /// </summary>
         public enum DisplayType {singleSelection, homoMultipleSelection, heteroMultipleSelection }
 
-        [Tooltip("Unique code for each task.")]
+        [Space(), Tooltip("Unique code for each task.")]
         public string code;
 
         [Tooltip("When disabled, the associated task can not be displayed in the task panel.")]
         public bool enabled;
 
-        [Tooltip("Selection conditions to display the associated task.")]
+        [Space(), Tooltip("Selection conditions to display the associated task.")]
         public DisplayType displayType;
 
-        [Tooltip("The sprite to be used for the task's icon.")]
+        [Space(), Tooltip("The sprite to be used for the task's icon.")]
         public Sprite icon;
         [Tooltip("The category of the UI task panel where the task will be placed at.")]
         public int panelCategory;
@@ -38,17 +39,20 @@ namespace RTSEngine.UI
         [Tooltip("Index of the slot to draw the task in."), Min(0)]
         public int slotIndex;
 
-        [Tooltip("Show a description of the task in the tooltip when the mouse hovers over the task?")]
+        [Space(), Tooltip("Show a description of the task in the tooltip when the mouse hovers over the task?")]
         public bool tooltipEnabled;
         [Tooltip("Description of the task that will appear in the task panel's tooltip.")]
         public string description;
         [Tooltip("Hide tooltip (if it was enabled) when the task is clicked?")]
         public bool hideTooltipOnClick;
 
-        [Tooltip("In case reload time is enabled (pending task), this is its duration. Only valid when the task launcher allows for pending tasks."), Min(0)]
+        [Space(), Tooltip("In case reload time is enabled (pending task), this is its duration. Only valid when the task launcher allows for pending tasks."), Min(0)]
         public float reloadTime;
 
-        [Tooltip("When the task is assigned as the awaiting task, this represents the icon that will be used as the mouse cursor's texture. If not assigned, the main icon is used as the cursor's texture.")]
+        [Space(), Tooltip("When the task is assigned as the awaiting task, this represents the icon that will be used as the mouse cursor's texture. If not assigned, the main icon is used as the cursor's texture.")]
         public TaskCursorData cursor;
+
+        [Space(), Tooltip("Control key used to enable/launch this task.")]
+        public ControlType controlType;
     }
 }

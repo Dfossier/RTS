@@ -323,7 +323,7 @@ namespace RTSEngine.EditorOnly
             List.makeItem = () => new ListViewItem();
             List.bindItem = (e, i) =>(e as ListViewItem).BindEntity(ListViewSourceList[i].ListViewItemTitle, ListViewSourceList[i].Icon);
 
-            List.itemHeight = 36;
+            List.fixedItemHeight = 36;
 
             List.selectionType = SelectionType.Single;
 
@@ -471,7 +471,7 @@ namespace RTSEngine.EditorOnly
 
             rootVisualElement.Unbind();
 
-            RTSEditorHelper.SetEntities();
+            RTSEditorHelper.FetchEntityPrefabs();
 
             RefreshUI();
         }
@@ -630,7 +630,7 @@ namespace RTSEngine.EditorOnly
 
             rootVisualElement.Unbind();
 
-            RTSEditorHelper.SetEntities();
+            RTSEditorHelper.FetchEntityPrefabs();
 
             RefreshUI();
         }

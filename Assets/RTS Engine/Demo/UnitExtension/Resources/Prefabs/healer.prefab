@@ -28,6 +28,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 2.6, z: 0}
   m_LocalScale: {x: 0.26, y: 0.26, z: 0.26}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4260928391172398}
   m_RootOrder: 0
@@ -51,10 +52,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -80,6 +83,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &1034443902313416
 GameObject:
   m_ObjectHideFlags: 0
@@ -95,6 +99,7 @@ GameObject:
   - component: {fileID: 82532545160892628}
   - component: {fileID: 195972840889419668}
   - component: {fileID: -6895522842373835904}
+  - component: {fileID: -775248439532618791}
   m_Layer: 0
   m_Name: healer
   m_TagString: Untagged
@@ -112,6 +117,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 84.33879, y: 13.234488, z: 32.10353}
   m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4101936367269350}
   - {fileID: 4348843822357768}
@@ -139,11 +145,12 @@ MonoBehaviour:
     y: 0
   _name: Healer
   code: healer
-  category: special_unit,walking_unit
+  category: special_unit,walking_unit,rtse_demo_entity,rtse_demo_entity
   description: Heals wounded units.
   icon: {fileID: 21300000, guid: 3bf9bc81e50045241944ad84906fbf8e, type: 3}
   radius: 0.4
-  model: {fileID: 4169802674056892962}
+  model: {fileID: 1452350317744506}
+  isIdle: 0
   isMainEntity: 0
   isFactionLocked: 0
   initResources:
@@ -159,11 +166,7 @@ MonoBehaviour:
       capacity: 0
     nonConsumable: 0
   coloredRenderers:
-  - renderer:
-      status: 1
-      obj: {fileID: 23514675819320518}
-      indexKey: 0
-      entity: {fileID: 114625746623047660}
+  - renderer: {fileID: 23514675819320518}
     materialID: 0
     transparency: 0
     darkness: 0
@@ -191,6 +194,7 @@ MonoBehaviour:
     enabled: 1
     offset: {x: 0, y: 1.5, z: 0}
     size: {x: 1, y: 1, z: 1}
+    parent: {fileID: 0}
   hoverHealthBarY: 1.5
   hitEffect:
     input: {fileID: 0}
@@ -227,11 +231,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
   canBeAttacked: 1
-  attackTargetPosition:
-    status: 0
-    obj: {fileID: 0}
-    indexKey: 0
-    entity: {fileID: 0}
+  attackTargetPosition: {fileID: 0}
   stopMovingOnDamage: 0
 --- !u!114 &6627310612079420476
 MonoBehaviour:
@@ -245,11 +245,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb986734d7c0b9c4b9288720ed50ab74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator:
-    status: 1
-    obj: {fileID: 7475814092132162279}
-    indexKey: 0
-    entity: {fileID: 114625746623047660}
+  animator: {fileID: 7475814092132162279}
   animatorOverrideController:
     fetchType: 0
     items:
@@ -404,6 +400,24 @@ MonoBehaviour:
       type: 1
       options:
       - {fileID: 11400000, guid: 91a9ec14b39b8cf41852be1ae356a847, type: 2}
+--- !u!114 &-775248439532618791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1034443902313416}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bab46bb0053502243877f36416be80ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  coloredRenderers:
+  - renderer: {fileID: 23514675819320518}
+    materialID: 0
+    colorPropertyName: _Color
+    transparency: 0
+    darkness: 0
 --- !u!1 &1190117098449846
 GameObject:
   m_ObjectHideFlags: 0
@@ -432,6 +446,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -1.3, y: 2.6, z: 5.775292e-14}
   m_LocalScale: {x: 0.8584, y: 0.8584, z: 0.8584}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4260928391172398}
   m_RootOrder: 2
@@ -455,10 +470,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -483,6 +500,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &1452350317744506
 GameObject:
   m_ObjectHideFlags: 0
@@ -494,7 +512,6 @@ GameObject:
   - component: {fileID: 4260928391172398}
   - component: {fileID: 33190122722834886}
   - component: {fileID: 23514675819320518}
-  - component: {fileID: 4169802674056892962}
   - component: {fileID: 7475814092132162279}
   m_Layer: 0
   m_Name: healer_model
@@ -513,6 +530,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.15, y: 0.15, z: 0.15}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4993641038354544}
   - {fileID: 4449148123946626}
@@ -539,10 +557,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -567,29 +587,10 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!114 &4169802674056892962
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1452350317744506}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9f25f7e5fdbfc56499eef5560418c5d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  transformConnections:
-    connectedChildren: []
-  animatorConnections:
-    connectedChildren:
-    - {fileID: 7475814092132162279}
-  rendererConnections:
-    connectedChildren:
-    - {fileID: 23514675819320518}
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!95 &7475814092132162279
 Animator:
-  serializedVersion: 3
+  serializedVersion: 4
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -602,6 +603,7 @@ Animator:
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
@@ -635,6 +637,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.002, z: 0}
   m_LocalScale: {x: 0.1, y: 1, z: 0.1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4906149117279536}
   m_RootOrder: 1
@@ -658,10 +661,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -686,6 +691,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &7903742112367646971
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -698,6 +704,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d85c063b4ac1858429dc001b5b10f5c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetRenderer:
+    renderer: {fileID: 23577942424859940}
+    materialID: 0
+    colorPropertyName: _Color
+    transparency: 0
+    darkness: 0
   selectionRenderer: {fileID: 23577942424859940}
   materialID: 0
 --- !u!1 &1516899365783432
@@ -730,6 +742,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0.406, z: 0}
   m_LocalScale: {x: 0.83750004, y: 0.47406217, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4906149117279536}
   m_RootOrder: 0
@@ -827,6 +840,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 1.3, y: 2.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4260928391172398}
   m_RootOrder: 1
@@ -850,10 +864,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -878,6 +894,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &1060502874302707452
 GameObject:
   m_ObjectHideFlags: 0
@@ -904,6 +921,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0.49999952, z: 0}
   m_LocalScale: {x: 1.25, y: 1.25, z: 1.25}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4906149117279536}
   m_RootOrder: 4
@@ -936,6 +954,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 40.327644, y: 13.234375, z: 48.1814}
   m_LocalScale: {x: 0.8000001, y: 0.8000001, z: 0.8000001}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4906149117279536}
   m_RootOrder: 2
@@ -964,6 +983,7 @@ MonoBehaviour:
     reloadTime: 5
     range: 10
     idleOnly: 0
+    center: {fileID: 0}
   setTargetTaskUI: {fileID: 11400000, guid: 061c8973e3c577f4ea6c9b563d77bf00, type: 2}
   orderAudio:
     fetchType: 0
@@ -973,6 +993,7 @@ MonoBehaviour:
       defaultValueRange:
         _min: 1
         _max: 2
+  showTargetGizmo: 1
   movableTerrainAreas:
   - {fileID: 11400000, guid: 37d2dffab9a31a84c81d764228531ba7, type: 2}
   formation:
@@ -984,6 +1005,9 @@ MonoBehaviour:
         value: 0.3
       intProperties: []
   movementPriority: 0
+  isMoving: 0
+  isMovementPending: 0
+  startPosition: {x: 0, y: 0, z: 0}
   speed:
     value: 10
   acceleration:
@@ -1012,6 +1036,8 @@ MonoBehaviour:
       defaultValueRange:
         _min: 1
         _max: 2
+  showPathDestination: 1
+  showPathNextCorner: 1
 --- !u!114 &7726902835781637932
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1051,6 +1077,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0.49999952, z: 0}
   m_LocalScale: {x: 1.25, y: 1.25, z: 1.25}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4906149117279536}
   m_RootOrder: 3
@@ -1079,6 +1106,7 @@ MonoBehaviour:
     reloadTime: 1
     range: 15
     idleOnly: 1
+    center: {fileID: 0}
   setTargetTaskUI: {fileID: 0}
   orderAudio:
     fetchType: 0
@@ -1088,6 +1116,7 @@ MonoBehaviour:
       defaultValueRange:
         _min: 1
         _max: 2
+  showTargetGizmo: 1
   progressEnabledAudio:
     fetchType: 0
     items: []
@@ -1102,15 +1131,12 @@ MonoBehaviour:
     - {fileID: 22100000, guid: 62c6bd18eda0ae340be9be080862899b, type: 2}
   progressDuration: 1
   progressMaxDistance: 5
-  inProgressObject:
-    status: 0
-    obj: {fileID: 0}
-    indexKey: -1
-    entity: {fileID: 0}
+  inProgressObject: {fileID: 0}
   sourceEffect:
     input: {fileID: 5357341929133820981, guid: 38edc6938f50dcf428fb256e700694fa, type: 3}
   targetEffect:
     input: {fileID: 8007334687943503667, guid: 50d2aa6ea73a2d04b9865d0ba72a7210, type: 3}
+  showProgressGizmo: 1
   stoppingDistance: 3
   healthPerProgress: 5
   targetPicker:
@@ -1119,6 +1145,6 @@ MonoBehaviour:
       codes: []
       categories: []
     targetUnits: 1
+    targetBuildings: 0
     targetExternal: 1
     targetStored: 1
-    targetBuildings: 0

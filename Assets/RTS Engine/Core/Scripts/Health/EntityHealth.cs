@@ -26,6 +26,8 @@ namespace RTSEngine.Health
         public Vector3 offset;
         [Tooltip("The local scale of the hover health bar canvas that determines the size of the health bar.")]
         public Vector3 size;
+        [Tooltip("Leave unassigned to use the entity prefab as the parent of the hover health bar object, otherwise assign a child object of the entity to use as the parent.")]
+        public Transform parent;
     }
 
     public abstract class EntityHealth : MonoBehaviour, IEntityHealth, IEntityPreInitializable
@@ -84,6 +86,7 @@ namespace RTSEngine.Health
         private HoverHealthBarData hoverHealthBarData = new HoverHealthBarData
         {
             enabled = true,
+            parent = null,
             offset = new Vector3(0.0f, -1.0f, 0.0f),
             size = Vector3.one
         };
@@ -136,8 +139,16 @@ namespace RTSEngine.Health
 
         #region Raising Events
         public event CustomEventHandler<IEntity, HealthUpdateArgs> EntityHealthUpdated;
+        public event CustomEventHandler<IEntity, HealthUpdateArgs> EntityMaxHealthUpdated;
         public event CustomEventHandler<IEntity, DeadEventArgs> EntityDead;
 
+        public void RaiseEntityMaxHealthUpdated(HealthUpdateArgs args)
+        {
+            var handler = EntityMaxHealthUpdated;
+            handler?.Invoke(Entity, args);
+
+            globalEvent.RaiseEntityMaxHealthUpdatedGlobal(Entity, args);
+        }
         public void RaiseEntityHealthUpdated(HealthUpdateArgs args)
         {
             var handler = EntityHealthUpdated;
@@ -212,7 +223,10 @@ namespace RTSEngine.Health
         {
             //must bypass the "CanAdd" conditions since the initial health value is enforced.
             //This is also called for all clients in a multiplayer game.
-            AddLocal(new HealthUpdateArgs(Mathf.Clamp(initialHealth, 1, MaxHealth), source: null), force: true);
+            // If the Entity init params has setInitialHealth, then the CurrHealth will be different than 0
+            // In this case, we do not set the initial health here
+            if(CurrHealth == 0)
+                AddLocal(new HealthUpdateArgs(Mathf.Clamp(initialHealth, 1, MaxHealth), source: null), force: true);
 
             OnInitialHealthAdded();
 
@@ -242,16 +256,18 @@ namespace RTSEngine.Health
                     intValues = inputMgr.ToIntValues((int)EntityType, args.Value)
                 },
                 Entity,
-                args.Source);
+                args.Source,
+                masterInstanceOnly: true);
         }
 
         public ErrorMessage SetMaxLocal(HealthUpdateArgs args)
         {
+            int oldMaxHealth = maxHealth;
             maxHealth = Mathf.Max(1, args.Value);
 
-            OnHealthUpdated(new HealthUpdateArgs(0, args.Source));
+            OnHealthUpdated(new HealthUpdateArgs(oldMaxHealth, args.Source));
 
-            RaiseEntityHealthUpdated(args);
+            RaiseEntityMaxHealthUpdated(args);
 
             return ErrorMessage.none;
         }
@@ -271,7 +287,8 @@ namespace RTSEngine.Health
                     intValues = inputMgr.ToIntValues((int)EntityType, args.Value)
                 },
                 source: Entity,
-                target: args.Source);
+                target: args.Source,
+                masterInstanceOnly: true);
         }
 
         public ErrorMessage AddLocal(HealthUpdateArgs args, bool force = false)
@@ -285,6 +302,9 @@ namespace RTSEngine.Health
 
             if (force || !LockHealth)
             {
+                if (CurrHealth + args.Value < 0)
+                    args = new HealthUpdateArgs(-CurrHealth, args.Source);
+
                 CurrHealth += args.Value;
                 CurrHealth = Mathf.Clamp(CurrHealth, 0, MaxHealth);
             }
@@ -337,10 +357,11 @@ namespace RTSEngine.Health
                         sourceMode = (byte)InputMode.health,
                         targetMode = (byte)InputMode.healthDestroy,
 
-                        intValues = inputMgr.ToIntValues((int)EntityType, upgrade ? 1 : 0)
+                        intValues = inputMgr.ToIntValues((int)EntityType, upgrade ? 1 : 0),
                     },
                     Entity,
-                    source);
+                    source,
+                    masterInstanceOnly: true);
         }
 
         public ErrorMessage DestroyLocal(bool upgrade, IEntity source)
@@ -348,8 +369,6 @@ namespace RTSEngine.Health
             ErrorMessage errorMessage;
             if ((errorMessage = CanDestroy(upgrade, source)) != ErrorMessage.none)
                 return errorMessage;
-
-            selectionMgr.Remove(Entity);
 
             IsDead = true;
 
@@ -394,6 +413,8 @@ namespace RTSEngine.Health
             OnDestroyed(upgrade, source);
 
             RaiseEntityDead(new DeadEventArgs(upgrade, source, nextDestroyDelay));
+
+            selectionMgr.Remove(Entity);
 
             return ErrorMessage.none;
         }

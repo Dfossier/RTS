@@ -30,7 +30,7 @@ namespace RTSEngine.Minimap.Icons
                 spawnRotation: input.spawnRotation
             ));
 
-            colorRenderer.UpdateColor(input.SourceEntity.SelectionColor);
+            colorRenderer.UpdateColor(input.SourceEntity.SelectionColor, input.SourceEntity);
         }
         #endregion
     }

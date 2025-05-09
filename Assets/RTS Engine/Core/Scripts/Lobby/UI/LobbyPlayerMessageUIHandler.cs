@@ -7,7 +7,7 @@ namespace RTSEngine.Lobby.UI
     public class LobbyPlayerMessageUIHandler : PlayerMessageUIHandlerBase, ILobbyPlayerMessageUIHandler
     {
         #region Initializing/Terminating
-        public void Init(ILobbyManager lobbyMgr)
+        public void Init(ILobbyManagerBase lobbyMgr)
         {
             InitBase(logger: lobbyMgr.GetService<ILobbyLoggingService>(),
                 audioMgr: lobbyMgr.GetService<ILobbyAudioManager>());

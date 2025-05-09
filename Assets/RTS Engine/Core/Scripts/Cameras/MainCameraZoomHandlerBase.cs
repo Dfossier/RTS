@@ -12,17 +12,22 @@ namespace RTSEngine.Cameras
     public abstract class MainCameraZoomHandlerBase : MonoBehaviour, IMainCameraZoomHandler
     {
         #region Attributes
-        [SerializeField, Tooltip("How fast can the main camera zoom?")]
-        private SmoothSpeed zoomSpeed = new SmoothSpeed { value = 1.0f, smoothFactor = 0.1f };
-        public SmoothSpeed ZoomSpeed => zoomSpeed;
+        public bool IsActive { set; get; }
 
-        [Space(), SerializeField, Tooltip("Enable to zoom using the camera's field of view instead of the height of the camera.")]
-        private bool useFOV = false;
-        public bool UseFOV => useFOV;
+        [SerializeField, Tooltip("How fast can the main camera zoom? Max speed is reached when the camera is zoomed out the most (max height) and min speed is reached when the camera is when the camera is zoomed in the most (min height).")]
+        private SmoothSpeedRange zoomSpeed = new SmoothSpeedRange { valueRange = new FloatRange(8f,15f), smoothValue = 0.1f };
+        protected float CurrModifier { set; get; } 
+        public float CurrZoomSpeed => zoomSpeed.GetValue(ZoomRatio) * CurrModifier;
+
+        [Space(), SerializeField, Tooltip("Enable to zoom using the camera's field of view (FOV) in case of a perspective camera or the orthographic size in case of an orthographic projection mode instead of the height of the camera.")]
+        private bool useCameraNativeZoom = false;
+        public bool UseCameraNativeZoom => useCameraNativeZoom;
+
         // Gets either incremented or decremented depending on the zoom inputs.
-        // Zoom value is treated / updated differently depending if FOV zoom or Transform based zoom is enabled.
+        // Zoom value is treated / updated differently depending if FOV/size zoom or Transform based zoom is enabled.
         protected float zoomValue = 0.0f;
         protected float lastZoomValue = 0.0f;
+        protected Vector3 zoomDirection = Vector3.zero;
 
         [Space(), SerializeField, Tooltip("The height that the main camera starts with.")]
         private float initialHeight = 15.0f;
@@ -31,13 +36,15 @@ namespace RTSEngine.Cameras
         protected float minHeight = 5.0f;
         [SerializeField, Tooltip("The maximum height the main camera is allowed to have.")]
         protected float maxHeight = 18.0f;
+        public float ZoomRatio
+            => (maxHeight - (useCameraNativeZoom ? cameraController.MainCamera.fieldOfView : cameraController.MainCamera.transform.position.y)) / (maxHeight - minHeight);
 
         [Space(), SerializeField, Tooltip("Allow the player to zoom the camera when they are placing a building?")]
         protected bool allowBuildingPlaceZoom = true;
 
-        [Space(), SerializeField, Tooltip("Populate this array by one or more terrain area types to offset the height of the camera by the height of the terrain area objects when the camera is facing them.")]
+        [HideInInspector, Space(), SerializeField, Tooltip("Populate this array by one or more terrain area types to offset the height of the camera by the height of the terrain area objects when the camera is facing them.")]
         private TerrainAreaType[] heightOffsetTerrainAreas = new TerrainAreaType[0];
-        [SerializeField, Tooltip("Minimum height of the terrain area objects that the camera is looking at in order for an offset to be triggered.")]
+        [HideInInspector, SerializeField, Tooltip("Minimum height of the terrain area objects that the camera is looking at in order for an offset to be triggered.")]
         private float offsetMinTerrainHeight = 0.0f;
         /// <summary>
         /// When true, the main camera is looking at a terrain position with a height over the minimum offset. When false, the camera is looking at an even terrain position.
@@ -52,7 +59,7 @@ namespace RTSEngine.Cameras
         /// </summary>
         private float accumOffset;
 
-        [Space(), SerializeField, Tooltip("Enable to allow the main camera to pivot upwards when reaching the minimum zoom height. This only works when zooming is enabled without adjusting the FOV of the camera and when the main camera is in its initial rotation values before pivoting starts!")]
+        [Space(), SerializeField, Tooltip("Enable to allow the main camera to pivot upwards when reaching the minimum zoom height. This only works when zooming is enabled without adjusting the FOV/orthographic-size of the camera and when the main camera is in its initial rotation values before pivoting starts!")]
         private bool pivotNearMinHeight = true;
         [SerializeField, Tooltip("Range before the mininum allowed height of the main camera in which pivoting upwards occurs if enabled.")]
         private float pivotMinHeightRange = 5.0f;
@@ -66,8 +73,13 @@ namespace RTSEngine.Cameras
         // When the player moves the main camear during pivoting, this reference position is updated accordingly
         private Vector3 pivotCameraPositionTargetRef;
 
-        public float LookAtTargetMinHeight => (useFOV || !pivotNearMinHeight) ? 0.0f : minHeight + pivotMinHeightRange;
+        public float LookAtTargetMinHeight => (useCameraNativeZoom || !pivotNearMinHeight) ? 0.0f : minHeight + pivotMinHeightRange;
 
+        protected bool triggerPointInputInactive;
+        public bool IsPointerInputActive { protected set; get; }
+        public bool IsZooming => IsPointerInputActive || zoomValue != 0.0f;
+
+        protected IGameManager gameMgr { private set; get; }
         protected IGameControlsManager controls { private set; get; }
         protected IMainCameraController cameraController { private set; get; }
         protected IBuildingPlacement placementMgr { private set; get; }
@@ -78,6 +90,7 @@ namespace RTSEngine.Cameras
         #region Initializing/Terminating
         public void Init(IGameManager gameMgr)
         {
+            this.gameMgr = gameMgr;
             this.controls = gameMgr.GetService<IGameControlsManager>();
             this.placementMgr = gameMgr.GetService<IBuildingPlacement>();
             this.terrainMgr = gameMgr.GetService<ITerrainManager>();
@@ -94,22 +107,21 @@ namespace RTSEngine.Cameras
                 return;
             }
 
-            // Initial FOV or camera position height configurations
-            if (useFOV)
-            {
-                zoomValue = (initialHeight - minHeight) / (maxHeight - minHeight);
-                SetCameraFOV(initialHeight);
-            }
+            CurrModifier = 1.0f;
+
+            // Initial FOV/orthographic-size or camera position height configurations
+            if (useCameraNativeZoom)
+                SetCameraNativeZoom(initialHeight, forceUpdate: true);
             else
-            {
                 cameraController.MainCamera.transform.position = new Vector3(cameraController.MainCamera.transform.position.x, initialHeight, cameraController.MainCamera.transform.position.y);
-            }
 
             cameraController.RaiseCameraTransformUpdated();
 
             lastOffset = 0.0f;
             accumOffset = 0.0f;
             isAddingOffset = false;
+
+            IsActive = true;
 
             OnInit();
         }
@@ -118,19 +130,29 @@ namespace RTSEngine.Cameras
         #endregion
 
         #region Update/Apply Input
+        public void PreUpdateInput()
+        {
+            if(triggerPointInputInactive)
+            {
+                triggerPointInputInactive = false;
+                IsPointerInputActive = false;
+            }
+        }
+
         public abstract void UpdateInput();
 
         public void Apply()
         {
+            if (!IsActive)
+                return;
+
             // Get terrain height point
             terrainMgr.ScreenPointToTerrainPoint(RTSHelper.MiddleScreenPoint, heightOffsetTerrainAreas, out Vector3 middleScreenTerrainPoint); 
 
-            // FOV zooming
-            if (useFOV)
+            if (useCameraNativeZoom)
             {
-                ApplyFOVZoom(middleScreenTerrainPoint);
+                ApplyCameraNativeZoom(middleScreenTerrainPoint);
             }
-            // Camera Transform Height zooming
             else
             {
                 HandleNearMinHeightPivot();
@@ -139,21 +161,20 @@ namespace RTSEngine.Cameras
                     || cameraController.PanningHandler.IsFollowingTarget)
                     isPivoting = false;
 
-                // By default the zoom direction is the middle of the screen, i.e the forward direction of the main camera transform 
-                Vector3 zoomDirection = cameraController.MainCamera.transform.forward;
                 // Target direction used to zoom in / out the main camera
-                Vector3 targetDirection = Vector3.zero;
-                ApplyTransformZoom(middleScreenTerrainPoint, zoomDirection, targetDirection);
+                ApplyTransformZoom(middleScreenTerrainPoint);
             }
         }
 
-        protected virtual void ApplyTransformZoom(Vector3 middleScreenTerrainPoint, Vector3 zoomDirection, Vector3 targetDirection)
+        protected virtual void ApplyTransformZoom(Vector3 middleScreenTerrainPoint)
         {
+            Vector3 targetDirection = Vector3.zero;
             // Hold the last camera position so that we restore it later if the height leaves the allowed boundaries
             Vector3 lastCamPos = cameraController.MainCamera.transform.position;
 
             // Handling terrain height offset elevation
-            if (middleScreenTerrainPoint.y >= offsetMinTerrainHeight)
+            // TODO: FIX HEIGHT TERRAIN OFFSET BECAUSE IT IS VERY JITTERY AT THE MOMENT
+            if (false && middleScreenTerrainPoint.y >= offsetMinTerrainHeight)
             {
                 // Only enable adding a new offset if there is not one active at the moment...
                 // ... or if there is one already active and it reached the target offset elevation (lastOffset <= 0.0f) and the new one is higher than the last accumulated ones
@@ -174,15 +195,19 @@ namespace RTSEngine.Cameras
             }
             if (lastOffset > 0.0f)
             {
-                float change = Time.deltaTime * zoomSpeed.value;
+                float change = Time.deltaTime * CurrZoomSpeed;
                 lastOffset -= change;
-                targetDirection += (isAddingOffset ? -1.0f : 1.0f) * change * cameraController.MainCamera.transform.forward;
+                targetDirection = (isAddingOffset ? -1.0f : 1.0f) * change * cameraController.MainCamera.transform.forward;
             }
 
             // Handling actual zooming in/out
-            lastZoomValue = Mathf.Lerp(lastZoomValue, zoomValue, zoomSpeed.smoothFactor);
-            if ((lastCamPos.y > minHeight && lastZoomValue > 0.0f) || (lastCamPos.y < maxHeight && lastZoomValue < 0.0f))
-                targetDirection += zoomSpeed.value * lastZoomValue * zoomDirection;
+            lastZoomValue = Mathf.Lerp(
+                lastZoomValue,
+                zoomValue,
+                zoomSpeed.smoothValue);
+
+            //if ((lastCamPos.y > minHeight && lastZoomValue > 0.0f) || (lastCamPos.y < maxHeight && lastZoomValue < 0.0f))
+            targetDirection += CurrZoomSpeed * Time.deltaTime * lastZoomValue * zoomDirection;
 
             // Updating the camera height by adding the target movement direction
             cameraController.MainCamera.transform.position += targetDirection;
@@ -196,32 +221,58 @@ namespace RTSEngine.Cameras
 
             if (lastZoomValue != zoomValue)
                 cameraController.RaiseCameraTransformUpdated();
-
-            zoomValue = 0.0f;
         }
 
-        private void ApplyFOVZoom(Vector3 middleScreenTerrainPoint)
+        private void ApplyCameraNativeZoom(Vector3 middleScreenTerrainPoint)
         {
-            zoomValue = Mathf.Clamp01(zoomValue);
+            // Handling actual zooming in/out
+            lastZoomValue = Mathf.Lerp(
+                lastZoomValue,
+                zoomValue,
+                zoomSpeed.smoothValue);
 
             // Only if there is change in the zooming related inputs
-            float targetHeight = Mathf.Lerp(minHeight, maxHeight, zoomValue);
+            float targetHeight = Mathf.Clamp((cameraController.IsOrthographic ? cameraController.MainCamera.orthographicSize : cameraController.MainCamera.fieldOfView)
+                + lastZoomValue * Time.deltaTime * CurrZoomSpeed,
+                minHeight,
+                maxHeight);
 
-            // Terrain height offset
-            if (middleScreenTerrainPoint.y >= offsetMinTerrainHeight)
+            // Terrain height offset (TODO: Fix terrain height offset)
+            if (false && middleScreenTerrainPoint.y >= offsetMinTerrainHeight)
                 targetHeight += middleScreenTerrainPoint.y - offsetMinTerrainHeight;
 
-            SetCameraFOV(Mathf.Lerp(cameraController.MainCamera.fieldOfView, targetHeight, Time.deltaTime * zoomSpeed.value));
+            SetCameraNativeZoom(targetHeight);
         }
 
-        public void SetCameraFOV(float value)
+        private void SetCameraNativeZoom(float value, bool forceUpdate = false)
         {
-            if (cameraController.MainCamera.fieldOfView == value)
+            if (cameraController.IsOrthographic)
+                SetOrthographicSize(value, forceUpdate);
+            else
+                SetPerspectiveFOV(value, forceUpdate);
+
+        }
+
+        private void SetPerspectiveFOV(float value, bool forceUpdate = false)
+        {
+            if (!forceUpdate && cameraController.MainCamera.fieldOfView == value)
                 return;
 
             cameraController.MainCamera.fieldOfView = value;
             if (cameraController.MainCameraUI.IsValid())
                 cameraController.MainCameraUI.fieldOfView = value;
+
+            cameraController.RaiseCameraTransformUpdated();
+        }
+
+        private void SetOrthographicSize(float value, bool forceUpdate = false)
+        {
+            if (cameraController.MainCamera.orthographicSize == value)
+                return;
+
+            cameraController.MainCamera.orthographicSize = value;
+            if (cameraController.MainCameraUI.IsValid())
+                cameraController.MainCameraUI.orthographicSize = value;
 
             cameraController.RaiseCameraTransformUpdated();
         }
@@ -232,11 +283,10 @@ namespace RTSEngine.Cameras
                 return;
 
             float currHeight = cameraController.MainCamera.transform.position.y;
-            float heightDiff = currHeight - minHeight;
 
             // Can only enabling pivoting near min height when the camera is in initial rotation values
             // So if the player manipulates the rotation beforehand, no pivoting towards min height can occur
-            if (!isPivoting && heightDiff < minHeight && cameraController.RotationHandler.HasInitialRotation)
+            if (!isPivoting && currHeight < minHeight+pivotMinHeightRange && cameraController.RotationHandler.HasInitialRotation)
             {
                 isPivoting = true;
                 // Calculate the target camera position to be set when min height is reached in case no camera movement occurs
@@ -249,11 +299,9 @@ namespace RTSEngine.Cameras
                 cameraController.PanningHandler.SetFollowTarget(null);
             }
 
-            if (isPivoting && heightDiff >= minHeight)
+            if (isPivoting && currHeight >= minHeight+pivotMinHeightRange)
             {
-                // Disabling pivoting to min height resets the rotation back to the initial rotation values since it can only start from initial rotation values
-                cameraController.RotationHandler.ResetRotation(smooth: true);
-                isPivoting = false;
+                DisableNearMinHeightPivot(resetRotation: true);
             }
 
             if (isPivoting)
@@ -261,7 +309,7 @@ namespace RTSEngine.Cameras
                 float heightPercentage = (currHeight - minHeight) / (pivotMinHeightRange);
 
                 // In case the player moves the camera while pivoting towards min height, recalculate the reference position to be set when min height is reached
-                pivotCameraPositionTargetRef += Quaternion.Euler(new Vector3(0f, cameraController.MainCamera.transform.eulerAngles.y, 0f)) * cameraController.PanningHandler.LastPanDirection * cameraController.PanningHandler.PanningSpeed.value * Time.deltaTime;
+                pivotCameraPositionTargetRef += Quaternion.Euler(new Vector3(0f, cameraController.MainCamera.transform.eulerAngles.y, 0f)) * cameraController.PanningHandler.LastPanDirection * cameraController.PanningHandler.CurrPanningSpeed * Time.deltaTime;
                 Vector3 nextCameraPosition = new Vector3(
                     pivotCameraPositionTargetRef.x + (pivotMoveBackwardsDistance * heightPercentage),
                     cameraController.MainCamera.transform.position.y,
@@ -269,16 +317,38 @@ namespace RTSEngine.Cameras
                     );
                 nextCameraPosition.x = Mathf.Clamp(nextCameraPosition.x, pivotCameraPositionTargetRef.x, pivotCameraPositionTargetRef.x + pivotMoveBackwardsDistance);
                 nextCameraPosition.z = Mathf.Clamp(nextCameraPosition.z, pivotCameraPositionTargetRef.z, pivotCameraPositionTargetRef.z + pivotMoveBackwardsDistance);
-                cameraController.MainCamera.transform.position = Vector3.Lerp(cameraController.MainCamera.transform.position, nextCameraPosition, cameraController.PanningHandler.PanningSpeed.value * Time.deltaTime);
+                cameraController.MainCamera.transform.position = Vector3.Lerp(cameraController.MainCamera.transform.position, nextCameraPosition, cameraController.PanningHandler.CurrPanningSpeed * Time.deltaTime);
 
                 Vector3 nextEulerAngles = cameraController.MainCamera.transform.rotation.eulerAngles;
                 float nextAngle = pivotTargetAngle + (cameraController.RotationHandler.InitialEulerAngles.x - pivotTargetAngle) * heightPercentage;
-                nextEulerAngles.x = Mathf.Lerp(nextEulerAngles.x, nextAngle, cameraController.RotationHandler.RotationSpeed.value * Time.deltaTime);
+                nextEulerAngles.x = Mathf.Lerp(nextEulerAngles.x, nextAngle, cameraController.RotationHandler.CurrRotationSpeed * Time.deltaTime);
                 nextEulerAngles.x = Mathf.Clamp(nextEulerAngles.x, pivotTargetAngle, cameraController.RotationHandler.InitialEulerAngles.x);
                 cameraController.MainCamera.transform.rotation = Quaternion.Euler(nextEulerAngles);
 
                 if (cameraController.RotationHandler.IsRotating)
                     isPivoting = false;
+            }
+        }
+
+        public void DisableNearMinHeightPivot(bool resetRotation)
+        {
+            float currHeight = cameraController.MainCamera.transform.position.y;
+
+            if (currHeight < minHeight + pivotMinHeightRange)
+            {
+                Vector3 camPosition = cameraController.MainCamera.transform.position;
+                camPosition.y = minHeight + pivotMinHeightRange;
+                cameraController.MainCamera.transform.position = camPosition;
+
+                lastZoomValue = 0.0f;
+                zoomValue = 0.0f;
+            }
+
+            isPivoting = false;
+
+            if (resetRotation)
+            {
+                cameraController.RotationHandler.ResetRotation(smooth: false);
             }
         }
         #endregion

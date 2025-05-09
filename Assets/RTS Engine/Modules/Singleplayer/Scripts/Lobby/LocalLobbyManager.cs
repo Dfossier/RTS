@@ -11,7 +11,7 @@ using UnityEngine.SceneManagement;
 
 namespace RTSEngine.SinglePlayer.Lobby
 {
-    public class LocalLobbyManager : LobbyManagerBase
+    public class LocalLobbyManager : LobbyManagerBase<ILocalLobbyFactionSlot>, ILocalLobbyManager
     {
         #region Attributes
         [SerializeField, Tooltip("Scene loaded when leaving this lobby menu.")]
@@ -19,7 +19,6 @@ namespace RTSEngine.SinglePlayer.Lobby
 
         [SerializeField, EnforceType(typeof(ILobbyFactionSlot)), Tooltip("Prefab used to represent each faction slot in the lobby.")]
         private GameObject lobbyFactionPrefab = null;
-
 
         [Space, SerializeField, Tooltip("Delay time after the host player requests to launch the game.")]
         private float startDelayTime = 2.0f;
@@ -62,11 +61,11 @@ namespace RTSEngine.SinglePlayer.Lobby
         // Only one local player in a single player lobby so they are always the game master.
         public override bool IsLobbyGameDataMaster() => true;
 
-        protected override void OnUpdateLobbyGameDataComplete (LobbyGameData prevLobbyGameData)
+        protected override void OnLobbyGameDataUpdated (LobbyGameData prevLobbyGameData)
         {
             // Remove excess factions
             while (FactionSlotCount > CurrentMap.factionsAmount.max)
-                RemoveFactionSlotRequest(FactionSlotCount - 1);
+                RemoveFactionSlot(GetFactionSlot(FactionSlotCount - 1));
 
             // Add necessary factions
             while (FactionSlotCount < CurrentMap.factionsAmount.min)
@@ -86,7 +85,7 @@ namespace RTSEngine.SinglePlayer.Lobby
                 return;
             }
 
-            ILobbyFactionSlot newSlot = Instantiate(lobbyFactionPrefab.gameObject).GetComponent<ILobbyFactionSlot>();
+            ILocalLobbyFactionSlot newSlot = Instantiate(lobbyFactionPrefab.gameObject).GetComponent<ILocalLobbyFactionSlot>();
 
             // First faction slot is the player's one.
             if (FactionSlotCount == 0)
@@ -96,25 +95,18 @@ namespace RTSEngine.SinglePlayer.Lobby
             // Make sure one faction only is player controlled
             newSlot.Init(this, isPlayerControlled: FactionSlotCount <= 1);
 
-            // Allow all 
-            foreach(ILobbyFactionSlot slot in FactionSlots)
-                slot.OnFactionSlotValidated(newSlot);
-
             playerMessageUIHandler.Message.Display($"New faction slot added!");
         }
 
-        public override void RemoveFactionSlotRequest(int slotID)
-        {
-            RemoveFactionSlotComplete(GetFactionSlot(slotID));
-        }
-
-        public override bool CanRemoveFactionSlot(ILobbyFactionSlot slot)
+        public override bool CanRemoveFactionSlot(ILocalLobbyFactionSlot slot)
         {
             return slot.IsValid()
                 && FactionSlotCount > CurrentMap.factionsAmount.min;
         }
 
-        protected override void OnRemoveFactionSlotComplete (ILobbyFactionSlot slot)
+        public new void RemoveFactionSlot(ILocalLobbyFactionSlot slot) => base.RemoveFactionSlot(slot);
+
+        protected override void OnFactionSlotRemoved (ILocalLobbyFactionSlot slot)
         {
             Destroy(slot.gameObject);
 
@@ -130,6 +122,12 @@ namespace RTSEngine.SinglePlayer.Lobby
 
         protected override void OnStartLobby()
         {
+            foreach(ILocalLobbyFactionSlot slot in FactionSlots)
+                slot.SetInteractable(false);
+
+            lobbyUIMgr.SetInteractable(false);
+            playerMessageUIHandler.Message.Display("Starting game...");
+
             startLobbyDelayedCoroutine = StartCoroutine(StartLobbyDelayed(delayTime: startDelayTime));
             startLobbyEvent.Invoke();
         }
@@ -146,7 +144,12 @@ namespace RTSEngine.SinglePlayer.Lobby
             StopCoroutine(startLobbyDelayedCoroutine);
             startLobbyDelayedCoroutine = null;
 
-            LocalFactionSlot.OnStartLobbyInterrupted();
+            foreach(ILocalLobbyFactionSlot slot in FactionSlots)
+                slot.SetInteractable(true);
+
+            lobbyUIMgr.SetInteractable(true);
+
+            playerMessageUIHandler.Message.Display("Game start interrupted!");
         }
         #endregion
     }

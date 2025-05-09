@@ -30,14 +30,12 @@ namespace RTSEngine.UI
         private EntityTargetPicker picker;
 
         // Game services
-        protected IGameLoggingService logger { private set; get; }
         protected IGlobalEventPublisher globalEvent { private set; get; }
         #endregion
 
         #region Initializing/Terminating
         protected override void OnObjectPoolInit()
         {
-            this.logger = gameMgr.GetService<IGameLoggingService>();
             this.globalEvent = gameMgr.GetService<IGlobalEventPublisher>();
 
             if (!logger.RequireValid(prefab,
@@ -57,7 +55,9 @@ namespace RTSEngine.UI
 
             globalEvent.ResourceGeneratorCollectedGlobal -= HandleResourceGeneratorCollectedGlobal;
         }
+        #endregion
 
+        #region Handling Events: Resource Collection/Dropoff
         private void HandleResourceGeneratorCollectedGlobal(IResourceGenerator generator, ResourceAmountEventArgs args)
         {
             if ((playerFactionOnly && !generator.FactionEntity.IsLocalPlayerFaction())
@@ -71,7 +71,6 @@ namespace RTSEngine.UI
                     generator.FactionEntity.transform.position + generator.FactionEntity.Health.HoverHealthBarData.offset)
                 );
         }
-        #endregion
 
         private void HandleUnitResourceDropOffCompleteGlobal(IEntity entity, ResourceAmountEventArgs args)
         {
@@ -87,7 +86,9 @@ namespace RTSEngine.UI
                     entity.transform.position + entity.Health.HoverHealthBarData.offset)
                 );
         }
+        #endregion
 
+        #region Spawning
         public ResourceNotification Spawn(ResourceNotification prefab, ResourceNotificationSpawnInput input)
         {
             ResourceNotification nextResourceNotif = base.Spawn(prefab);
@@ -98,5 +99,6 @@ namespace RTSEngine.UI
 
             return nextResourceNotif;
         }
+        #endregion
     }
 }

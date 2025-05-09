@@ -1,14 +1,21 @@
-﻿using RTSEngine.Model;
+﻿using RTSEngine.EntityComponent;
+using RTSEngine.Event;
+using RTSEngine.Model;
+using System;
 using UnityEngine;
 
 namespace RTSEngine.Attack
 {
+    public enum AttackWeaponToggableType { componentActive, hasTarget }
     [System.Serializable]
     public class AttackWeapon : AttackSubComponent
     {
         #region Attributes
         [SerializeField, Tooltip("Objects, other than the main weapon object, enabled when the attack type is activated and hidden otherwise.")]
-        private ModelCacheAwareTransformInput[] toggableObjects = new ModelCacheAwareTransformInput[0];
+        private GameObject[] toggableObjects = new GameObject[0];
+        [SerializeField, Tooltip("Choose how the toggable objects and the attack weapon will be enabled or disabled. Based on the attack component active status or based on whether there is an active target or not.")]
+        private AttackWeaponToggableType toggleType = AttackWeaponToggableType.componentActive;
+        private bool currActiveStatus;
 
         [SerializeField, Tooltip("Allow to update the weapon rotation?")]
         private bool updateRotation = true;
@@ -45,16 +52,60 @@ namespace RTSEngine.Attack
 
             for (int i = 0; i < toggableObjects.Length; i++)
                 if (!toggableObjects[i].IsValid())
-                    logger.LogError($"[AttackWeapon - {SourceAttackComp.Code} - {SourceAttackComp.Entity.Code}] The Toggable Objects array field in the Attack Weapon tab includes one or more unassigned or incorrectly assigned elements!", source: SourceAttackComp);
+                    logger.LogError($"[{GetType().Name} - {SourceAttackComp.Code} - {SourceAttackComp.Entity.Code}] The Toggable Objects array field in the Attack Weapon tab includes one or more unassigned or incorrectly assigned elements!", source: SourceAttackComp);
+
+            SourceAttackComp.TargetUpdated += HandleAttackTargetUpdateOrStop;
+            SourceAttackComp.TargetStop += HandleAttackTargetUpdateOrStop;
+            SourceAttackComp.ActiveStatusUpdate += HandleAttackActiveStatusUpdate;
+
+            switch(toggleType)
+            {
+                case AttackWeaponToggableType.componentActive:
+                    Toggle(SourceAttackComp.IsActive, force: true);
+                    break;
+                case AttackWeaponToggableType.hasTarget:
+                    Toggle(SourceAttackComp.HasTarget, force: true);
+                    break;
+            }
         }
 
-        public void Toggle(bool enable)
+        protected override void OnDisabled()
         {
+            SourceAttackComp.TargetUpdated -= HandleAttackTargetUpdateOrStop;
+            SourceAttackComp.TargetStop -= HandleAttackTargetUpdateOrStop;
+            SourceAttackComp.ActiveStatusUpdate -= HandleAttackActiveStatusUpdate;
+        }
+        #endregion
+
+        #region Toggling Weapon
+        private void HandleAttackActiveStatusUpdate(IEntityComponent sender, EventArgs args)
+        {
+            if (toggleType != AttackWeaponToggableType.componentActive)
+                return;
+
+            Toggle(SourceAttackComp.IsActive);
+        }
+
+        private void HandleAttackTargetUpdateOrStop(IEntityTargetComponent sender, TargetDataEventArgs args)
+        {
+            if (toggleType != AttackWeaponToggableType.hasTarget)
+                return;
+
+            Toggle(SourceAttackComp.HasTarget);
+        }
+
+        private void Toggle(bool enable, bool force = false)
+        {
+            if (!force && currActiveStatus == enable)
+                return;
+
             for (int i = 0; i < toggableObjects.Length; i++)
-                toggableObjects[i].IsActive = enable;
+                toggableObjects[i].SetActive(enable);
 
             if(SourceAttackComp.WeaponTransform.IsValid())
-                SourceAttackComp.WeaponTransform.IsActive = enable;
+                SourceAttackComp.WeaponTransform.gameObject.SetActive(enable);
+
+            currActiveStatus = enable;
         }
         #endregion
 
@@ -80,14 +131,14 @@ namespace RTSEngine.Attack
             if (!forceIdleRotation)
                 return;
 
-            SourceAttackComp.WeaponTransform.LocalRotation = smoothRotation
-                ? Quaternion.Slerp(SourceAttackComp.WeaponTransform.LocalRotation, idleRotation, Time.deltaTime * rotationDamping)
+            SourceAttackComp.WeaponTransform.localRotation = smoothRotation
+                ? Quaternion.Slerp(SourceAttackComp.WeaponTransform.localRotation, idleRotation, Time.deltaTime * rotationDamping)
                 : idleRotation;
         }
 
         public void UpdateActiveRotation ()
         {
-            Vector3 lookAt = RTSHelper.GetAttackTargetPosition(SourceAttackComp.Target) - SourceAttackComp.WeaponTransform.Position;
+            Vector3 lookAt = RTSHelper.GetAttackTargetPosition(SourceAttackComp, SourceAttackComp.Target) - SourceAttackComp.WeaponTransform.position;
 
             //which axis should not be rotated? 
             if (freezeRotationX == true)
@@ -99,9 +150,9 @@ namespace RTSEngine.Attack
 
             Quaternion targetRotation = Quaternion.LookRotation(lookAt);
             if (smoothRotation == false) //make the weapon instantly look at target
-                SourceAttackComp.WeaponTransform.Rotation = targetRotation;
+                SourceAttackComp.WeaponTransform.rotation = targetRotation;
             else //smooth rotation
-                SourceAttackComp.WeaponTransform.Rotation = Quaternion.Slerp(SourceAttackComp.WeaponTransform.Rotation, targetRotation, Time.deltaTime * rotationDamping);
+                SourceAttackComp.WeaponTransform.rotation = Quaternion.Slerp(SourceAttackComp.WeaponTransform.rotation, targetRotation, Time.deltaTime * rotationDamping);
         }
         #endregion
     }

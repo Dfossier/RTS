@@ -13,7 +13,7 @@ namespace RTSEngine.Demo
     public class OpenTreasureHandler : MonoBehaviour, IEntityPostInitializable
     {
         [SerializeField]
-        private ModelCacheAwareAnimatorInput animator = null;
+        private Animator animator = null;
         [SerializeField]
         private string openChestStateParam = "IsOpen";
 

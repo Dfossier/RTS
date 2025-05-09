@@ -2,6 +2,6 @@
 {
     public interface IPreRunGamePriorityService : IPreRunGameService 
     {
-        int Priority { get; }
+        int ServicePriority { get; }
     }
 }

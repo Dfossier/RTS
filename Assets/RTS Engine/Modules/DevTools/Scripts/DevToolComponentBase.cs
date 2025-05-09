@@ -5,6 +5,7 @@ using RTSEngine.Faction;
 using RTSEngine.Game;
 using RTSEngine.Utilities;
 using UnityEngine.UI;
+using TMPro;
 
 namespace RTSEngine.DevTools
 {
@@ -19,8 +20,8 @@ namespace RTSEngine.DevTools
         protected FactionSlotRoleFilter RoleFilter => roleFilter;
 
         [SerializeField, Tooltip("Label used to display the activity status of the dev tools component.")]
-        private Text label = null;
-        protected Text Label => label;
+        private TextMeshProUGUI label = null;
+        protected TextMeshProUGUI Label => label;
 
         protected IGameManager gameMgr { private set; get; } 
         protected IGlobalEventPublisher globalEvent { private set; get; } 

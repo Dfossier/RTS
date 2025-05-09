@@ -35,6 +35,7 @@
         mvtPositionObstacleReserved,
 
         // IEntityTargetComponent
+        targetUnassigned,
         targetOutOfRange,
         targetPickerUndefined,
         targetDead,
@@ -99,6 +100,8 @@
         attackTypeLocked,
         attackTypeNotFound,
         attackTypeInCooldown,
+        attackTypeNotReady,
+        attackTypeReloadNonZero,
         attackTargetNoChange,
         attackTargetRequired,
         attackTargetOutOfRange,

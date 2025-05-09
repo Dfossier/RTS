@@ -12,19 +12,21 @@ using UnityEngine.Serialization;
 using RTSEngine.Event;
 using RTSEngine.Task;
 using RTSEngine.Faction;
+using UnityEngine.Events;
 
 namespace RTSEngine.EntityComponent
 {
-    public abstract class EntityComponentTaskInputBase<T> : IEntityComponentTaskInput
+    [System.Serializable]
+    public class EntityComponentTaskInputBase : IEntityComponentTaskInput
     {
-        [HideInInspector]
-        public string taskTitle = "Prefab Missing";
+        [SerializeField, Tooltip("Title of the task to be displayed in UI elements.")]
+        private string taskTitle = "Task Title";
+        public string Title => taskTitle;
 
         public bool IsInitialized { private set; get; } = false;
         public bool IsEnabled { private set; get; } = false;
 
-        public abstract GameObject PrefabObject { get; }
-        public T Prefab => PrefabObject.GetComponent<T>();
+        public virtual GameObject Object { get; }
 
         [SerializeField, Header("General Task Properties"), Tooltip("Defines the data used to display the task."), FormerlySerializedAs("asset")]
         private EntityComponentTaskUIAsset taskUI = null;
@@ -36,15 +38,18 @@ namespace RTSEngine.EntityComponent
 
         [Space(), SerializeField, Tooltip("Resources required to launch the task.")]
         protected ResourceInput[] requiredResources = new ResourceInput[0];
-        public IEnumerable<ResourceInput> RequiredResources => requiredResources.ToList();
+        public IReadOnlyList<ResourceInput> RequiredResources => requiredResources.ToList();
 
         [Space(), SerializeField, Tooltip("Input the faction units/buildings required to create this faction entity.")]
         protected FactionEntityRequirement[] factionEntityRequirements = new FactionEntityRequirement[0];
-        public IEnumerable<FactionEntityRequirement> FactionEntityRequirements => factionEntityRequirements.ToList();
+        public IReadOnlyList<FactionEntityRequirement> FactionEntityRequirements => factionEntityRequirements.ToList();
 
         [Space(), SerializeField, Tooltip("How would the task icon look in the task panel in case requirements are not met?")]
         private EntityComponentLockedTaskUIData missingRequirementData = new EntityComponentLockedTaskUIData { color = new Color(255, 76, 76, 1.0f), icon = null };
         public EntityComponentLockedTaskUIData MissingRequirementData => missingRequirementData;
+
+        [Space(), SerializeField, Tooltip("Event triggered when the task is complete.")]
+        private UnityEvent onComplete = new UnityEvent();
 
         /// <summary>
         /// Amounts of times the task has been launched.
@@ -79,8 +84,6 @@ namespace RTSEngine.EntityComponent
 
             if (!this.logger.RequireValid(this.Entity,
                 $"[{GetType().Name}] Input task must be initialized with a valid instance of '{typeof(IEntity).Name}' as the source.")
-                || !logger.RequireValid(this.Prefab,
-                $"[{GetType().Name}] The 'Prefab Object' field must be assigned to a prefab that has a component of type '{typeof(T).Name}' attached to it.")
                 || !this.logger.RequireValid(taskUI,
                 $"[{GetType().Name} - Entity: {this.Entity.Code} - Faction ID: {this.Entity.FactionID}] Input tasks must have the 'Asset' field assigned!"))
                 return;
@@ -143,6 +146,8 @@ namespace RTSEngine.EntityComponent
 
             resourceMgr.UpdateResource(Entity.FactionID, requiredResources, add: false);
             PendingAmount--;
+
+            onComplete.Invoke();
         }
 
         public virtual ErrorMessage CanStart() => CanComplete();
@@ -162,14 +167,26 @@ namespace RTSEngine.EntityComponent
         }
     }
 
-    public abstract class FactionEntityCreationTask<T> : EntityComponentTaskInputBase<T> where T : IFactionEntity
+    public class EntityComponentTargetTaskInputBase<T> : EntityComponentTaskInputBase
+    { 
+        public T TargetObject => Object.GetComponent<T>();
+
+        protected sealed override void OnInit()
+        {
+            if (!logger.RequireValid(this.TargetObject,
+                $"[{GetType().Name}] The 'Prefab Object' field must be assigned to a prefab that has a component of type '{typeof(T).Name}' attached to it."))
+                return;
+        }
+    }
+
+    public class FactionEntityCreationTask<T> : EntityComponentTargetTaskInputBase<T> where T : IFactionEntity
     {
         public override ErrorMessage CanComplete()
         {
             ErrorMessage errorMessage;
             if ((errorMessage = base.CanComplete()) != ErrorMessage.none)
                 return errorMessage;
-            else if(gameMgr.GetFactionSlot(Entity.FactionID).FactionMgr.HasReachedLimit(Prefab.Code, Prefab.Category))
+            else if(gameMgr.GetFactionSlot(Entity.FactionID).FactionMgr.HasReachedLimit(TargetObject.Code, TargetObject.Category))
                 return ErrorMessage.factionLimitReached;
 
             return ErrorMessage.none;

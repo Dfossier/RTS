@@ -15,8 +15,7 @@ namespace RTSEngine.NPC
         event CustomEventHandler<INPCManager, EventArgs> InitComplete;
 
         T GetNPCComponent<T>() where T : INPCComponent;
-
-        IEnumerable<T> GetNPCComponentSet<T>() where T : INPCComponent;
+        IReadOnlyList<T> GetNPCComponentSet<T>() where T : INPCComponent;
 
         void Init(NPCType npcType, IGameManager gameMgr, IFactionManager factionMgr);
     }

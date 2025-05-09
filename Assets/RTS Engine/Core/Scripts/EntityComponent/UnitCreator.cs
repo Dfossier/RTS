@@ -24,8 +24,8 @@ namespace RTSEngine.EntityComponent
         private UnitCreationTask[] upgradeTargetCreationTasks = new UnitCreationTask[0];
 
         [SerializeField, Tooltip("The position at where the created units will spawn.")]
-        private ModelCacheAwareTransformInput spawnTransform = null;
-        public Vector3 SpawnPosition => spawnTransform.Position;
+        private Transform spawnTransform = null;
+        public Vector3 SpawnPosition => spawnTransform.position;
 
         // Game services
         protected IEntityUpgradeManager entityUpgradeMgr { private set; get; }
@@ -38,10 +38,10 @@ namespace RTSEngine.EntityComponent
             if (!logger.RequireValid(spawnTransform,
                 $"[{GetType().Name} - {Entity.Code}] Field 'Spawn Transform' must be assigned!", source: this)
 
-                || !logger.RequireTrue(creationTasks.All(task => task.PrefabObject.IsValid()),
+                || !logger.RequireTrue(creationTasks.All(task => task.Object.IsValid()),
                 $"[{GetType().Name} - {Entity.Code}] Some elements in the 'Creation Tasks' array have the 'Prefab Object' field unassigned!", source: this)
 
-                || !logger.RequireTrue(upgradeTargetCreationTasks.All(task => task.PrefabObject.IsValid()),
+                || !logger.RequireTrue(upgradeTargetCreationTasks.All(task => task.Object.IsValid()),
                 $"[{GetType().Name} - {Entity.Code}] Some elements in the 'Upgrade Target Creation Tasks' array have the 'Prefab Object' field unassigned!", source: this))
                 return;
 
@@ -86,7 +86,7 @@ namespace RTSEngine.EntityComponent
         private void DisableTasksWithPrefabCode (string prefabCode)
         {
             foreach (var task in creationTasks)
-                if (task.Prefab.Code == prefabCode)
+                if (task.TargetObject.Code == prefabCode)
                 {
                     task.Disable();
                     Entity.PendingTasksHandler.CancelBySourceID(this, task.ID);
@@ -96,7 +96,7 @@ namespace RTSEngine.EntityComponent
         private void EnableUpgradeTargetTasksWithPrefab(IEntity prefab)
         {
             foreach (var upgradeTargetTask in upgradeTargetCreationTasks)
-                if (upgradeTargetTask.Prefab.Code == prefab.Code)
+                if (upgradeTargetTask.TargetObject.Code == prefab.Code)
                 {
                     creationTasks.Add(upgradeTargetTask);
                     upgradeTargetTask.Enable();
@@ -123,8 +123,10 @@ namespace RTSEngine.EntityComponent
         #region Handling UnitCreation Actions
         protected override ErrorMessage CompleteTaskActionLocal(int creationTaskID, bool playerCommand)
         {
+            UnitCreationTask nextTask = allCreationTasks[creationTaskID];
+
             unitMgr.CreateUnit(
-                allCreationTasks[creationTaskID].Prefab,
+                nextTask.TargetObject,
                 SpawnPosition,
                 Quaternion.identity,
                 new InitUnitParameters
@@ -141,6 +143,9 @@ namespace RTSEngine.EntityComponent
 
                     useGotoPosition = true,
                     gotoPosition = SpawnPosition,
+
+                    isSquad = nextTask.SquadData.enabled,
+                    squadCount = nextTask.SquadData.count,
                     
                     playerCommand = playerCommand
                 });
@@ -154,16 +159,16 @@ namespace RTSEngine.EntityComponent
         // Find the task ID that allows to create the unit in the parameter
         public int FindTaskIndex(string unitCode)
         {
-            return creationTasks.FindIndex(task => task.Prefab.Code == unitCode);
+            return creationTasks.FindIndex(task => task.TargetObject.Code == unitCode);
         }
         #endregion
 
         #region Task UI
-        protected override string GetTooltipText(IEntityComponentTaskInput taskInput)
+        protected override string GetTaskTooltipText(IEntityComponentTaskInput taskInput)
         {
             UnitCreationTask nextTask = taskInput as UnitCreationTask;
 
-            textDisplayer.UnitCreationTaskToString(
+            textDisplayer.UnitCreationTaskTooltipToString(
                 nextTask,
                 out string tooltipText);
 

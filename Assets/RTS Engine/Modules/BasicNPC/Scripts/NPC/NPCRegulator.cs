@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 using UnityEngine;
 
@@ -8,6 +7,7 @@ using RTSEngine.Event;
 using RTSEngine.Faction;
 using RTSEngine.Game;
 using RTSEngine.NPC.Event;
+using System;
 
 namespace RTSEngine.NPC
 {
@@ -31,11 +31,20 @@ namespace RTSEngine.NPC
         public bool HasReachedMinAmount => Count >= MinTargetAmount;
 
         // Current spawned instances of the regulated prefabs
-        protected List<T> instances = new List<T>();
-        public IEnumerable<T> Instances => instances.ToList();
-        public IEnumerable<T> InstancesIdleOnly => instances.Where(factionEntity => factionEntity.IsIdle);
-        public IEnumerable<T> InstancesIdleFirst => instances.OrderByDescending(factionEntity => factionEntity.IsIdle);
-
+        private List<T> instances;
+        public IReadOnlyList<T> Instances => instances.AsReadOnly();
+        private List<T> idleInstances;
+        private List<T> nonIdleInstances;
+        public IReadOnlyList<T> IdleInstances => idleInstances;
+        public IReadOnlyList<T> NonIdleInstances => nonIdleInstances;
+        public IReadOnlyList<T> InstancesIdleFirst {
+            get
+            {
+                List<T> returnList = new List<T>(idleInstances);
+                returnList.AddRange(nonIdleInstances);
+                return returnList.AsReadOnly();
+            }
+        }
         // Inferred from the provided regulator data
         public int MaxPendingAmount { private set; get; }
         public int CurrPendingAmount { private set; get; }
@@ -76,6 +85,10 @@ namespace RTSEngine.NPC
 
             this.Prefab = prefab;
 
+            instances = new List<T>();
+            idleInstances = new List<T>();
+            nonIdleInstances = new List<T>();
+
             MaxTargetAmount = data.MaxAmount;
             MinTargetAmount = data.MinAmount;
             MaxPendingAmount = data.MaxPendingAmount;
@@ -115,6 +128,22 @@ namespace RTSEngine.NPC
         }
         #endregion
 
+        #region Handling Events: Faction Entity Idle Enter/Exit
+        private void HandleFactionEntityEnterIdle(IEntity entity, EventArgs args)
+        {
+            T factionEntity = (T)entity;
+            idleInstances.Add(factionEntity);
+            nonIdleInstances.Remove(factionEntity);
+        }
+
+        private void HandleFactionEntityExitIdle(IEntity entity, EventArgs args)
+        {
+            T factionEntity = (T)entity;
+            idleInstances.Remove(factionEntity);
+            nonIdleInstances.Add(factionEntity);
+        }
+        #endregion
+
         #region Adding/Removing Instances
         protected void AddExisting(T factionEntity)
         {
@@ -125,6 +154,13 @@ namespace RTSEngine.NPC
             RaiseAmountUpdated(count: 1, pendingAmount: 0);
 
             factionEntity.Health.EntityDead += HandleFactionEntityDead;
+            factionEntity.EntityEnterIdle += HandleFactionEntityEnterIdle;
+            factionEntity.EntityExitIdle += HandleFactionEntityExitIdle;
+
+            if (!factionEntity.IsIdle)
+                idleInstances.Add(factionEntity);
+            else
+                nonIdleInstances.Add(factionEntity);
         }
 
         protected void AddNewlyCreated(T factionEntity)
@@ -136,6 +172,8 @@ namespace RTSEngine.NPC
             RaiseAmountUpdated(count: 1, pendingAmount: 0);
 
             factionEntity.Health.EntityDead += HandleFactionEntityDead;
+            factionEntity.EntityEnterIdle += HandleFactionEntityEnterIdle;
+            factionEntity.EntityExitIdle += HandleFactionEntityExitIdle;
         }
 
         protected void AddPending(T pendingFactionEntity)
@@ -152,7 +190,12 @@ namespace RTSEngine.NPC
                 || !instances.Remove(factionEntity))
                 return;
 
+            idleInstances.Remove(factionEntity);
+            nonIdleInstances.Remove(factionEntity);
+
             factionEntity.Health.EntityDead -= HandleFactionEntityDead;
+            factionEntity.EntityEnterIdle -= HandleFactionEntityEnterIdle;
+            factionEntity.EntityExitIdle -= HandleFactionEntityExitIdle;
 
             RaiseAmountUpdated(count: -1, pendingAmount: 0);
         }

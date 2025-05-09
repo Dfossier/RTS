@@ -31,6 +31,7 @@ MonoBehaviour:
   autoCreate: 1
   factionEntityRequirements:
   - name: barracks_required
+    icon: {fileID: 0}
     codes:
       codes:
       - barracks_level1
@@ -42,6 +43,7 @@ MonoBehaviour:
   - entityType:
       codes:
       - town_center
+      - town_center_fow
       categories: []
     range:
       _min: 10

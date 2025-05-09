@@ -40,7 +40,7 @@ namespace RTSEngine.Movement
                     + multiplier * (input.refMvtComp.Controller.Radius + horizontalSpacing) * rowDirection;
 
                 // Always make sure that the next path destination has a correct height in regards to the height of the map.
-                if (!terrainMgr.SampleHeight(nextDestination, input.refMvtComp, out nextDestination.y))
+                if (terrainMgr.SampleHeight(nextDestination, input.refMvtComp, out nextDestination.y))
                 {
                     ErrorMessage errorMessage = ErrorMessage.none;
 

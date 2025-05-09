@@ -29,7 +29,7 @@ namespace RTSEngine.NPC
         /// <summary>
         /// Gets an IEnumerable instance of all faction entity codes monitored by this component.
         /// </summary>
-        public IEnumerable<string> AllCodes => codes;
+        public IReadOnlyList<string> AllCodes => codes.AsReadOnly();
 
         protected IGameManager gameMgr { private set; get; }
         protected IFactionManager factionMgr { private set; get; }

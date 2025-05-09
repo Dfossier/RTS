@@ -22,7 +22,7 @@ namespace RTSEngine.Utilities
         private readonly Action targetInvalidCallback;
 
         // Target that the source transform will be following
-        private ModelCacheAwareTransformInput target = null;
+        private Transform target = null;
         private Vector3 offset = Vector3.zero;
         private Action onFollowTargetInvalid;
 
@@ -44,10 +44,10 @@ namespace RTSEngine.Utilities
         public void ResetTarget()
             => SetTarget(null, offset: Vector3.zero, enableCallback: false);
 
-        public void SetTarget(ModelCacheAwareTransformInput target, bool enableCallback, bool followPosition = true, bool followRotation = false)
+        public void SetTarget(Transform target, bool enableCallback, bool followPosition = true, bool followRotation = false)
             => SetTarget(target, Vector3.zero, enableCallback, followPosition, followRotation);
 
-        public void SetTarget(ModelCacheAwareTransformInput target, Vector3 offset, bool enableCallback, bool followPosition = true, bool followRotation = false)
+        public void SetTarget(Transform target, Vector3 offset, bool enableCallback, bool followPosition = true, bool followRotation = false)
         {
             this.target = target;
             this.offset = offset;
@@ -71,10 +71,10 @@ namespace RTSEngine.Utilities
             }
 
             if(canFollowPosition)
-                source.position = target.Position + offset;
+                source.position = target.position + offset;
 
             if (canFollowRotation)
-                source.rotation = RTSHelper.GetLookRotation(source, target.Position);
+                source.rotation = RTSHelper.GetLookRotation(source, target.position);
         }
         #endregion
     }

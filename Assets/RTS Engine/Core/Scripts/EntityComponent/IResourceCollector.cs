@@ -1,4 +1,5 @@
 ﻿using RTSEngine.Entities;
+using RTSEngine.Event;
 using RTSEngine.ResourceExtension;
 
 namespace RTSEngine.EntityComponent
@@ -9,6 +10,8 @@ namespace RTSEngine.EntityComponent
         TargetData<IResource> LastTarget { get; }
 
         bool InProgress { get; }
+
+        event CustomEventHandler<IResourceCollector, SetTargetInputDataEventArgs> OnTargetMaxWorkerReached;
 
         bool IsResourceTypeCollectable(ResourceTypeInfo resourceType);
     }

@@ -11,6 +11,8 @@ namespace RTSEngine.Cameras
     public abstract class MainCameraPanningHandlerBase : MonoBehaviour, IMainCameraPanningHandler
     {
         #region Attributes
+        public bool IsActive { set; get; }
+
         [SerializeField, Tooltip("X-axis camera position offset value.")]
         // Camera look at offset values, when the camera is looking at a position, this value is the offset that the camera position will have on the x and z axis
         // The value of the offset depends on the camera's rotation on the x-axis
@@ -23,8 +25,9 @@ namespace RTSEngine.Cameras
         public float CurrOffsetZ { private set; get; }
 
         [Space(), SerializeField, Tooltip("How fast does the camera pan?")]
-        private SmoothSpeed panningSpeed = new SmoothSpeed { value = 20.0f, smoothFactor = 0.1f };
-        public SmoothSpeed PanningSpeed => panningSpeed;
+        private SmoothSpeedRange panningSpeed = new SmoothSpeedRange { valueRange = new FloatRange(18.0f, 20.0f), smoothValue = 0.1f };
+        protected float CurrModifier { set; get; }
+        public float CurrPanningSpeed => panningSpeed.GetValue(cameraController.ZoomHandler.ZoomRatio) * CurrModifier;
 
         // Limit the pan of the camera on the x and z axis? 
         [System.Serializable]
@@ -41,7 +44,10 @@ namespace RTSEngine.Cameras
 
         protected Vector3 currPanDirection;
         public Vector3 LastPanDirection { protected set; get; }
-        public bool IsPanning => currPanDirection != Vector3.zero;
+
+        protected bool triggerPointInputInactive;
+        public bool IsPointerInputActive { protected set; get; }
+        public bool IsPanning => IsPointerInputActive || currPanDirection != Vector3.zero;
 
         [Header("Follow Target")]
         [Space(), SerializeField, Tooltip("Does the camera follow its target smoothly?")]
@@ -53,6 +59,7 @@ namespace RTSEngine.Cameras
         protected Transform followTarget = null;
         public bool IsFollowingTarget => followTarget.IsValid();
 
+        protected IGameManager gameMgr { private set; get; } 
         protected IGameControlsManager controls { private set; get; }
         protected IMainCameraController cameraController { private set; get; }
         #endregion
@@ -60,12 +67,16 @@ namespace RTSEngine.Cameras
         #region Initializing/Terminating
         public void Init(IGameManager gameMgr)
         {
+            this.gameMgr = gameMgr;
             this.controls = gameMgr.GetService<IGameControlsManager>();
             this.cameraController = gameMgr.GetService<IMainCameraController>();
 
             cameraController.CameraTransformUpdated += HandleMainCameraTransformUpdated;
 
             LastPanDirection = Vector3.zero;
+            CurrModifier = 1.0f;
+
+            IsActive = true;
 
             OnInit();
         }
@@ -83,6 +94,15 @@ namespace RTSEngine.Cameras
         #endregion
 
         #region Update/Apply Input
+        public void PreUpdateInput()
+        {
+            if (triggerPointInputInactive)
+            {
+                triggerPointInputInactive = false;
+                IsPointerInputActive = false;
+            }
+        }
+
         public virtual void UpdateInput() { }
 
         public void Apply()
@@ -95,17 +115,23 @@ namespace RTSEngine.Cameras
             }
             else
             {
-                // Smoothly update the last panning direction towards the current one
-                LastPanDirection = Vector3.Lerp(LastPanDirection, currPanDirection, panningSpeed.smoothFactor);
+                if (!IsActive)
+                    return;
 
-                OnNonFolloTargetPanning();
+                // Smoothly update the last panning direction towards the current one
+                LastPanDirection = Vector3.Lerp(
+                    LastPanDirection,
+                    currPanDirection,
+                    panningSpeed.smoothValue);
+
+                OnNonFollowTargetPanning();
 
                 if (LastPanDirection != Vector3.zero)
                     cameraController.RaiseCameraTransformUpdated();
             }
         }
 
-        protected virtual void OnNonFolloTargetPanning() { }
+        protected virtual void OnNonFollowTargetPanning() { }
 
         private void OnFollowTargetPanning()
         {
@@ -127,6 +153,9 @@ namespace RTSEngine.Cameras
             // Reset movement inputs
             currPanDirection = Vector3.zero;
             LastPanDirection = Vector3.zero;
+
+            if (followTarget.IsValid())
+                cameraController.ZoomHandler.DisableNearMinHeightPivot(resetRotation: true);
         }
 
         /// <summary>
@@ -134,13 +163,13 @@ namespace RTSEngine.Cameras
         /// </summary>
         public void LookAt(Vector3 targetPosition, bool smooth, float smoothFactor = 0.1f)
         {
-            cameraController.RotationHandler.ResetRotation(smooth: true);
+            cameraController.RotationHandler.ResetRotation(smooth: false);
 
             // Adding half of the target position height to the X and Z axis of the camera's target position allows it to center over the target position for any variying height
             targetPosition = new Vector3(
                 targetPosition.x + CurrOffsetX + targetPosition.y / 2.0f,
                 // Enforce minimum look at camera height in case FOV is not used, which is the height before which pivoting to reach minimum height is enabled
-                cameraController.ZoomHandler.UseFOV
+                cameraController.ZoomHandler.UseCameraNativeZoom
                     ? cameraController.MainCamera.transform.position.y
                     : Mathf.Max(cameraController.MainCamera.transform.position.y, cameraController.ZoomHandler.LookAtTargetMinHeight),
                 targetPosition.z + CurrOffsetZ + targetPosition.y / 2.0f);
@@ -165,7 +194,6 @@ namespace RTSEngine.Cameras
                 : position;
         }
         #endregion
-
     }
 }
  

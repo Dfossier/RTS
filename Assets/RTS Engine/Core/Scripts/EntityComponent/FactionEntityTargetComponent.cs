@@ -13,7 +13,6 @@ using RTSEngine.Task;
 using RTSEngine.Movement;
 using RTSEngine.Selection;
 using RTSEngine.Utilities;
-using System;
 using RTSEngine.Search;
 using RTSEngine.ResourceExtension;
 
@@ -62,8 +61,9 @@ namespace RTSEngine.EntityComponent
 
         [SerializeField, Tooltip("Set the settings for allowing the entity to launch this component automatically.")]
         private TargetEntityFinderData targetFinderData = new TargetEntityFinderData { enabled = false, idleOnly = true, range = 10.0f, reloadTime = 5.0f };
-        protected TargetEntityFinderData TargetFinderData => targetFinderData;
-        protected TargetEntityFinder<T> TargetFinder { private set; get; } = null;
+        protected TargetEntityFinder<T> targetFinder = null;
+        public TargetEntityFinderData TargetFinderData => targetFinder.IsValid() ? targetFinder.Data : targetFinderData;
+        public float TargetFinderCurrReloadValue => targetFinder.IsValid() ? targetFinder.CurrReloadValue : -1.0f;
 
         [SerializeField, Tooltip("Defines information used to display a task to set the target of this component in the task panel, when the faction entity is selected.")]
         private EntityComponentTaskUIAsset setTargetTaskUI = null;
@@ -79,7 +79,7 @@ namespace RTSEngine.EntityComponent
         protected IGlobalEventPublisher globalEvent { private set; get; }
         protected IEffectObjectPool effectObjPool { private set; get; }
         protected ISelectionManager selectionMgr { private set; get; }
-        protected IMouseSelector mouseSelector { private set; get; } 
+        protected ISelector selector { private set; get; } 
         protected ITaskManager taskMgr { private set; get; }
         protected IMovementManager mvtMgr { private set; get; } 
         protected IGridSearchHandler gridSearch { private set; get; }
@@ -95,11 +95,11 @@ namespace RTSEngine.EntityComponent
             handler?.Invoke(this, new TargetDataEventArgs(Target));
         }
 
-        public event CustomEventHandler<IEntityTargetComponent, EventArgs> TargetStop;
+        public event CustomEventHandler<IEntityTargetComponent, TargetDataEventArgs> TargetStop;
         private void RaiseTargetStop()
         {
             var handler = TargetStop;
-            handler?.Invoke(this, EventArgs.Empty);
+            handler?.Invoke(this, new TargetDataEventArgs(LastTarget));
         }
         #endregion
 
@@ -117,17 +117,16 @@ namespace RTSEngine.EntityComponent
             this.globalEvent = gameMgr.GetService<IGlobalEventPublisher>();
             this.effectObjPool = gameMgr.GetService<IEffectObjectPool>();
             this.selectionMgr = gameMgr.GetService<ISelectionManager>();
-            this.mouseSelector = gameMgr.GetService<IMouseSelector>(); 
+            this.selector = gameMgr.GetService<ISelector>(); 
             this.taskMgr = gameMgr.GetService<ITaskManager>();
             this.mvtMgr = gameMgr.GetService<IMovementManager>(); 
             this.gridSearch = gameMgr.GetService<IGridSearchHandler>();
             this.resourceMgr = gameMgr.GetService<IResourceManager>();
 
-            TargetFinder = new TargetEntityFinder<T>(gameMgr, source: this, center: factionEntity.transform, data: targetFinderData);
+            if(targetFinderData.enabled)
+                targetFinder = new TargetEntityFinder<T>(gameMgr, source: this, center: factionEntity.transform, data: targetFinderData);
 
             OnTargetInit();
-
-            factionEntity.FactionUpdateComplete += HandleFactionEntityFactionUpdateComplete;
         }
 
         protected virtual void OnTargetInit() { }
@@ -138,10 +137,8 @@ namespace RTSEngine.EntityComponent
                 return;
 
             Stop();
-            if(TargetFinder.IsValid())
-                TargetFinder.Enabled = false;
-
-            factionEntity.FactionUpdateComplete -= HandleFactionEntityFactionUpdateComplete;
+            if (targetFinder.IsValid())
+                targetFinder.Disable();
 
             OnTargetDisabled();
 
@@ -151,10 +148,14 @@ namespace RTSEngine.EntityComponent
         protected virtual void OnTargetDisabled() { }
         #endregion
 
-        #region Handling Faction Update Complete Event
-        private void HandleFactionEntityFactionUpdateComplete(IEntity sender, FactionUpdateArgs args)
+        #region Handling Faction Update
+        protected sealed override void OnFactionUpdateStart() 
         {
             Stop();
+        }
+
+        protected sealed override void OnFactionUpdateComplete() 
+        {
         }
         #endregion
 
@@ -188,8 +189,8 @@ namespace RTSEngine.EntityComponent
         #region Activating/Deactivating Component
         protected sealed override void OnActiveStatusUpdated()
         {
-            if(TargetFinder.IsValid())
-                TargetFinder.Enabled = IsActive;
+            if(targetFinder.IsValid())
+                targetFinder.IsActive = IsActive;
 
             // If the SetActive method is called before the componenty is fully initialized then it is like picking the initial settings for the activity status
             // And that means we do not need to Stop() or do any additional callbacks since the component has not initialized fully yet
@@ -250,9 +251,8 @@ namespace RTSEngine.EntityComponent
             errorMessage = IsTargetValid(testInput);
             return errorMessage == ErrorMessage.none;
         }
-        public virtual ErrorMessage IsTargetValid(SetTargetInputData testInput)
-            => IsTargetValid(testInput.target, testInput.playerCommand);
-        public abstract ErrorMessage IsTargetValid(TargetData<IEntity> testTarget, bool playerCommand);
+        public abstract ErrorMessage IsTargetValid(SetTargetInputData testInput);
+        public virtual ErrorMessage IsTargetValidOnSearch(SetTargetInputData testInput) => IsTargetValid(testInput);
 
         public abstract bool IsTargetInRange(Vector3 sourcePosition, TargetData<IEntity> target);
 
@@ -327,7 +327,7 @@ namespace RTSEngine.EntityComponent
             Target = input.target;
 
             if (input.playerCommand && Target.instance.IsValid() && factionEntity.IsLocalPlayerFaction())
-                mouseSelector.FlashSelection(Target.instance, factionEntity.IsFriendlyFaction(Target.instance));
+                selector.FlashSelection(Target.instance, factionEntity.IsFriendlyFaction(Target.instance));
 
             OnTargetPostLocked(input, sameTarget);
 
@@ -344,14 +344,12 @@ namespace RTSEngine.EntityComponent
         #endregion
 
         #region Task UI
-        public override bool OnTaskUIRequest(
-            out IEnumerable<EntityComponentTaskUIAttributes> taskUIAttributes,
-            out IEnumerable<string> disabledTaskCodes)
+        protected override bool OnTaskUICacheUpdate(List<EntityComponentTaskUIAttributes> taskUIAttributesCache, List<string> disabledTaskCodesCache)
         {
             return RTSHelper.OnSingleTaskUIRequest(
                 this,
-                out taskUIAttributes,
-                out disabledTaskCodes,
+                taskUIAttributesCache,
+                disabledTaskCodesCache,
                 setTargetTaskUI);
         }
 
@@ -385,5 +383,30 @@ namespace RTSEngine.EntityComponent
             return false;
         }
         #endregion
+
+        #region Editor
+#if UNITY_EDITOR
+        [SerializeField, HideInInspector]
+        private bool showTargetGizmo = true;
+
+        protected virtual void OnDrawGizmosSelected()
+        {
+            DrawTargetGizmo();
+        }
+
+        protected void DrawTargetGizmo()
+        {
+            if (HasTarget && showTargetGizmo)
+            {
+                // Target Gizmos
+                Gizmos.color = Color.blue;
+                Gizmos.DrawWireSphere(
+                    Target.instance.IsValid() ? Target.instance.transform.position : Target.position,
+                    Target.instance.IsValid() ? Target.instance.Radius : 0.5f);
+            }
+        }
+#endif
+        #endregion
+
     }
 }

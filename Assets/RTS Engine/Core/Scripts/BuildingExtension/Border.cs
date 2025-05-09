@@ -32,7 +32,9 @@ namespace RTSEngine.BuildingExtension
         //the order is used to determine which has priority over a common area of the map
         public int SortingOrder { private set; get; }
 
-        [Space(), SerializeField, Tooltip("Set the maximum amount of instances of building types that can be inside this border.")]
+        [SerializeField, Tooltip("Set the maximum total amount of building instances that can be built in this border (not including this building center itself). Set to -1 for an unlimited amount.")]
+        private int maxBuildingsAmount = -1;
+        [SerializeField, Tooltip("Set the maximum amount of instances of building types that can be inside this border.")]
         private BuildingAmount[] buildingLimits = new BuildingAmount[0];
 
         //key: code of a building type that is inside this border's territory
@@ -40,14 +42,15 @@ namespace RTSEngine.BuildingExtension
         private Dictionary<string, int> buildingTypeTracker = new Dictionary<string, int>();
 
         //a list of the spawned buildings inside the territory defined by this border
-        private List<IBuilding> buildingsInRange = new List<IBuilding>(); 
-        public IEnumerable<IBuilding> BuildingsInRange => buildingsInRange.Where(building => building.IsValid());
+        private List<IBuilding> buildingsInRange; 
+        public IReadOnlyList<IBuilding> BuildingsInRange => buildingsInRange.AsReadOnly();
 
         //a list of the resources inside the territory defined by this border
-        private List<IResource> resourcesInRange = new List<IResource>(); 
-        public IEnumerable<IResource> ResourcesInRange => resourcesInRange.Where(resource => resource.IsValid());
+        private List<IResource> resourcesInRange; 
+        public IReadOnlyList<IResource> ResourcesInRange => resourcesInRange.AsReadOnly();
 
-        public IEnumerable<IEntity> EntitiesInRange => BuildingsInRange.Cast<IEntity>().Concat(ResourcesInRange);
+        private List<IEntity> entitiesInRange;
+        public IReadOnlyList<IEntity> EntitiesInRange => entitiesInRange.AsReadOnly();
 
         // Game services
         protected IGlobalEventPublisher globalEvent { private set; get; } 
@@ -67,7 +70,12 @@ namespace RTSEngine.BuildingExtension
 
             this.Building = building;
 
+            buildingsInRange = new List<IBuilding>();
+            resourcesInRange = new List<IResource>();
+            entitiesInRange = new List<IEntity>();
+
             buildingsInRange.Add(Building);
+            entitiesInRange.Add(Building);
 
             SortingOrder = gameMgr.GetService<IBuildingManager>().LastBorderSortingOrder;
 
@@ -123,6 +131,8 @@ namespace RTSEngine.BuildingExtension
                 currBorderObjects = new IBorderObject[0];
             }
 
+            IsActive = false;
+
             OnDisabled();
         }
 
@@ -171,6 +181,7 @@ namespace RTSEngine.BuildingExtension
                 return;
 
             resourcesInRange.Add(resource);
+            entitiesInRange.Add(resource);
 
             // Only update the resource's "owner" faction ID if it is a resource building that already only belongs to one faction
             if(!(resource is IResourceBuilding))
@@ -200,10 +211,10 @@ namespace RTSEngine.BuildingExtension
         /// <param name="resource">Resource instance to remove from Border instance.</param>
         private void RemoveResource(IResource resource)
         {
-            if (!resourcesInRange.Contains(resource))
+            if (!resourcesInRange.Remove(resource))
                 return;
 
-            resourcesInRange.Remove(resource);
+            entitiesInRange.Remove(resource);
 
             // Only update the resource's "owner" faction ID if it is not a resource building that already only belongs to one faction
             // Make sure the resource entity is still here and not destroyed
@@ -235,10 +246,12 @@ namespace RTSEngine.BuildingExtension
         private void AddBuilding(IBuilding building)
         {
             if (!building.CurrentCenter.IsValid()
-                || building.CurrentCenter != this as IBorder)
+                || building.CurrentCenter != this as IBorder
+                || buildingsInRange.Contains(building))
                 return;
 
             buildingsInRange.Add(building);
+            entitiesInRange.Add(building);
 
             if (!buildingTypeTracker.ContainsKey(building.Code))
                 buildingTypeTracker.Add(building.Code, 0);
@@ -253,7 +266,10 @@ namespace RTSEngine.BuildingExtension
 
         private void RemoveBuilding(IBuilding building)
         {
-            buildingsInRange.Remove(building);
+            if (!buildingsInRange.Remove(building))
+                return;
+
+            entitiesInRange.Remove(building);
 
             buildingTypeTracker[building.Code] -= 1;
 
@@ -264,6 +280,10 @@ namespace RTSEngine.BuildingExtension
 
         public virtual bool IsBuildingAllowedInBorder(IBuilding building)
         {
+            // +1 to account for the building center itself
+            if (maxBuildingsAmount >= 0 && buildingsInRange.Count >= maxBuildingsAmount+1)
+                return false;
+
             foreach(BuildingAmount ba in buildingLimits)
                 if(ba.codes.Contains(building))
                 {
@@ -278,6 +298,14 @@ namespace RTSEngine.BuildingExtension
 
 #if UNITY_EDITOR
         #region Editor
+        [HideInInspector]
+        public Int2D tabID = new Int2D { x = 0, y = 0 };
+
+        [HideInInspector]
+        public bool showResourcesFoldout;
+        [HideInInspector]
+        public bool showBuildingsFoldout;
+
         private void OnDrawGizmosSelected()
         {
             if (!IsActive)

@@ -10,11 +10,11 @@ namespace RTSEngine.EditorOnly.EntityComponent
     {
         public void Draw(Rect position, SerializedProperty property, GUIContent label, string taskTitlePrefix)
         {
-            property
+            /*property
                 .FindPropertyRelative("taskTitle")
                 .stringValue = property.FindPropertyRelative("prefabObject").objectReferenceValue.IsValid()
                 ? $"{taskTitlePrefix}: {(property.FindPropertyRelative("prefabObject").objectReferenceValue as GameObject).GetComponent<V>().Code}"
-                : $"{taskTitlePrefix}: Prefab Unassigned";
+                : $"{taskTitlePrefix}: Prefab Unassigned";*/
 
             EditorGUI.PropertyField(position, property, label, true);
         }

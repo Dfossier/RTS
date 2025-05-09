@@ -19,8 +19,14 @@ namespace RTSEngine.ResourceExtension
         private string code = "unique_code";
         public string Code => code;
 
+        [Space(), SerializeField, Tooltip("Pick what types of resources that a collector is allowed to drop off.")]
+        private ResourceTypeTargetPicker allowedResourceTypes = new ResourceTypeTargetPicker();
+        public bool CanDropResourceType(ResourceTypeInfo resourceType) => !resourceType.IsValid() || allowedResourceTypes.IsValidTarget(resourceType);
+
+        [Space(), SerializeField, Tooltip("Require the drop off point to have a pre-defined fixed position for collectors to drop their resources at?")]
+        private bool requireDropOffPosition = true;
         [SerializeField, Tooltip("Code to identify this component, unique within the entity")]
-        private ModelCacheAwareTransformInput dropOffPosition = null;
+        private Transform dropOffPosition = null;
         [SerializeField, Tooltip("If populated then this defines the types of terrain areas that the drop off target must use when a resource collector attempts to drop off their resources.")]
         private TerrainAreaType[] forcedTerrainAreas = new TerrainAreaType[0];
 
@@ -39,15 +45,27 @@ namespace RTSEngine.ResourceExtension
             this.mvtMgr = gameMgr.GetService<IMovementManager>();
             this.logger = gameMgr.GetService<IGameLoggingService>();
 
-            if (!logger.RequireValid(dropOffPosition,
-              $"[DropOffTarget - {Entity.Code}] The 'Drop Off Position' field must be assigned!")
-                || !logger.RequireTrue(forcedTerrainAreas.Length == 0 || forcedTerrainAreas.All(terrainArea => terrainArea.IsValid()),
-              $"[DropOffTarget - {Entity.Code}] The 'Forced Terrain Areas' field must be either empty or populated with valid elements!")
-                || !logger.RequireTrue(terrainMgr.GetTerrainAreaPosition(dropOffPosition.Position, forcedTerrainAreas, out Vector3 addablePosition),
-                    $"[DropOffTarget - {Entity.Code}] Unable to find a suitable drop off position for the forced terrain areas of the drop off target"))
-                return;
+            if(dropOffPosition.IsValid())
+            {
+                if (!terrainMgr.GetTerrainAreaPosition(dropOffPosition.position, forcedTerrainAreas, out Vector3 addablePosition))
+                {
+                    logger.LogError($"[DropOffTarget - {Entity.Code}] Unable to find a suitable drop off position for the forced terrain areas of the drop off target");
+                    return;
 
-            dropOffPosition.Position = addablePosition;
+                }
+                else if(forcedTerrainAreas.Length > 0 && forcedTerrainAreas.Any(terrainArea => !terrainArea.IsValid()))
+                {
+                    logger.LogError($"[DropOffTarget - {Entity.Code}] The 'Forced Terrain Areas' field must be either empty or populated with valid elements!");
+                    return;
+                }
+
+                dropOffPosition.position = addablePosition;
+            }
+            else if(requireDropOffPosition)
+            {
+                logger.LogError($"[DropOffTarget - {Entity.Code}] The 'Drop Off Position' field is required to be assigned!");
+                return;
+            }
         }
 
         public void Disable() { }
@@ -56,14 +74,17 @@ namespace RTSEngine.ResourceExtension
         #region IAddableUnit/Dropping Off Resources
         public Vector3 GetAddablePosition(IUnit unit)
         {
+            if (!requireDropOffPosition)
+                return Entity.transform.position;
+
             // In case the entity can move, we need to check if the dropOffPosition has been updated.
             if (Entity.MovementComponent.IsValid())
             {
-                terrainMgr.GetTerrainAreaPosition(dropOffPosition.Position, forcedTerrainAreas, out Vector3 addablePosition);
+                terrainMgr.GetTerrainAreaPosition(dropOffPosition.position, forcedTerrainAreas, out Vector3 addablePosition);
                 return addablePosition;
             }
 
-            return dropOffPosition.Position;
+            return dropOffPosition.position;
         }
 
         public ErrorMessage CanAdd(IUnit unit, AddableUnitData addableData = default) => ErrorMessage.undefined;
@@ -98,20 +119,23 @@ namespace RTSEngine.ResourceExtension
             Vector3 addablePosition = GetAddablePosition(unit);
 
             mvtMgr.SetPathDestinationLocal(
-                unit,
-                addablePosition,
-                0.0f,
-                Entity,
-                new MovementSource
+                new SetPathDestinationData<IEntity>
                 {
-                    playerCommand = addableData.playerCommand,
+                    source = unit,
+                    destination = addablePosition,
+                    offsetRadius = requireDropOffPosition ? 0.0f : Entity.Radius,
+                    target = Entity,
+                    mvtSource = new MovementSource
+                    {
+                        playerCommand = addableData.playerCommand,
 
-                    sourceTargetComponent = addableData.sourceTargetComponent,
+                        sourceTargetComponent = addableData.sourceTargetComponent,
 
-                    targetAddableUnit = this,
-                    targetAddableUnitPosition = addablePosition,
+                        targetAddableUnit = this,
+                        targetAddableUnitPosition = addablePosition,
 
-                    disableMarker = true
+                        disableMarker = true
+                    }
                 });
 
             return ErrorMessage.none;

@@ -12,7 +12,7 @@ namespace RTSEngine.Health
         IFactionEntity FactionEntity { get; }
 
         IEnumerable<DamageOverTimeHandler> DOTHandlers { get; }
-        Vector3 AttackTargetPosition { get; }
+        Vector3 GetAttackTargetPosition(IEntity source);
 
         void AddDamageOverTime(DamageOverTimeData nextDOTData, int damage, IEntity source, float initialCycleDuration = 0.0f);
     }

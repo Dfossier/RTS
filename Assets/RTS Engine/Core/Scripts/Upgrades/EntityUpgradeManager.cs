@@ -239,7 +239,7 @@ namespace RTSEngine.Upgrades
                         gotoPosition = sourceInstance.transform.position,
 
                         giveInitResources = true,
-                    });
+                    })[0];
             }
             else
             {

@@ -55,6 +55,11 @@ namespace RTSEngine.Minimap.Icons
         {
             isFollowing = false;
         }
+
+        private void HandleFollowEntityPositionSet(IMovementComponent sender, EventArgs args)
+        {
+            UpdateFollowPosition();
+        }
         #endregion
 
         #region Spawning/Despawning
@@ -92,12 +97,49 @@ namespace RTSEngine.Minimap.Icons
         }
         #endregion
 
+        #region Handling Events: ICarriableUnit Added/Removed
+        private void HandleUnitCarrierAdded(IUnitCarrier carrier, UnitCarrierEventArgs args)
+        {
+            FollowUntiCarrier(carrier);
+        }
+
+        private void HandleUnitCarrierRemoved(IUnitCarrier carrier, UnitCarrierEventArgs args)
+        {
+            ResetFollowUntiCarrier(carrier);
+        }
+
+        private void FollowUntiCarrier(IUnitCarrier carrier)
+        {
+            if (carrier.IsValid() && carrier.Entity.MovementComponent.IsValid())
+            {
+                carrier.Entity.MovementComponent.MovementStart += HandleFollowEntityMovementStart;
+                carrier.Entity.MovementComponent.MovementStop += HandleFollowEntityMovementStop;
+                carrier.Entity.MovementComponent.PositionSet += HandleFollowEntityPositionSet;
+            }
+        }
+
+        private void ResetFollowUntiCarrier(IUnitCarrier carrier)
+        {
+            if (carrier.IsValid() && carrier.Entity.MovementComponent.IsValid())
+            {
+                carrier.Entity.MovementComponent.MovementStart -= HandleFollowEntityMovementStart;
+                carrier.Entity.MovementComponent.MovementStop -= HandleFollowEntityMovementStop;
+                carrier.Entity.MovementComponent.PositionSet -= HandleFollowEntityPositionSet;
+            }
+        }
+        #endregion
+
         #region Following Moving Entity
         private void Update()
         {
             if (!isFollowing)
                 return;
 
+            UpdateFollowPosition();
+        }
+
+        private void UpdateFollowPosition()
+        {
             minimapCameraController.WorldPointToLocalPointInMinimapCanvas(
                 followEntity.transform.position,
                 out Vector3 nextPosition, height: height);
@@ -116,6 +158,18 @@ namespace RTSEngine.Minimap.Icons
             {
                 followEntity.MovementComponent.MovementStart += HandleFollowEntityMovementStart;
                 followEntity.MovementComponent.MovementStop += HandleFollowEntityMovementStop;
+                followEntity.MovementComponent.PositionSet += HandleFollowEntityPositionSet;
+            }
+
+            if(followEntity.IsUnit())
+            {
+                var unit = followEntity as IUnit;
+
+                if (unit.CarriableUnit.IsValid())
+                {
+                    unit.CarriableUnit.UnitAdded += HandleUnitCarrierAdded;
+                    unit.CarriableUnit.UnitRemoved += HandleUnitCarrierRemoved;
+                }
             }
         }
 
@@ -130,6 +184,20 @@ namespace RTSEngine.Minimap.Icons
             {
                 followEntity.MovementComponent.MovementStart -= HandleFollowEntityMovementStart;
                 followEntity.MovementComponent.MovementStop -= HandleFollowEntityMovementStop;
+                followEntity.MovementComponent.PositionSet -= HandleFollowEntityPositionSet;
+            }
+
+            if(followEntity.IsUnit())
+            {
+                var unit = followEntity as IUnit;
+
+                if (unit.CarriableUnit.IsValid())
+                {
+                    ResetFollowUntiCarrier(unit.CarriableUnit.CurrCarrier);
+
+                    unit.CarriableUnit.UnitAdded -= HandleUnitCarrierAdded;
+                    unit.CarriableUnit.UnitRemoved -= HandleUnitCarrierRemoved;
+                }
             }
 
             followEntity = null;

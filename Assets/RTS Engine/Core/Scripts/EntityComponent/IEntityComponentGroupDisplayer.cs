@@ -1,11 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using RTSEngine.Entities;
+using System.Collections.Generic;
 
 namespace RTSEngine.EntityComponent
 {
     public interface IEntityComponentGroupDisplayer
     {
-        IEnumerable<IEntityComponent> EntityComponents { get; }
+        IReadOnlyList<IEntity> Entities { get; }
 
-        IEnumerable<IEntityTargetComponent> EntityTargetComponents { get; }
+        IReadOnlyList<IEntityComponent> EntityComponents { get; }
+
+        IReadOnlyList<IEntityTargetComponent> EntityTargetComponents { get; }
     }
 }

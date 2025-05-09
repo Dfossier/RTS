@@ -26,7 +26,7 @@ namespace RTSEngine.NPC.ResourceExtension
 
         // NPC Components
         protected INPCResourceCollector npcResourceCollector { private set; get; }
-        protected IEnumerable<INPCCapacityResourceManager> npcCapacityResourceMgrs { private set; get; }
+        protected IReadOnlyList<INPCCapacityResourceManager> npcCapacityResourceMgrs { private set; get; }
 
         // Game services
         protected IResourceManager resourceMgr { private set; get; }
@@ -48,9 +48,13 @@ namespace RTSEngine.NPC.ResourceExtension
 
             // Go through the spawned building centers and init their registered resources.
             // Can't really rely on the custom events for initializing since the IBorder components and IResource components will get initialiazed before the events are fired.
-            foreach(IBuilding buildingCenter in factionMgr.BuildingCenters)
-                foreach(IResource resource in buildingCenter.BorderComponent.ResourcesInRange)
-                    AddBorderResource (buildingCenter, resource);
+            for (int i = 0; i < factionMgr.BuildingCenters.Count; i++)
+            {
+                for (int j = 0; j < factionMgr.BuildingCenters[i].BorderComponent.ResourcesInRange.Count; j++)
+                {
+                    AddBorderResource (factionMgr.BuildingCenters[i], factionMgr.BuildingCenters[i].BorderComponent.ResourcesInRange[j]);
+                }
+            }
 
             globalEvent.BorderResourceAddedGlobal += HandleBorderResourceAddedGlobal;
             globalEvent.BorderResourceRemovedGlobal += HandleBorderResourceRemovedGlobal;

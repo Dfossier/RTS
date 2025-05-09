@@ -87,6 +87,7 @@ namespace RTSEngine.NPC.BuildingExtension
 
             // Only one placement instance in the queue, this is the first one that the NPC faction is placing next 
             placementInstance.gameObject.SetActive(true);
+            placementInstance.Model.gameObject.SetActive(false);
         }
         #endregion
 
@@ -122,7 +123,7 @@ namespace RTSEngine.NPC.BuildingExtension
             while(currentPlaceAroundHandler.TrySetNextData())
             {
                 IEnumerable<IEntity> nextPlaceAroundEntities = current.options.initialCenter.EntitiesInRange
-                    .Where(entity => currentPlaceAroundHandler.CurrData.IsValidType(entity.ToTargetData(), playerCommand: false) == ErrorMessage.none);
+                    .Where(entity => currentPlaceAroundHandler.CurrData.IsValidType(entity.ToSetTargetInputData(playerCommand: false)) == ErrorMessage.none);
 
                 IEntity nextPlaceAroundEntity = nextPlaceAroundEntities
                     .ElementAtOrDefault(UnityEngine.Random.Range(0, nextPlaceAroundEntities.Count()));
@@ -146,7 +147,7 @@ namespace RTSEngine.NPC.BuildingExtension
                     // Pick a random starting position for building by randomly rotating it around its build around positio
                     current.instance.transform.RotateAround(currentPlaceAroundPosition, Vector3.up, UnityEngine.Random.Range(0.0f, 360.0f));
                     // Keep initial rotation (because the RotateAround method will change the building's rotation as well which we do not want)
-                    current.instance.transform.rotation = current.task.Prefab.transform.rotation;
+                    current.instance.transform.rotation = current.task.TargetObject.transform.rotation;
 
                     return true;
                 }

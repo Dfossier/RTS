@@ -19,11 +19,19 @@ namespace RTSEngine.NPC.BuildingExtension
         private GameObject[] builders = new GameObject[0];
         private NPCActiveRegulatorMonitor builderMonitor;
 
+        [SerializeField, EnforceType(typeof(IFactionEntity), prefabOnly: true), Tooltip("List of faction entities (units or buildings) with a BuildingCreator component that the NPC faction can use to create and place its buildings. These are not necessairly the ones responsible for constructing buildings.")]
+        private GameObject[] buildingCreators = new GameObject[0];
+
         /// <summary>
         /// Key: key of the IBuilding prefab that can be placed by the above builders.
         /// Value: keys of the builder units that can place that building.
         /// </summary>
-        public IReadOnlyDictionary<string, string[]> BuilderPlacableBuildingMapper { private set; get; }
+        public Dictionary<string, List<string>> buildingToBuilderCreator;
+        public IReadOnlyList<string> GetBuildingCreatorCodes(string buildingCode)
+        {
+            buildingToBuilderCreator.TryGetValue(buildingCode, out List<string> buildingCreatorCodes);
+            return buildingCreatorCodes;
+        }
 
         // Holds a list of the NPC faction buildings that need construction
         private List<IBuilding> buildingsToConstruct = new List<IBuilding>();
@@ -55,15 +63,20 @@ namespace RTSEngine.NPC.BuildingExtension
         }
         protected override void OnPostInit()
         {
+            buildingToBuilderCreator = new Dictionary<string, List<string>>();
+
             ActivateBuilderRegulator();
+            ActivateBuildingCreators();
 
             globalEvent.BuildingPlacedGlobal += HandleBuildingPlacedOrBuiltGlobal;
             globalEvent.BuildingBuiltGlobal += HandleBuildingPlacedOrBuiltGlobal;
 
             globalEvent.BuildingHealthUpdatedGlobal += HandleBuildingHealthUpdatedGlobal;
 
-            foreach (IBuilding building in factionMgr.Buildings)
-                OnBuildingConstructionStateUpdate(building);
+            for (int i = 0; i < factionMgr.Buildings.Count; i++)
+            {
+                OnBuildingConstructionStateUpdate(factionMgr.Buildings[i]);
+            }
         }
 
         protected override void OnDestroyed()
@@ -80,11 +93,9 @@ namespace RTSEngine.NPC.BuildingExtension
         {
             builderMonitor = new NPCActiveRegulatorMonitor(gameMgr, factionMgr);
 
-            Dictionary<string, List<string>> placableBuildings = new Dictionary<string, List<string>>();
-
-            foreach (GameObject unit in builders)
+            for (int i = 0; i < builders.Length; i++)
             {
-                IUnit builder = unit?.GetComponent<IUnit>();
+                IUnit builder = builders[i].IsValid() ? builders[i].GetComponent<IUnit>() : null;
                 if (!logger.RequireValid(builder,
                     $"[{GetType().Name} - {factionMgr.FactionID}] 'Builders' field has some unassigned elements."))
                     return;
@@ -99,26 +110,52 @@ namespace RTSEngine.NPC.BuildingExtension
                 {
                     builderMonitor.AddCode(nextRegulator.Prefab.Code);
 
-                    // For each valid builder that gets added, get their available creation tasks.
-                    IEnumerable<BuildingCreationTask> availableCreationTasks = builderComponent
-                        .CreationTasks
-                        .Concat(builderComponent.UpgradeTargetCreationTasks);
-                    foreach (BuildingCreationTask creationTask in availableCreationTasks)
-                    {
-                        string buildingCode = creationTask.Prefab.Code;
-
-                        if (!placableBuildings.ContainsKey(buildingCode))
-                            placableBuildings.Add(buildingCode, new string[] { builder.Code }.ToList());
-                        else if (!placableBuildings[buildingCode].Contains(builder.Code))
-                            placableBuildings[buildingCode].Add(builder.Code);
-                    }
+                    AddBuildingCreatorBuildings(builder);
                 }
             }
 
-            BuilderPlacableBuildingMapper = placableBuildings.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray());
-
             if (builderMonitor.Count == 0)
                 logger.LogWarning($"[{GetType().Name} - {factionMgr.FactionID}] No builder regulators have been assigned!");
+        }
+
+        private void ActivateBuildingCreators()
+        {
+            for (int i = 0; i < buildingCreators.Length; i++)
+            {
+                IFactionEntity factionEntity = buildingCreators[i].IsValid() ? buildingCreators[i].GetComponent<IFactionEntity>() : null;
+                if (!logger.RequireValid(factionEntity,
+                    $"[{GetType().Name} - {factionMgr.FactionID}] 'Building Creators' field has some unassigned elements."))
+                    return;
+
+                AddBuildingCreatorBuildings(factionEntity);
+            }
+        }
+
+        private void AddBuildingCreatorBuildings(IFactionEntity factionEntity)
+        {
+            IBuildingCreator buildingCreatorComponent = factionEntity.gameObject.GetComponentInChildren<IBuildingCreator>();
+            if (!logger.RequireValid(buildingCreatorComponent,
+                $"[{GetType().Name} - {factionMgr.FactionID}] 'Building Creators' field has some assigned units with no component that implements '{typeof(IBuildingCreator).Name}' interface attached to them."))
+                return;
+
+            if (!buildingCreatorComponent.IsValid())
+                return;
+
+            // For each valid builder that gets added, get their available creation tasks.
+            List<BuildingCreationTask> availableCreationTasks = new List<BuildingCreationTask>(buildingCreatorComponent.CreationTasks);
+            availableCreationTasks.AddRange(buildingCreatorComponent.UpgradeTargetCreationTasks);
+            for (int j = 0; j < availableCreationTasks.Count; j++)
+            {
+                string buildingCode = availableCreationTasks[j].TargetObject.Code;
+
+                if (!buildingToBuilderCreator.ContainsKey(buildingCode))
+                    buildingToBuilderCreator.Add(buildingCode, new List<string>());
+
+                if (!buildingToBuilderCreator[buildingCode].Contains(factionEntity.Code))
+                {
+                    buildingToBuilderCreator[buildingCode].Add(factionEntity.Code);
+                }
+            }
         }
         #endregion
 
@@ -192,13 +229,13 @@ namespace RTSEngine.NPC.BuildingExtension
                 // Only keep this component active if there are buildings that need construction
                 IsActive = buildingsToConstruct.Count > 0;
 
-                foreach (IBuilding nextBuilding in buildingsToConstruct)
+                for (int i = 0; i < buildingsToConstruct.Count; i++)
                 {
-                    int targetBuildersAmount = GetTargetBuildersAmount(nextBuilding);
+                    int targetBuildersAmount = GetTargetBuildersAmount(buildingsToConstruct[i]);
 
-                    if (targetBuildersAmount > nextBuilding.WorkerMgr.Amount)
+                    if (targetBuildersAmount > buildingsToConstruct[i].WorkerMgr.Amount)
                         OnBuildingConstructionRequestInternal(
-                            nextBuilding,
+                            buildingsToConstruct[i],
                             targetBuildersAmount,
                             out _,
                             forceSwitch: canEnforceBuilders);
@@ -254,22 +291,25 @@ namespace RTSEngine.NPC.BuildingExtension
                 return;
             }
 
-            foreach (IUnit nextBuilder in nextBuilderRegulator.InstancesIdleFirst.ToList())
+            for (int i = 0; i < nextBuilderRegulator.InstancesIdleFirst.Count; i++)
             {
-                if (requiredBuilders <= 0)
-                    break;
+                IUnit nextBuilder = nextBuilderRegulator.InstancesIdleFirst[i];
 
                 bool canStillEnforceSwitch = forceSwitch
                     && !nextBuilder.BuilderComponent.HasTarget;
 
                 if (nextBuilder.IsValid()
                     && (nextBuilder.IsIdle || canStillEnforceSwitch)
+                    && nextBuilder.BuilderComponent.IsActive
                     && nextBuilder.BuilderComponent.Target.instance != building)
                 {
-                    nextBuilder.BuilderComponent.SetTarget(building.ToTargetData(), playerCommand: false);
+                    nextBuilder.BuilderComponent.SetTarget(building.ToTargetData(), playerCommand: true);
 
                     requiredBuilders--;
                     assignedBuilders++;
+
+                    if (requiredBuilders <= 0)
+                        break;
                 }
             }
 

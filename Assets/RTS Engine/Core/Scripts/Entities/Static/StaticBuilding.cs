@@ -50,6 +50,7 @@ namespace RTSEngine.Entities.Static
         public IRallypoint Rallypoint => null;
         public IDropOffTarget DropOffTarget => null;
         public IUnitCarrier UnitCarrier => null;
+        public IBuildingCreator BuildingCreator => null;
 
         // Static entity properties
         public bool IsInitialized { private set; get; }
@@ -82,7 +83,6 @@ namespace RTSEngine.Entities.Static
         public int FactionID { protected set; get; }
         public IFactionSlot Slot { private set; get; }
 
-        public IEntityModel EntityModel => null; 
         public bool IsInteractable => false;
         public bool IsSearchable => true;
 
@@ -94,7 +94,8 @@ namespace RTSEngine.Entities.Static
 
         public IReadOnlyDictionary<string, IEntityTargetComponent> EntityTargetComponents => new Dictionary<string, IEntityTargetComponent>();
 
-        public IReadOnlyDictionary<string, IAttackComponent> AttackComponents => new Dictionary<string, IAttackComponent>();
+        public IReadOnlyList<IAttackComponent> AttackComponents => null;
+        public IReadOnlyDictionary<string, IAttackComponent> AttackComponentsDic => new Dictionary<string, IAttackComponent>();
         public IAttackComponent FirstActiveAttackComponent => null; 
         public IEnumerable<IAttackComponent> ActiveAttackComponents => Enumerable.Empty<IAttackComponent>();
 
@@ -119,13 +120,17 @@ namespace RTSEngine.Entities.Static
 
         public bool IsDummy => true;
 
-        public ModelCacheAwareTransformInput TransformInput => null;
-
         public IReadOnlyDictionary<string, IEntityTargetProgressComponent> EntityTargetProgressComponents => throw new NotImplementedException();
 
         public IEntityTasksQueueHandler TasksQueue => null;
 
         public IEntityMinimapIconHandler MinimapIconHandler => null;
+
+        public GameObject Model => null;
+
+        public IEnumerable<IResourceGenerator> ResourceGenerators => null;
+
+        public IReadOnlyList<IPendingTaskEntityComponent> PendingTaskEntityComponents => null;
         #endregion
 
         #region Raising Events
@@ -145,8 +150,11 @@ namespace RTSEngine.Entities.Static
         }
 
 #pragma warning disable CS0067 // The event is never used 
+        public event CustomEventHandler<IEntity, FactionUpdateArgs> FactionUpdateStart;
         public event CustomEventHandler<IEntity, FactionUpdateArgs> FactionUpdateComplete;
         public event CustomEventHandler<IEntity, EntityComponentUpgradeEventArgs> EntityComponentUpgraded;
+        public event CustomEventHandler<IEntity, EventArgs> EntityEnterIdle;
+        public event CustomEventHandler<IEntity, EventArgs> EntityExitIdle;
 #pragma warning restore CS0067 // The event is never used 
         #endregion
 

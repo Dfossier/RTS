@@ -19,10 +19,12 @@ using RTSEngine.Model;
 using RTSEngine.Service;
 using System.Text;
 using RTSEngine.Task;
+using RTSEngine.UnitExtension;
+using TMPro;
 
 namespace RTSEngine
 {
-    public static class RTSHelper
+    public static partial class RTSHelper
     {
         #region Attributes/Initialization
         public static Color SemiTransparentWhite
@@ -43,9 +45,8 @@ namespace RTSEngine
         private static IAttackManager AttackMgr;
         private static IMovementManager MvtMgr;
         private static ITaskManager TaskMgr;
-        private static IModelCacheManager ModelCacheMgr;
+        private static IUnitSquadManager UnitSquadManager;
         public static ILoggingService LoggingService { private set; get; }
-
         public static void Init(IGameManager gameMgr)
         {
             GameMgr = gameMgr;
@@ -53,8 +54,8 @@ namespace RTSEngine
             InputMgr = gameMgr.transform.GetComponentInChildren<IInputManager>();
             AttackMgr = gameMgr.transform.GetComponentInChildren<IAttackManager>();
             MvtMgr = gameMgr.transform.GetComponentInChildren<IMovementManager>();
-            ModelCacheMgr = gameMgr.transform.GetComponentInChildren<IModelCacheManager>();
             TaskMgr = gameMgr.transform.GetComponentInChildren<ITaskManager>();
+            UnitSquadManager = gameMgr.transform.GetComponentInChildren<IUnitSquadManager>();
 
             LoggingService = gameMgr.transform.GetComponentInChildren<ILoggingService>();
         }
@@ -67,19 +68,19 @@ namespace RTSEngine
 
         #region General Helper Methods
         public static bool IsValidIndex<T>(this int index, T[] array) => index >= 0 && index < array.Length;
-        public static bool IsValidIndex<T>(this int index, List<T> list) => index >= 0 && index < list.Count;
+        public static bool IsValidIndex<T>(this int index, IReadOnlyList<T> list) => index >= 0 && index < list.Count;
 
         public static int GetNextIndex<T>(this int index, T[] array) => index >= 0 && index < array.Length - 1 ? index + 1 : 0;
-        public static int GetNextIndex<T>(this int index, List<T> list) => index >= 0 && index < list.Count - 1 ? index + 1 : 0;
+        public static int GetNextIndex<T>(this int index, IReadOnlyList<T> list) => index >= 0 && index < list.Count - 1 ? index + 1 : 0;
 
         public static void ShuffleList<T>(List<T> inputList)
         {
-            if(inputList.Count > 0)
+            if (inputList.Count > 0)
             {
-                for(int i = 0; i < inputList.Count; i++)
+                for (int i = 0; i < inputList.Count; i++)
                 {
                     int swapID = UnityEngine.Random.Range(0, inputList.Count);
-                    if(swapID != i)
+                    if (swapID != i)
                     {
                         T tempElement = inputList[swapID];
                         inputList[swapID] = inputList[i];
@@ -97,12 +98,12 @@ namespace RTSEngine
             item2 = temp;
         }
 
-        public static List<int> GenerateRandomIndexList (int length)
+        public static List<int> GenerateRandomIndexList(int length)
         {
             List<int> indexList = new List<int>();
 
             int i = 0;
-            while (i < length) 
+            while (i < length)
             {
                 indexList.Add(i);
                 i++;
@@ -114,13 +115,13 @@ namespace RTSEngine
         }
 
         //Check if a layer is inside a layer mask:
-        public static bool IsInLayerMask (LayerMask mask, int layer)
+        public static bool IsInLayerMask(LayerMask mask, int layer)
         {
             return ((mask & (1 << layer)) != 0);
         }
 
         public static int TryNameToLayer(string name)
-        { 
+        {
             int layer = LayerMask.NameToLayer(name);
             if (layer == -1)
             {
@@ -137,27 +138,12 @@ namespace RTSEngine
             else
                 targetPosition -= transform.position;
 
-            if(fixYRotation == true)
+            if (fixYRotation == true)
                 targetPosition.y = 0;
             if (targetPosition != Vector3.zero)
                 return Quaternion.LookRotation(targetPosition);
             else
                 return transform.rotation;
-        }
-
-        public static Quaternion GetLookRotation(ModelCacheAwareTransformInput transform, Vector3 targetPosition, bool reversed = false, bool fixYRotation = true)
-        {
-            if (reversed)
-                targetPosition = transform.Position - targetPosition;
-            else
-                targetPosition -= transform.Position;
-
-            if(fixYRotation == true)
-                targetPosition.y = 0;
-            if (targetPosition != Vector3.zero)
-                return Quaternion.LookRotation(targetPosition);
-            else
-                return transform.Rotation;
         }
 
 
@@ -166,7 +152,7 @@ namespace RTSEngine
         /// </summary>
         /// <param name="transform">Transform instance to set rotation for.</param>
         /// <param name="awayFrom">Vector3 position whose opposite direction the transform will look at.</param>
-        public static void LookAwayFrom (Transform transform, Vector3 awayFrom, bool fixYRotation = false)
+        public static void LookAwayFrom(Transform transform, Vector3 awayFrom, bool fixYRotation = false)
         {
             if (fixYRotation)
                 awayFrom.y = transform.position.y;
@@ -176,15 +162,15 @@ namespace RTSEngine
 
         private static StringBuilder timeStringBuilder = new StringBuilder();
         //a method that converts time in seconds to a string MM:SS
-        public static string TimeToString (float time)
+        public static string TimeToString(float time)
         {
             if (time <= 0.0f)
                 return "00:00";
 
             timeStringBuilder.Clear();
 
-            int seconds = Mathf.RoundToInt (time);
-            int minutes = Mathf.FloorToInt (seconds / 60.0f);
+            int seconds = Mathf.RoundToInt(time);
+            int minutes = Mathf.FloorToInt(seconds / 60.0f);
 
             seconds -= minutes * 60;
 
@@ -203,9 +189,9 @@ namespace RTSEngine
         public static int FindIndex<T>(IReadOnlyList<T> list, Predicate<T> match)
         {
             int i = 0;
-            foreach(T element in list)
+            foreach (T element in list)
             {
-                if(match(element))
+                if (match(element))
                     return i;
                 i++;
             }
@@ -216,16 +202,16 @@ namespace RTSEngine
         public static int IndexOf<T>(IReadOnlyList<T> list, T elementToFind)
         {
             int i = 0;
-            foreach(T element in list)
+            foreach (T element in list)
             {
-                if(Equals(element, elementToFind))
+                if (Equals(element, elementToFind))
                     return i;
                 i++;
             }
             return -1;
         }
 
-        public static void UpdateDropdownValue(ref Dropdown dropdownMenu, string lastOption, List<string> newOptions)
+        public static void UpdateDropdownValue(ref TMP_Dropdown dropdownMenu, string lastOption, List<string> newOptions)
         {
             dropdownMenu.ClearOptions();
             dropdownMenu.AddOptions(newOptions);
@@ -233,11 +219,11 @@ namespace RTSEngine
             for (int i = 0; i < newOptions.Count; i++)
                 if (newOptions[i] == lastOption)
                 {
-                    dropdownMenu.value = i;
+                    dropdownMenu.SetValueWithoutNotify(i);
                     return;
                 }
 
-            dropdownMenu.value = 0;
+            dropdownMenu.SetValueWithoutNotify(0);
         }
 
         public static bool IsPrefab(this GameObject gameObject)
@@ -253,15 +239,10 @@ namespace RTSEngine
                 gameObject.GetInstanceID() >= 0 &&
                 // I noticed that ones with IDs under 0 were objects I didn't recognize
                 !gameObject.hideFlags.HasFlag(HideFlags.HideInHierarchy);
-                // I don't care about GameObjects *inside* prefabs, just the overall prefab.
+            // I don't care about GameObjects *inside* prefabs, just the overall prefab.
         }
 
-        public static bool IsValid<T>(this ModelCacheAwareInput<T> input) where T : Component
-        {
-            return input != null 
-                && input.IsStatusValid();
-        }
-        public static bool IsValid<T>(this GameObjectToComponentInput<T> input) where T : IMonoBehaviour 
+        public static bool IsValid<T>(this GameObjectToComponentInput<T> input) where T : IMonoBehaviour
         {
             return input != null
                 && input.Output.IsValid();
@@ -269,7 +250,7 @@ namespace RTSEngine
 
         public static bool DecreaseCountOnElementInCountDictionary(string[] elements, IReadOnlyDictionary<string, int> countDict, ref int count)
         {
-            foreach(var code in elements)
+            foreach (var code in elements)
             {
                 if (countDict.TryGetValue(code, out int storedCount))
                     count -= storedCount;
@@ -290,7 +271,7 @@ namespace RTSEngine
         /// </summary>
         /// <param name="implementation"></param>
         /// <returns></returns>
-        public static Type GetSuperInterfaceType <T>(this Type implementation)
+        public static Type GetSuperInterfaceType<T>(this Type implementation)
         {
             // Making sure that the implementation type is not an interface.
             if (!LoggingService.RequireTrue(!implementation.IsInterface,
@@ -331,34 +312,36 @@ namespace RTSEngine
                 && (!GameMgr.CurrBuilder.IsValid() || GameMgr.CurrBuilder.IsMaster);
         }
 
-        public static bool IsLocalPlayerFaction(this IEntity entity) => 
+        public static bool IsLocalPlayerFaction(this IEntity entity) =>
             entity.IsValid() && !entity.IsFree && entity.Slot.Data.isLocalPlayer;
 
-        public static bool IsLocalPlayerFaction(this IEnumerable<IEntity> entities) => 
+        public static bool IsLocalPlayerFaction(this IEnumerable<IEntity> entities) =>
             entities
             .All(instance => instance.IsValid()
-                && !instance.IsFree 
+                && !instance.IsFree
                 && instance.Slot.Data.isLocalPlayer);
 
         public static bool IsLocalPlayerFaction(this IFactionSlot factionSlot)
             => factionSlot.IsValid() && factionSlot.Data.isLocalPlayer;
 
-        public static bool IsLocalPlayerFaction(this int factionID) => 
+        public static bool IsLocalPlayerFaction(this int factionID) =>
             GameMgr.GetFactionSlot(factionID).Data.isLocalPlayer;
 
-        public static bool IsFactionEntity(this IEntity entity, int factionID) 
+        public static bool IsFactionEntity(this IEntity entity, int factionID)
             => entity.IsValid() && entity.FactionID == factionID;
 
-        public static bool IsSameFaction(this IEntity entity1, IEntity entity2) 
+        public static bool IsSameFaction(this IEntity entity1, IEntity entity2)
             => entity1.IsValid() && entity2.IsValid() && entity1.FactionID == entity2.FactionID;
-        public static bool IsSameFaction(this IEntity entity1, int factionID) 
-            => entity1.IsValid()  && entity1.FactionID == factionID;
-        public static bool IsSameFaction(this IFactionManager factionMgr, IEntity entity) 
+        public static bool IsSameFaction(this IEntity entity1, int factionID)
+            => entity1.IsValid() && entity1.FactionID == factionID;
+        public static bool IsSameFaction(this IFactionManager factionMgr, IEntity entity)
             => factionMgr.IsValid() && entity.IsValid() && entity.FactionID == factionMgr.FactionID;
-        public static bool IsSameFaction(this IFactionManager factionMgr, int factionID) 
+        public static bool IsSameFaction(this IFactionManager factionMgr, int factionID)
             => factionMgr.IsValid() && factionID == factionMgr.FactionID;
         public static bool IsSameFaction(this IFactionSlot factionSlot, IEntity entity)
             => factionSlot.IsValid() && entity.IsValid() && entity.FactionID == factionSlot.ID;
+        public static bool IsSameFaction(this IFactionSlot factionSlot, int factionID)
+            => factionSlot.IsValid() && factionID == factionSlot.ID;
         public static bool IsSameFaction(this int factionID1, int factionID2) => factionID1 == factionID2;
 
         public static bool IsFriendlyFaction(this IEntity source, IEntity target)
@@ -382,7 +365,7 @@ namespace RTSEngine
 
         public static bool IsValidFaction(this int factionID) => factionID >= 0 && factionID < GameMgr.FactionCount;
 
-        public static bool IsActiveFaction(this IFactionSlot factionSlot) 
+        public static bool IsActiveFaction(this IFactionSlot factionSlot)
             => factionSlot.IsValid() && factionSlot.State == FactionSlotState.active;
 
         public static bool IsNPCFaction(this IEntity entity)
@@ -391,10 +374,10 @@ namespace RTSEngine
         public static bool IsNPCFaction(this IFactionSlot factionSlot)
             => factionSlot.IsValid() && factionSlot.Data.role == FactionSlotRole.npc;
 
-        public static bool IsNPCFaction(this IEnumerable<IEntity> entities) => 
+        public static bool IsNPCFaction(this IEnumerable<IEntity> entities) =>
             entities
             .All(instance => instance.IsValid()
-                && !instance.IsFree 
+                && !instance.IsFree
                 && instance.Slot.Data.role == FactionSlotRole.npc);
 
         // Disabled since it conflicts with the IsValid method that takes System.Object as parameter
@@ -407,9 +390,12 @@ namespace RTSEngine
         public static bool IsValid(this System.Object obj)
             => obj != null && !obj.Equals(null);
         public static bool IsValid(this IEnumerable<IMonoBehaviour> collection)
-            => collection.All(obj => obj.IsValid());
+            => collection != null && collection.All(obj => obj.IsValid());
         public static bool IsValid(this IReadOnlyList<IMonoBehaviour> collection)
         {
+            if (collection == null)
+                return false;
+
             for (int i = 0; i < collection.Count; i++)
                 if (!collection[i].IsValid())
                     return false;
@@ -439,8 +425,8 @@ namespace RTSEngine
             //if(center.BorderComponent.AllowBuildingInBorder(code))
             entity = default;
 
-            foreach(T instance in set)
-                if(condition(instance))
+            foreach (T instance in set)
+                if (condition(instance))
                 {
                     entity = instance;
                     return true;
@@ -456,7 +442,7 @@ namespace RTSEngine
         /// <param name="allComponents">An IEnumerable of instances that extend the IEntity interface.</param>
         /// <param name="filter">Determines what entities are eligible to be added to the chained sorted list and which are not.</param>
         /// <returns>ChainedSortedList instance of the sorted entities based on their code.</returns>
-        public static ChainedSortedList<string, T> SortEntitiesByCode <T> (IReadOnlyList<T> allComponents, System.Func<T, bool> filter) where T : IEntity
+        public static ChainedSortedList<string, T> SortEntitiesByCode<T>(IReadOnlyList<T> allComponents, System.Func<T, bool> filter) where T : IEntity
         {
             //this will hold the resulting chained sorted list.
             ChainedSortedList<string, T> sortedEntities = new ChainedSortedList<string, T>();
@@ -478,7 +464,7 @@ namespace RTSEngine
         /// <param name="entities">List of IEntity instances.</param>
         /// <param name="targetPosition">Vector3 that represents the position the entities will get their direction to.</param>
         /// <returns>Vector3 that represents the direction of the entities towards the target position.</returns>
-        public static Vector3 GetEntitiesDirection (IReadOnlyList<IEntity> entities, Vector3 targetPosition)
+        public static Vector3 GetEntitiesDirection(IReadOnlyList<IEntity> entities, Vector3 targetPosition)
         {
             Vector3 direction = Vector3.zero;
             int count = 0;
@@ -499,11 +485,29 @@ namespace RTSEngine
                 : Vector3.zero;
         }
 
+        public static SetTargetInputData ToSetTargetInputData(this Vector3 position, bool playerCommand)
+        {
+            return new SetTargetInputData
+            {
+                target = position,
+                playerCommand = playerCommand
+            };
+        }
+
+        public static SetTargetInputData ToSetTargetInputData<T>(this T entity, bool playerCommand) where T : IEntity
+        {
+            return new SetTargetInputData
+            {
+                target = entity.ToTargetData<IEntity>(),
+                playerCommand = playerCommand
+            };
+        }
+
         //Tests whether a set of faction entities are spawned with a certain amount for a particular faction.
-        public static bool TestFactionEntityRequirements (this IEnumerable<FactionEntityRequirement> requirements, IFactionManager factionMgr)
+        public static bool TestFactionEntityRequirements(this IEnumerable<FactionEntityRequirement> requirements, IFactionManager factionMgr)
             => requirements.All(req => req.TestFactionEntityRequirement(factionMgr));
 
-        public static bool TestFactionEntityRequirement (this FactionEntityRequirement req, IFactionManager factionMgr)
+        public static bool TestFactionEntityRequirement(this FactionEntityRequirement req, IFactionManager factionMgr)
         {
             int requiredAmount = req.amount;
 
@@ -511,14 +515,14 @@ namespace RTSEngine
                 || DecreaseCountOnElementInCountDictionary(req.codes.categories, factionMgr.FactionEntityCategoryToAmount, ref requiredAmount));
         }
 
-        public static T GetClosestEntity<T> (Vector3 searchPosition, IEnumerable<T> entities) where T : IEntity
+        public static T GetClosestEntity<T>(Vector3 searchPosition, IEnumerable<T> entities) where T : IEntity
         {
             return entities
                 .OrderBy(entity => (entity.transform.position - searchPosition).sqrMagnitude)
                 .FirstOrDefault();
         }
 
-        public static T GetClosestEntity<T> (Vector3 searchPosition, IEnumerable<T> entities, System.Func<T, bool> condition) where T : IEntity
+        public static T GetClosestEntity<T>(Vector3 searchPosition, IEnumerable<T> entities, System.Func<T, bool> condition) where T : IEntity
         {
             return entities
                 .Where(entity => condition(entity))
@@ -532,7 +536,7 @@ namespace RTSEngine
                 .Where(entity => condition(entity));
         }
 
-        public static bool IsFactionEntity (this IEntity source)
+        public static bool IsFactionEntity(this IEntity source)
         {
             return IsUnit(source) || IsBuilding(source);
         }
@@ -541,6 +545,11 @@ namespace RTSEngine
 
         public static bool IsResource(this IEntity source) => source.Type.HasFlag(EntityType.resource);
         public static bool IsResourceOnly(this IEntity source) => source.Type == EntityType.resource;
+
+        public static bool IsResourceBuilding(this IEntity source) => source.IsResource() && source.IsBuilding();
+
+        public static IEntityWorkerManager GetWorkerManager(this IEntity source)
+            => source.IsResourceBuilding() && (source as IBuilding).IsBuilt ? (source as IResource).WorkerMgr : source.WorkerMgr;
 
         public static IFactionSlot ToFactionSlot(this int factionID)
             => GameMgr.GetFactionSlot(factionID);
@@ -556,6 +565,59 @@ namespace RTSEngine
             sourceInitMethod(GameMgr);
 
             return true;
+        }
+
+        public static IUnitSquad GetUnitSquad(this IUnit unit)
+            => UnitSquadManager.IsValid() && UnitSquadManager.GetSquad(unit, out IUnitSquad squad)
+                ? squad
+                : null;
+
+        public static void InitFactionEntities(IReadOnlyList<IFactionEntity> entities, int factionID)
+        {
+            if (!factionID.IsValidIndex(GameMgr.FactionSlots)
+                || !entities.IsValid())
+                return;
+
+            var buildingInitParams = new InitBuildingParameters
+            {
+                factionID = factionID,
+                free = false,
+
+                setInitialHealth = false,
+
+                giveInitResources = true
+            };
+
+            var unitInitParams = new InitUnitParameters
+            {
+                factionID = factionID,
+                free = false,
+
+                setInitialHealth = false,
+
+                rallypoint = null,
+
+                giveInitResources = true
+            };
+
+            foreach (IFactionEntity instance in entities)
+            {
+                if (instance.IsBuilding())
+                {
+                    buildingInitParams.buildingCenter = RTSHelper.GetClosestEntity(
+                        instance.transform.position,
+                        GameMgr.GetFactionSlot(factionID).FactionMgr.BuildingCenters,
+                        center => center.BorderComponent.IsInBorder(instance.transform.position))?.BorderComponent;
+
+                    (instance as IBuilding).Init(GameMgr, buildingInitParams);
+                }
+                else if (instance.IsUnit())
+                {
+                    unitInitParams.gotoPosition = instance.transform.position;
+                    (instance as IUnit).Init(GameMgr, unitInitParams);
+                }
+            }
+
         }
         #endregion
 
@@ -576,12 +638,13 @@ namespace RTSEngine
         }
 
         public static bool OnSingleTaskUIRequest(
-            IEntityComponent entityComponent, out IEnumerable<EntityComponentTaskUIAttributes> taskUIAttributes,
-            out IEnumerable<string> disabledTaskCodes, EntityComponentTaskUIAsset taskUIAsset, bool requireActiveComponent = true,
-            bool extraCondition = true, bool enforceCanLaunchTask = true)
+            IEntityComponent entityComponent, List<EntityComponentTaskUIAttributes> taskUIAttributes,
+            List<string> disabledTaskCodes, EntityComponentTaskUIAsset taskUIAsset, bool requireActiveComponent = true,
+            bool showCondition = true, bool enforceCanLaunchTask = true,
+            bool lockedCondition = false, EntityComponentLockedTaskUIData lockedData = default)
         {
-            taskUIAttributes = Enumerable.Empty<EntityComponentTaskUIAttributes>();
-            disabledTaskCodes = Enumerable.Empty<string>();
+            taskUIAttributes.Clear();
+            disabledTaskCodes.Clear();
 
             if ((!entityComponent.Entity.CanLaunchTask && enforceCanLaunchTask)
                 || (!entityComponent.IsActive && requireActiveComponent)
@@ -590,16 +653,21 @@ namespace RTSEngine
 
             if (taskUIAsset.IsValid())
             {
-                if (extraCondition)
-                    taskUIAttributes = taskUIAttributes.Append(
+                if (showCondition)
+                {
+                    taskUIAttributes.Add(
                         new EntityComponentTaskUIAttributes
                         {
                             data = taskUIAsset.Data,
 
-                            locked = false
+                            locked = lockedCondition,
+                            lockedData = lockedData
                         });
+                }
                 else
-                    disabledTaskCodes = Enumerable.Repeat(taskUIAsset.Key, 1);
+                    disabledTaskCodes.Add(
+                        taskUIAsset.Key
+                    );
             }
 
             return true;
@@ -654,7 +722,8 @@ namespace RTSEngine
                 {
                     if (entity.TasksQueue.IsValid() && entity.TasksQueue.CanAdd(input))
                         return SetTargetFirstManyType.toQueue;
-                    else if (entity.CanAttack && entity.FirstActiveAttackComponent.IsTargetValid(input.target, input.playerCommand) == ErrorMessage.none)
+                    else if (entity.CanAttack 
+                    && entity.FirstActiveAttackComponent.IsTargetValid(input) == ErrorMessage.none)
                         return SetTargetFirstManyType.attack;
                     else if (input.includeMovement && entity.CanMove(input.playerCommand))
                         return SetTargetFirstManyType.mvt;
@@ -673,31 +742,14 @@ namespace RTSEngine
                         break;  
                     case SetTargetFirstManyType.attack:
 
-                        AttackMgr.LaunchAttack(
-                            new LaunchAttackData<IReadOnlyList<IEntity>>
-                            {
-                                source = group.ToList(),
-
-                                targetEntity = input.target.instance as IFactionEntity,
-                                targetPosition = input.target.instance.IsValid() ? input.target.instance.transform.position : input.target.position,
-
-                                playerCommand = input.playerCommand,
-                                isMoveAttackRequest = input.isMoveAttackRequest
-                            });
+                        var groupList = group.ToList();
+                        AttackMgr.LaunchAttack(input.ToLaunchAttackData<IReadOnlyList<IEntity>>(groupList, groupList[0]));
 
                         break;
 
                     case SetTargetFirstManyType.mvt:
 
-                        MvtMgr.SetPathDestination(
-                            group.ToList(),
-                            input.target.position,
-                            0.0f,
-                            input.target.instance,
-                            new MovementSource { 
-                                playerCommand = input.playerCommand,
-                                isMoveAttackRequest = input.isMoveAttackRequest
-                            });
+                        MvtMgr.SetPathDestination(input.ToSetPathDestinationData<IReadOnlyList<IEntity>>(group.ToList()));
 
                         break;
 
@@ -711,14 +763,22 @@ namespace RTSEngine
             }
         }
 
-        public delegate ErrorMessage IsTargetValidDelegate(TargetData<IEntity> target, bool playerCommand);
+        public delegate ErrorMessage IsTargetValidDelegate(SetTargetInputData setTargetInputData);
         #endregion
 
         #region RTS Engine Attack Helper Methods
-        public static Vector3 GetAttackTargetPosition(TargetData<IFactionEntity> target)
-            => target.instance.IsValid() ? target.instance.Health.AttackTargetPosition : target.opPosition;
+        public static Vector3 GetAttackTargetPosition(IEntity sourceEntity, IFactionEntity target)
+            => GetAttackTargetPosition(sourceEntity, target.ToTargetData());
+        public static Vector3 GetAttackTargetPosition(IAttackComponent source, IFactionEntity target)
+            => GetAttackTargetPosition(source.Entity, target.ToTargetData());
+        public static Vector3 GetAttackTargetPosition(IAttackComponent source, TargetData<IFactionEntity> target)
+            => GetAttackTargetPosition(source.Entity, target);
+        public static Vector3 GetAttackTargetPosition(IEntity sourceEntity, TargetData<IFactionEntity> target)
+            => target.instance.IsValid() ? target.instance.Health.GetAttackTargetPosition(sourceEntity) : target.opPosition;
 
-        public static float GetAttackTargetRadius(TargetData<IFactionEntity> target)
+        public static float GetAttackTargetRadius(IAttackComponent source, TargetData<IFactionEntity> target)
+            => GetAttackTargetRadius(source.Entity, target);
+        public static float GetAttackTargetRadius(IEntity sourceEntity, TargetData<IFactionEntity> target)
             => target.instance.IsValid() ? target.instance.Radius : 0.0f;
 
         public static ErrorMessage IsAttackLOSBlocked (PathDestinationInputData pathDestinationInput, Vector3 testPosition)

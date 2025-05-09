@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4539703397101770}
-  - component: {fileID: 3654371835867448548}
   - component: {fileID: 1281942126232645508}
   m_Layer: 0
   m_Name: siege_tower_model
@@ -28,6 +27,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: -0.005180359, y: -0.05, z: -0.22}
   m_LocalScale: {x: 0.14999999, y: 0.14999999, z: 0.14999999}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4165513870209682}
   - {fileID: 4429318434190132}
@@ -37,32 +37,9 @@ Transform:
   m_Father: {fileID: 4007889842366152}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
---- !u!114 &3654371835867448548
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1099158009595006}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9f25f7e5fdbfc56499eef5560418c5d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  transformConnections:
-    connectedChildren:
-    - {fileID: 7335450600877066285}
-    - {fileID: 4539703397101770}
-  animatorConnections:
-    connectedChildren:
-    - {fileID: 1281942126232645508}
-  rendererConnections:
-    connectedChildren:
-    - {fileID: 23958679659077956}
-    - {fileID: 8858668566834505285}
 --- !u!95 &1281942126232645508
 Animator:
-  serializedVersion: 3
+  serializedVersion: 4
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -75,6 +52,7 @@ Animator:
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
@@ -107,6 +85,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -4.919033, y: 2.01402, z: -4.71744}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4539703397101770}
   m_RootOrder: 3
@@ -130,10 +109,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -159,6 +140,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &1269880441296498
 GameObject:
   m_ObjectHideFlags: 0
@@ -187,6 +169,7 @@ Transform:
   m_LocalRotation: {x: -6.123234e-17, y: 1, z: 6.123234e-17, w: 6.123234e-17}
   m_LocalPosition: {x: 3.467527, y: 2.01402, z: 4.71744}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4539703397101770}
   m_RootOrder: 2
@@ -210,10 +193,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -239,6 +224,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &1379359063065964
 GameObject:
   m_ObjectHideFlags: 0
@@ -267,6 +253,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -7.539833, y: 1.48986, z: -4.825925}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8840019818133448487}
   - {fileID: 7335450600877066285}
@@ -292,10 +279,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -323,6 +312,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &1399040508615242
 GameObject:
   m_ObjectHideFlags: 0
@@ -349,6 +339,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -1.52}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4007889842366152}
   m_RootOrder: 6
@@ -381,6 +372,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 3.467527, y: 2.01402, z: -4.71744}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4539703397101770}
   m_RootOrder: 1
@@ -404,10 +396,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -433,6 +427,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &1738834866967008
 GameObject:
   m_ObjectHideFlags: 0
@@ -462,6 +457,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.002, z: -0.16}
   m_LocalScale: {x: 0.21509418, y: 1, z: 0.26350662}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4007889842366152}
   m_RootOrder: 1
@@ -485,10 +481,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -513,6 +511,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &8900008859179334084
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -525,6 +524,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d85c063b4ac1858429dc001b5b10f5c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetRenderer:
+    renderer: {fileID: 23308130316859078}
+    materialID: 0
+    colorPropertyName: _Color
+    transparency: 0
+    darkness: 0
   selectionRenderer: {fileID: 23308130316859078}
   materialID: 0
 --- !u!1 &1771851839187444
@@ -542,6 +547,7 @@ GameObject:
   - component: {fileID: 82428640067783802}
   - component: {fileID: 195221694565926774}
   - component: {fileID: -8274915569773304446}
+  - component: {fileID: -7785663030695223072}
   m_Layer: 0
   m_Name: siege_tower
   m_TagString: Untagged
@@ -559,6 +565,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 74.22461, y: 13.234375, z: 38.76416}
   m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4193312107608002}
   - {fileID: 4892481276503190}
@@ -587,11 +594,12 @@ MonoBehaviour:
     y: 0
   _name: Siege Tower
   code: siege_tower
-  category: military_vehicle,vehicle_unit
+  category: military_vehicle,vehicle_unit,rtse_demo_entity
   description: Stores an archer while protecting and healing it.
   icon: {fileID: 21300000, guid: 46001833cc5d1254296592bbd19b939b, type: 3}
   radius: 0.8
-  model: {fileID: 3654371835867448548}
+  model: {fileID: 1099158009595006}
+  isIdle: 0
   isMainEntity: 0
   isFactionLocked: 0
   initResources:
@@ -607,19 +615,11 @@ MonoBehaviour:
       capacity: 0
     nonConsumable: 0
   coloredRenderers:
-  - renderer:
-      status: 1
-      obj: {fileID: 23958679659077956}
-      indexKey: 0
-      entity: {fileID: 114110147897504928}
+  - renderer: {fileID: 23958679659077956}
     materialID: 0
     transparency: 0
     darkness: 0.5
-  - renderer:
-      status: 1
-      obj: {fileID: 8858668566834505285}
-      indexKey: 1
-      entity: {fileID: 114110147897504928}
+  - renderer: {fileID: 8858668566834505285}
     materialID: 1
     transparency: 0
     darkness: 0.5
@@ -647,6 +647,7 @@ MonoBehaviour:
     enabled: 1
     offset: {x: 0, y: 4.5, z: 0}
     size: {x: 1, y: 1, z: 1}
+    parent: {fileID: 0}
   hoverHealthBarY: 4.5
   hitEffect:
     input: {fileID: 0}
@@ -683,11 +684,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
   canBeAttacked: 1
-  attackTargetPosition:
-    status: 0
-    obj: {fileID: 0}
-    indexKey: 0
-    entity: {fileID: 0}
+  attackTargetPosition: {fileID: 0}
   stopMovingOnDamage: 0
 --- !u!114 &5743247550877958521
 MonoBehaviour:
@@ -701,11 +698,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb986734d7c0b9c4b9288720ed50ab74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator:
-    status: 1
-    obj: {fileID: 1281942126232645508}
-    indexKey: 0
-    entity: {fileID: 114110147897504928}
+  animator: {fileID: 1281942126232645508}
   animatorOverrideController:
     fetchType: 0
     items:
@@ -817,7 +810,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 1771851839187444}
   m_Enabled: 0
   m_AgentTypeID: 0
-  m_Radius: 1.5
+  m_Radius: 1
   m_Speed: 10
   m_Acceleration: 8
   avoidancePriority: 50
@@ -860,6 +853,29 @@ MonoBehaviour:
       type: 1
       options:
       - {fileID: 11400000, guid: 91a9ec14b39b8cf41852be1ae356a847, type: 2}
+--- !u!114 &-7785663030695223072
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1771851839187444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bab46bb0053502243877f36416be80ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  coloredRenderers:
+  - renderer: {fileID: 23958679659077956}
+    materialID: 0
+    colorPropertyName: _Color
+    transparency: 0
+    darkness: 0.5
+  - renderer: {fileID: 8858668566834505285}
+    materialID: 1
+    colorPropertyName: _Color
+    transparency: 0
+    darkness: 0.5
 --- !u!1 &1857876222694280
 GameObject:
   m_ObjectHideFlags: 0
@@ -890,6 +906,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -0.22}
   m_LocalScale: {x: 0.83750004, y: 0.47406217, z: 0.6749113}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4007889842366152}
   m_RootOrder: 0
@@ -987,6 +1004,7 @@ Transform:
   m_LocalRotation: {x: -6.123234e-17, y: 1, z: 6.123234e-17, w: 6.123234e-17}
   m_LocalPosition: {x: -4.919033, y: 2.01402, z: 4.71744}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4539703397101770}
   m_RootOrder: 4
@@ -1010,10 +1028,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1039,6 +1059,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &2038254926536929701
 GameObject:
   m_ObjectHideFlags: 0
@@ -1065,6 +1086,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 4.8064957, y: 16.263474, z: 4.9404416}
   m_LocalScale: {x: 6.6666656, y: 6.6666675, z: 6.6666656}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4165513870209682}
   m_RootOrder: 1
@@ -1097,6 +1119,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4007889842366152}
   m_RootOrder: 3
@@ -1125,15 +1148,14 @@ MonoBehaviour:
       - archer_level1
       - archer_level2
       categories: []
+    targetUnits: 1
+    targetBuildings: 1
   capacity: 1
   customUnitSlots:
     defaultAmount: 1
     amounts: []
   addablePositions:
-  - status: 2
-    obj: {fileID: 4816112480822356}
-    indexKey: -1
-    entity: {fileID: 0}
+  - {fileID: 4816112480822356}
   forcedTerrainAreas:
   - {fileID: 11400000, guid: 37d2dffab9a31a84c81d764228531ba7, type: 2}
   addUnitAudio:
@@ -1145,15 +1167,10 @@ MonoBehaviour:
         _min: 1
         _max: 2
   carrierPositions:
-  - status: 1
-    obj: {fileID: 7335450600877066285}
-    indexKey: 0
-    entity: {fileID: 114110147897504928}
+  - {fileID: 7335450600877066285}
+  freeCarrierPositionIndexes: 
   ejectablePositions:
-  - status: 2
-    obj: {fileID: 4816112480822356}
-    indexKey: -1
-    entity: {fileID: 0}
+  - {fileID: 4816112480822356}
   canEjectSingleUnit: 0
   ejectSingleUnitTaskUI: {fileID: 0}
   canEjectAllUnits: 1
@@ -1190,6 +1207,8 @@ MonoBehaviour:
     freeOnEjection: 1
     canBeAttackedOnFreeFaction: 0
     canBeAttackedOnValidFaction: 1
+  showStoredUnitsGizmos: 1
+  storedUnitsFoldout: 0
 --- !u!114 &8098720823744501347
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1214,6 +1233,7 @@ MonoBehaviour:
     reloadTime: 1
     range: 5
     idleOnly: 0
+    center: {fileID: 0}
   setTargetTaskUI: {fileID: 0}
   orderAudio:
     fetchType: 0
@@ -1223,6 +1243,7 @@ MonoBehaviour:
       defaultValueRange:
         _min: 1
         _max: 2
+  showTargetGizmo: 1
   progressEnabledAudio:
     fetchType: 0
     items: []
@@ -1236,15 +1257,12 @@ MonoBehaviour:
     items: []
   progressDuration: 2
   progressMaxDistance: 5
-  inProgressObject:
-    status: 0
-    obj: {fileID: 0}
-    indexKey: -1
-    entity: {fileID: 0}
+  inProgressObject: {fileID: 0}
   sourceEffect:
     input: {fileID: 0}
   targetEffect:
     input: {fileID: 8007334687943503667, guid: 50d2aa6ea73a2d04b9865d0ba72a7210, type: 3}
+  showProgressGizmo: 1
   stoppingDistance: 0
   healthPerProgress: 5
   targetPicker:
@@ -1253,9 +1271,9 @@ MonoBehaviour:
       codes: []
       categories: []
     targetUnits: 1
+    targetBuildings: 0
     targetExternal: 0
     targetStored: 1
-    targetBuildings: 0
 --- !u!1 &5751986582762812539
 GameObject:
   m_ObjectHideFlags: 0
@@ -1284,6 +1302,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4007889842366152}
   m_RootOrder: 2
@@ -1312,6 +1331,7 @@ MonoBehaviour:
     reloadTime: 5
     range: 10
     idleOnly: 1
+    center: {fileID: 0}
   setTargetTaskUI: {fileID: 11400000, guid: 061c8973e3c577f4ea6c9b563d77bf00, type: 2}
   orderAudio:
     fetchType: 0
@@ -1321,6 +1341,7 @@ MonoBehaviour:
       defaultValueRange:
         _min: 1
         _max: 2
+  showTargetGizmo: 1
   movableTerrainAreas: []
   formation:
     lastType: {fileID: 11400000, guid: 35416a79068077e409e3f8c81274ce05, type: 2}
@@ -1337,6 +1358,9 @@ MonoBehaviour:
       - name: amountPerRow
         value: 3
   movementPriority: 15
+  isMoving: 0
+  isMovementPending: 0
+  startPosition: {x: 0, y: 0, z: 0}
   speed:
     value: 8
   acceleration:
@@ -1365,6 +1389,8 @@ MonoBehaviour:
       defaultValueRange:
         _min: 1
         _max: 2
+  showPathDestination: 1
+  showPathNextCorner: 1
 --- !u!114 &549530989596183383
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1404,6 +1430,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4007889842366152}
   m_RootOrder: 4
@@ -1420,11 +1447,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 605374f2024e2ab46a015c28623bcc49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  model:
-    status: 1
-    obj: {fileID: 4539703397101770}
-    indexKey: 1
-    entity: {fileID: 114110147897504928}
+  model: {fileID: 4539703397101770}
   destructionModifier:
     initialHeight: -0.05
     targetHeight: -4
@@ -1458,6 +1481,7 @@ Transform:
   m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 4.44, y: 14.38, z: 9.13}
   m_LocalScale: {x: 0.6153848, y: 0.61538494, z: 0.61538476}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4165513870209682}
   m_RootOrder: 0
@@ -1481,10 +1505,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -1510,3 +1536,4 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}

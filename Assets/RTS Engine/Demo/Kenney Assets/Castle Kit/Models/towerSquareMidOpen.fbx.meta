@@ -1,84 +1,215 @@
 fileFormatVersion: 2
 guid: 7d56c569e60615c4d9c340376bb1a637
-timeCreated: 1501093676
-licenseType: Store
 ModelImporter:
-  serializedVersion: 19
-  fileIDToRecycleName:
-    100000: plank 10
-    100002: plank 11
-    100004: plank 12
-    100006: plank 13
-    100008: plank 14
-    100010: plank 15
-    100012: plank 8
-    100014: plank 9
-    100016: rail 5
-    100018: rail 6
-    100020: rail 7
-    100022: rail 8
-    100024: //RootNode
-    400000: plank 10
-    400002: plank 11
-    400004: plank 12
-    400006: plank 13
-    400008: plank 14
-    400010: plank 15
-    400012: plank 8
-    400014: plank 9
-    400016: rail 5
-    400018: rail 6
-    400020: rail 7
-    400022: rail 8
-    400024: //RootNode
-    2300000: plank 10
-    2300002: plank 11
-    2300004: plank 12
-    2300006: plank 13
-    2300008: plank 14
-    2300010: plank 15
-    2300012: plank 8
-    2300014: plank 9
-    2300016: rail 5
-    2300018: rail 6
-    2300020: rail 7
-    2300022: rail 8
-    2300024: //RootNode
-    3300000: plank 10
-    3300002: plank 11
-    3300004: plank 12
-    3300006: plank 13
-    3300008: plank 14
-    3300010: plank 15
-    3300012: plank 8
-    3300014: plank 9
-    3300016: rail 5
-    3300018: rail 6
-    3300020: rail 7
-    3300022: rail 8
-    3300024: //RootNode
-    4300000: towerSquareMidOpen
-    4300002: plank 8
-    4300004: plank 9
-    4300006: plank 10
-    4300008: plank 11
-    4300010: plank 12
-    4300012: plank 13
-    4300014: plank 14
-    4300016: plank 15
-    4300018: rail 5
-    4300020: rail 6
-    4300022: rail 7
-    4300024: rail 8
+  serializedVersion: 21300
+  internalIDToNameTable:
+  - first:
+      1: 100000
+    second: plank 10
+  - first:
+      1: 100002
+    second: plank 11
+  - first:
+      1: 100004
+    second: plank 12
+  - first:
+      1: 100006
+    second: plank 13
+  - first:
+      1: 100008
+    second: plank 14
+  - first:
+      1: 100010
+    second: plank 15
+  - first:
+      1: 100012
+    second: plank 8
+  - first:
+      1: 100014
+    second: plank 9
+  - first:
+      1: 100016
+    second: rail 5
+  - first:
+      1: 100018
+    second: rail 6
+  - first:
+      1: 100020
+    second: rail 7
+  - first:
+      1: 100022
+    second: rail 8
+  - first:
+      1: 100024
+    second: //RootNode
+  - first:
+      4: 400000
+    second: plank 10
+  - first:
+      4: 400002
+    second: plank 11
+  - first:
+      4: 400004
+    second: plank 12
+  - first:
+      4: 400006
+    second: plank 13
+  - first:
+      4: 400008
+    second: plank 14
+  - first:
+      4: 400010
+    second: plank 15
+  - first:
+      4: 400012
+    second: plank 8
+  - first:
+      4: 400014
+    second: plank 9
+  - first:
+      4: 400016
+    second: rail 5
+  - first:
+      4: 400018
+    second: rail 6
+  - first:
+      4: 400020
+    second: rail 7
+  - first:
+      4: 400022
+    second: rail 8
+  - first:
+      4: 400024
+    second: //RootNode
+  - first:
+      23: 2300000
+    second: plank 10
+  - first:
+      23: 2300002
+    second: plank 11
+  - first:
+      23: 2300004
+    second: plank 12
+  - first:
+      23: 2300006
+    second: plank 13
+  - first:
+      23: 2300008
+    second: plank 14
+  - first:
+      23: 2300010
+    second: plank 15
+  - first:
+      23: 2300012
+    second: plank 8
+  - first:
+      23: 2300014
+    second: plank 9
+  - first:
+      23: 2300016
+    second: rail 5
+  - first:
+      23: 2300018
+    second: rail 6
+  - first:
+      23: 2300020
+    second: rail 7
+  - first:
+      23: 2300022
+    second: rail 8
+  - first:
+      23: 2300024
+    second: //RootNode
+  - first:
+      33: 3300000
+    second: plank 10
+  - first:
+      33: 3300002
+    second: plank 11
+  - first:
+      33: 3300004
+    second: plank 12
+  - first:
+      33: 3300006
+    second: plank 13
+  - first:
+      33: 3300008
+    second: plank 14
+  - first:
+      33: 3300010
+    second: plank 15
+  - first:
+      33: 3300012
+    second: plank 8
+  - first:
+      33: 3300014
+    second: plank 9
+  - first:
+      33: 3300016
+    second: rail 5
+  - first:
+      33: 3300018
+    second: rail 6
+  - first:
+      33: 3300020
+    second: rail 7
+  - first:
+      33: 3300022
+    second: rail 8
+  - first:
+      33: 3300024
+    second: //RootNode
+  - first:
+      43: 4300000
+    second: towerSquareMidOpen
+  - first:
+      43: 4300002
+    second: plank 8
+  - first:
+      43: 4300004
+    second: plank 9
+  - first:
+      43: 4300006
+    second: plank 10
+  - first:
+      43: 4300008
+    second: plank 11
+  - first:
+      43: 4300010
+    second: plank 12
+  - first:
+      43: 4300012
+    second: plank 13
+  - first:
+      43: 4300014
+    second: plank 14
+  - first:
+      43: 4300016
+    second: plank 15
+  - first:
+      43: 4300018
+    second: rail 5
+  - first:
+      43: 4300020
+    second: rail 6
+  - first:
+      43: 4300022
+    second: rail 7
+  - first:
+      43: 4300024
+    second: rail 8
+  externalObjects: {}
   materials:
-    importMaterials: 1
+    materialImportMode: 1
     materialName: 0
     materialSearch: 1
+    materialLocation: 0
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
     resampleCurves: 1
     optimizeGameObjects: 0
+    removeConstantScaleCurves: 0
     motionNodeName: 
     rigImportErrors: 
     rigImportWarnings: 
@@ -86,39 +217,63 @@ ModelImporter:
     animationImportWarnings: 
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
     animationCompression: 1
     animationRotationError: 0.5
     animationPositionError: 0.5
     animationScaleError: 0.5
     animationWrapMode: 0
     extraExposedTransformPaths: []
+    extraUserProperties: []
     clipAnimations: []
     isReadable: 1
   meshes:
     lODScreenPercentages: []
     globalScale: 1
-    meshCompression: 0
+    meshCompression: 3
     addColliders: 0
-    importBlendShapes: 1
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 0
+    importBlendShapes: 0
+    importCameras: 0
+    importLights: 0
+    nodeNameCollisionStrategy: 0
+    fileIdsGeneration: 1
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
-    optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    meshOptimizationFlags: -1
+    indexFormat: 1
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 0
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
     secondaryUVPackMargin: 4
     useFileScale: 1
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
-    tangentImportMode: 3
+    tangentImportMode: 2
+    normalCalculationMode: 1
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 3
+  referencedClips: []
   importAnimation: 1
-  copyAvatar: 0
   humanDescription:
-    serializedVersion: 2
+    serializedVersion: 3
     human: []
     skeleton: []
     armTwist: 0.5
@@ -128,14 +283,18 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
+    globalScale: 1
     rootMotionBoneName: 
-    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
     hasTranslationDoF: 0
     hasExtraRoot: 0
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 0
   humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 0
+  remapMaterialsIfMaterialImportModeIsNone: 1
   additionalBone: 0
   userData: 
   assetBundleName: 

@@ -16,7 +16,7 @@ namespace RTSEngine.EditorOnly.EntityComponent
         }
 
         private string[][] toolbars = new string[][] {
-            new string [] { "General", "Adding", "Ejecting", "Calling" },
+            new string [] { "General", "Adding", "Ejecting", "Calling", "Debug" },
         };
 
         public override void OnInspectorGUI()
@@ -39,6 +39,9 @@ namespace RTSEngine.EditorOnly.EntityComponent
                     break;
                 case "Calling":
                     OnCallingInspectorGUI();
+                    break;
+                case "Debug":
+                    OnDebugInspectorGUI();
                     break;
             }
         }
@@ -104,6 +107,10 @@ namespace RTSEngine.EditorOnly.EntityComponent
 
             EditorGUILayout.Space();
 
+            EditorGUILayout.PropertyField(SO.FindProperty("allowMovementToExitCarrier"));
+
+            EditorGUILayout.Space();
+
             EditorGUILayout.PropertyField(SO.FindProperty("ejectUnitAudio"));
         }
 
@@ -120,6 +127,29 @@ namespace RTSEngine.EditorOnly.EntityComponent
             EditorGUILayout.Space();
 
             EditorGUILayout.PropertyField(SO.FindProperty("callUnitsAudio"));
+        }
+
+        protected virtual void OnDebugInspectorGUI()
+        {
+            GUI.enabled = false;
+
+            EditorGUILayout.Toggle("Has Max Amount", comp.HasMaxAmount);
+            EditorGUILayout.IntField("Max Amount", comp.MaxAmount);
+            EditorGUILayout.IntField("Current Amount", comp.CurrAmount);
+
+            EditorGUILayout.Space();
+            comp.storedUnitsFoldout = EditorGUILayout.Foldout(comp.storedUnitsFoldout, new GUIContent("Carrier Slots"));
+            if (comp.storedUnitsFoldout)
+            {
+                for (int i = 0; i < comp.CarrierSlots.Count; i++)
+                {
+                    var slot = comp.CarrierSlots[i];
+                    EditorGUILayout.ObjectField($"Slot {i}", slot.IsValid() ? slot.gameObject : null, typeof(GameObject), allowSceneObjects: true);
+                }
+            }
+            EditorGUILayout.PropertyField(SO.FindProperty("freeCarrierPositionIndexes"));
+
+            GUI.enabled = true;
         }
     }
 }

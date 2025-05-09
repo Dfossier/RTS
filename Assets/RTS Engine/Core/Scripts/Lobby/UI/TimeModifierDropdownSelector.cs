@@ -17,7 +17,7 @@ namespace RTSEngine.Lobby.UI
 
         public TimeModifierDropdownSelector() : base(1.0f, "Time Modifier") { }
 
-        public void Init(ILobbyManager lobbyMgr)
+        public void Init(ILobbyManagerBase lobbyMgr)
         {
             elementsDic.Clear();
             foreach (TimeModifierOption element in options)

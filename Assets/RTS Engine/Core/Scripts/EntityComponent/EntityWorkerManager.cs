@@ -1,21 +1,25 @@
-﻿using RTSEngine.Entities;
+﻿using System.Collections.Generic;
+
+using UnityEngine;
+
+using RTSEngine.Entities;
 using RTSEngine.Event;
 using RTSEngine.Game;
 using RTSEngine.Logging;
-using RTSEngine.Model;
 using RTSEngine.Movement;
 using RTSEngine.Terrain;
 using RTSEngine.UnitExtension;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+using RTSEngine.Utilities;
 
 namespace RTSEngine.EntityComponent
 {
     public abstract class EntityWorkerManager : MonoBehaviour, IEntityWorkerManager, IEntityPreInitializable
     {
         #region Attributes
+        // EDITOR ONLY
+        [HideInInspector]
+        public Int2D tabID = new Int2D {x = 0, y = 0};
+
         public IEntity Entity {private set; get;}
 
         [SerializeField, Tooltip("Code to identify this component, unique within the entity")]
@@ -23,7 +27,7 @@ namespace RTSEngine.EntityComponent
         public string Code => code;
 
         [SerializeField, Tooltip("Size of this array is the max. amount of workers. Worker positions can be static if the array's elements are assigned. If left unassigned, then the working position will be chosen as the closest position on this entity's radius to the worker position.")]
-        private ModelCacheAwareTransformInput[] workerPositions = new ModelCacheAwareTransformInput[0];
+        private Transform[] workerPositions = new Transform[0];
 
         [SerializeField, Tooltip("For static worker position, populate to define the types of terrain areas where the fixed worker positions can be placed at. Defining a terrain area for the worker position ensures that their height is at the same level of the chosen terrain area.")]
         private TerrainAreaType[] forcedTerrainAreas = new TerrainAreaType[0];
@@ -87,18 +91,18 @@ namespace RTSEngine.EntityComponent
             if (entity.IsDummy)
                 return;
 
-            foreach (ModelCacheAwareTransformInput workerPosTransform in workerPositions)
+            foreach (Transform workerPosTransform in workerPositions)
             {
                 if (!workerPosTransform.IsValid())
                     return;
 
-                if (!terrainMgr.GetTerrainAreaPosition(workerPosTransform.Position, forcedTerrainAreas, out Vector3 nextWorkerPosition))
+                if (!terrainMgr.GetTerrainAreaPosition(workerPosTransform.position, forcedTerrainAreas, out Vector3 nextWorkerPosition))
                 {
                     logger.LogError("[EntityWorkerManager] Unable to update the worker position transform as its initial position does not comply with the forced terrain areas!", source: this);
                     return;
                 }
 
-                workerPosTransform.Position = nextWorkerPosition;
+                workerPosTransform.position = nextWorkerPosition;
             }
         }
 
@@ -115,7 +119,7 @@ namespace RTSEngine.EntityComponent
         // Returns the source entity's position if the worker is not registed as worker in this component or it is registered but no static positions are provided.
         public bool GetOccupiedPosition(IUnit requestedWorker, out Vector3 workerPosition)
         {
-            ModelCacheAwareTransformInput positionTransform = null;
+            Transform positionTransform = null;
 
             for (int i = 0; i < workers.Count; i++)
                 if (workers[i] == requestedWorker)
@@ -123,7 +127,7 @@ namespace RTSEngine.EntityComponent
 
             if (positionTransform.IsValid())
             {
-                workerPosition = positionTransform.Position;
+                workerPosition = positionTransform.position;
                 return true;
             }
             else
@@ -159,7 +163,7 @@ namespace RTSEngine.EntityComponent
         public ErrorMessage Move(IUnit worker, AddableUnitData addableData)
         {
             ErrorMessage errorMsg;
-            if((errorMsg = CanMove(worker, addableData)) != ErrorMessage.none)
+            if ((errorMsg = CanMove(worker, addableData)) != ErrorMessage.none)
             {
                 if (addableData.playerCommand && RTSHelper.IsLocalPlayerFaction(worker))
                     playerMsgHandler.OnErrorMessage(new PlayerErrorMessageWrapper
@@ -177,7 +181,7 @@ namespace RTSEngine.EntityComponent
             // This is because when an addable position is determined, the worker entity gets added to the workers list of this worker manager
             // The reason behind that is that we want the worker to reserve a spot in this worker manager before they get to their addable position
 
-            if(!workerToPositionIndex.TryGetValue(worker, out int positionIndex))
+            if (!workerToPositionIndex.TryGetValue(worker, out int positionIndex))
             {
                 // If no specific transforms are assigned to the worker positions then get the first free slot
                 if (!workerPositions[freePositionIndexes[0]].IsValid())
@@ -192,7 +196,7 @@ namespace RTSEngine.EntityComponent
 
                     for (int i = 0; i < freePositionIndexes.Count; i++)
                     {
-                        nextDistance = Vector3.Distance(workerPositions[freePositionIndexes[i]].Position, worker.transform.position);
+                        nextDistance = Vector3.Distance(workerPositions[freePositionIndexes[i]].position, worker.transform.position);
                         if (nextDistance < closestDistance)
                         {
                             positionIndex = freePositionIndexes[i];
@@ -209,24 +213,27 @@ namespace RTSEngine.EntityComponent
                 RaiseWorkerAdded(Entity, new EntityEventArgs<IUnit>(worker));
             }
 
-            Vector3 destination = workerPositions[positionIndex].IsValid() ? workerPositions[positionIndex].Position : Entity.transform.position;
+            Vector3 destination = workerPositions[positionIndex].IsValid() ? workerPositions[positionIndex].position : Entity.transform.position;
             float radius = workerPositions[positionIndex].IsValid() ? 0.0f : Entity.Radius;
 
             errorMsg = mvtMgr.SetPathDestinationLocal(
-                worker,
-                destination,
-                radius,
-                Entity,
-                new MovementSource
+                new SetPathDestinationData<IEntity>
                 {
-                    playerCommand = addableData.playerCommand,
+                    source = worker,
+                    destination = destination,
+                    offsetRadius = radius,
+                    target = Entity,
+                    mvtSource = new MovementSource
+                    {
+                        playerCommand = addableData.playerCommand,
 
-                    sourceTargetComponent = addableData.sourceTargetComponent,
+                        sourceTargetComponent = addableData.sourceTargetComponent,
 
-                    targetAddableUnit = this,
-                    targetAddableUnitPosition = destination,
+                        targetAddableUnit = this,
+                        targetAddableUnitPosition = destination,
 
-                    isMoveAttackRequest = addableData.isMoveAttackRequest
+                        isMoveAttackRequest = addableData.isMoveAttackRequest
+                    }
                 });
 
             if (errorMsg != ErrorMessage.none 
@@ -264,5 +271,42 @@ namespace RTSEngine.EntityComponent
             RaiseWorkerRemoved(Entity, new EntityEventArgs<IUnit>(worker));
         }
         #endregion
+
+        #region Editor
+#if UNITY_EDITOR
+        [SerializeField, HideInInspector]
+        private bool showWorkerPositionsGizmos = true;
+        [SerializeField, HideInInspector]
+        private bool showWorkersGizmos = true;
+        [HideInInspector]
+        public bool showWorkersFoldout;
+
+        protected void OnDrawGizmosSelected()
+        {
+            if(showWorkerPositionsGizmos)
+            {
+                Gizmos.color = Color.yellow;
+
+                foreach(var t in workerPositions)
+                {
+                    if (t.IsValid())
+                        Gizmos.DrawWireSphere(t.position, 0.5f);
+                }
+            }
+
+            if (showWorkersGizmos && Workers.IsValid())
+            {
+                Gizmos.color = Color.green;
+                foreach(var worker in Workers)
+                {
+                    if (worker.IsValid())
+                        Gizmos.DrawWireSphere(worker.transform.position, worker.Radius);
+                }
+            }
+        }
+#endif
+
+        #endregion
+
     }
 }

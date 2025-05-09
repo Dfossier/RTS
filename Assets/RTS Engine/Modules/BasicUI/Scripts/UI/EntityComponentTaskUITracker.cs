@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-
+using RTSEngine.Entities;
 using RTSEngine.EntityComponent;
 using UnityEngine;
 
@@ -12,16 +12,19 @@ namespace RTSEngine.UI
     public class EntityComponentTaskUITracker : IEntityComponentGroupDisplayer
     {
         public List<IEntityComponent> entityComponents;
+
+        public IReadOnlyList<IEntity> Entities => entityComponents.Where(comp => comp.IsValid()).Select(comp => comp.Entity).ToList();
+
         /// <summary>
         /// Components that implement IEntityComponent interface that share the tracked task.
         /// </summary>
-        public IEnumerable<IEntityComponent> EntityComponents => entityComponents.Where(comp => comp.IsValid());
+        public IReadOnlyList<IEntityComponent> EntityComponents => entityComponents.Where(comp => comp.IsValid()).ToList();
 
         private List<IEntityTargetComponent> entityTargetComponents;
         /// <summary>
         /// Components that implement IEntityTargetComponent interface that share the tracked task.
         /// </summary>
-        public IEnumerable<IEntityTargetComponent> EntityTargetComponents => entityTargetComponents.Where(comp => comp.IsValid());
+        public IReadOnlyList<IEntityTargetComponent> EntityTargetComponents => entityTargetComponents.Where(comp => comp.IsValid()).ToList();
 
         /// <summary>
         /// TaskUI instance tracked by the EntityComponentTaskUITracker.
@@ -57,6 +60,11 @@ namespace RTSEngine.UI
             Task.Reload(new EntityComponentTaskUIAttributes
             {
                 data = attributes.data,
+
+                title = attributes.title,
+                factionID = attributes.factionID,
+                requiredResources = attributes.requiredResources,
+                factionEntityRequirements = attributes.factionEntityRequirements,
 
                 sourceTracker = this,
                 launchOnce = attributes.launchOnce,

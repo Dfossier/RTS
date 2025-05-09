@@ -17,12 +17,12 @@ namespace RTSEngine.Attack
         public GameObjectToAttackObjectInput attackObject;
 
         [Tooltip("This is where the attack object will be launched from.")]
-        public ModelCacheAwareTransformInput launchPosition; 
+        public Transform launchPosition; 
         [Tooltip("The initial rotation that the attack object will have as soon as it is spawned.")]
         public Vector3 launchRotationAngles;
 
-        [Tooltip("The higher the absolute value in an axis, the less accurate the attack object movement is on that axis.")]
-        public Vector3 accuracyModifier; 
+        //[Tooltip("The higher the absolute value in an axis, the less accurate the attack object movement is on that axis.")]
+        //public Vector3 accuracyModifier; 
 
         [Tooltip("Delay time before the attack object is created.")]
         public float preDelayTime; 
@@ -34,7 +34,7 @@ namespace RTSEngine.Attack
         [Tooltip("Deal damage with the attack object when it is in delay mode?")]
         public bool damageInDelay;
         [Tooltip("A parent object can be assigned to the attack object when it is in delay mode.")]
-        public ModelCacheAwareTransformInput delayParentObject;
+        public Transform delayParentObject;
 
         // index of this source in the array in the AttackLauncher
         [HideInInspector]
@@ -53,7 +53,7 @@ namespace RTSEngine.Attack
 
         internal IAttackObject Launch(IAttackManager attackMgr, IAttackComponent sourceAttackComp)
         {
-            Vector3 targetPosition = RTSHelper.GetAttackTargetPosition(sourceAttackComp.Target);
+            Vector3 targetPosition = RTSHelper.GetAttackTargetPosition(sourceAttackComp, sourceAttackComp.Target);
 
             IAttackObject nextAttackObj = attackMgr.SpawnAttackObject(
                 attackObject.Output,
@@ -62,7 +62,7 @@ namespace RTSEngine.Attack
                     sourceFactionID: sourceAttackComp.Entity.FactionID,
                     launcherSourceIndex: index,
 
-                    spawnPosition: launchPosition.Position,
+                    spawnPosition: launchPosition.position,
                     spawnRotation: Quaternion.Euler(launchRotationAngles),
 
                     target: sourceAttackComp.Target.instance,

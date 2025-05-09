@@ -108,7 +108,7 @@ namespace RTSEngine.Minimap.Notification
                     spawnPosition: spawnPosition,
                     spawnRotation: prefab.Output.transform.localRotation));
 
-            audioMgr.PlaySFX(audioClip.Fetch(), false);
+            audioMgr.PlaySFX(audioClip.Fetch(), null, loop: false);
 
             if (sendPlayerMessage)
                 playerMsgHandler.OnErrorMessage(new PlayerErrorMessageWrapper

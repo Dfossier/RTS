@@ -10,10 +10,13 @@ using RTSEngine.Faction;
 using RTSEngine.Lobby.Logging;
 using RTSEngine.Lobby.UI;
 using System.Collections.Generic;
+using TMPro;
+using UnityEngine.EventSystems;
 
 namespace RTSEngine.SinglePlayer.Lobby
 {
-    public class LocalLobbyFactionSlot : MonoBehaviour, ILobbyFactionSlot
+
+    public class LocalLobbyFactionSlot : MonoBehaviour, ILocalLobbyFactionSlot
     {
         #region Attributes
         public bool IsInitialized { private set; get; } = false;
@@ -26,13 +29,14 @@ namespace RTSEngine.SinglePlayer.Lobby
             color = lobbyMgr.FactionColorSelector.Get(inputData.colorID),
 
             type = lobbyMgr.CurrentMap.GetFactionType(inputData.factionTypeID),
-            npcType = lobbyMgr.CurrentMap.GetNPCType(inputData.npcTypeID),
+            npcType = lobbyMgr.CurrentMap.GetNPCType(inputData.factionTypeID, inputData.npcTypeID),
 
             isLocalPlayer = Role == FactionSlotRole.host
         };
         private LobbyFactionSlotInputData inputData = new LobbyFactionSlotInputData();
 
-        public FactionSlotRole Role { get; private set; } = FactionSlotRole.client;
+        private FactionSlotRole role;
+        public FactionSlotRole Role => role;
 
         public bool IsInteractable { private set; get; }
 
@@ -40,14 +44,14 @@ namespace RTSEngine.SinglePlayer.Lobby
         private Image factionColorImage = null; 
 
         [SerializeField, Tooltip("UI Input Field to display and change the faction's name.")]
-        private InputField factionNameInput = null; 
+        private TMP_InputField factionNameInput = null; 
 
         [SerializeField, Tooltip("UI Dropdown menu used to display the list of possible faction types that the slot can have.")]
-        private Dropdown factionTypeMenu = null;
+        private TMP_Dropdown factionTypeMenu = null;
         protected virtual string RandomFactionTypeName => "Random";
 
         [SerializeField, Tooltip("UI Dropdown menu used to display the list of possible NPC faction types that the slot can have")]
-        private Dropdown npcTypeMenu = null; 
+        private TMP_Dropdown npcTypeMenu = null; 
 
         [SerializeField, Tooltip("Button used to remove the faction slot from the lobby.")]
         private Button removeButton = null;
@@ -56,57 +60,76 @@ namespace RTSEngine.SinglePlayer.Lobby
         public IFactionSlot GameFactionSlot { private set; get; }
 
         // Lobby Services
-        protected ILobbyManager lobbyMgr { private set; get; }
+        protected ILocalLobbyManager lobbyMgr { private set; get; }
         protected ILobbyLoggingService logger { private set; get; }
         protected ILobbyManagerUI lobbyUIMgr { private set; get; }
         protected ILobbyPlayerMessageUIHandler playerMessageUIHandler { private set; get; } 
         #endregion
 
         #region Raising Events
-        public event CustomEventHandler<ILobbyFactionSlot, EventArgs> RoleUpdated;
+        public event CustomEventHandler<ILobbyFactionSlot, EventArgs> FactionSlotInitialized;
+        private void RaiseFactionSlotInitialized()
+        {
+            IsInitialized = true;
 
+            var handler = FactionSlotInitialized;
+            handler?.Invoke(this, EventArgs.Empty);
+        }
+
+        public event CustomEventHandler<ILobbyFactionSlot, EventArgs> FactionRoleUpdated;
         private void RaiseRoleUpdated(FactionSlotRole role)
         {
-            this.Role = role;
+            this.role = role;
 
-            var handler = RoleUpdated;
+            var handler = FactionRoleUpdated;
             handler?.Invoke(this, EventArgs.Empty);
         }
         #endregion
 
         #region Initializing/Terminating
-        public void Init (ILobbyManager lobbyMgr, bool playerControlled)
+        public void Init(ILobbyManager<ILocalLobbyFactionSlot> lobbyMgr, bool playerControlled)
         {
-            this.lobbyMgr = lobbyMgr;
+            this.lobbyMgr = lobbyMgr as ILocalLobbyManager;
 
-            this.logger = lobbyMgr.GetService<ILobbyLoggingService>(); 
+            this.logger = lobbyMgr.GetService<ILobbyLoggingService>();
             this.lobbyUIMgr = lobbyMgr.GetService<ILobbyManagerUI>();
             this.playerMessageUIHandler = lobbyMgr.GetService<ILobbyPlayerMessageUIHandler>();
 
             if (!logger.RequireValid(factionColorImage, $"[{GetType().Name}] The field 'Faction Color Image' is required!")
+                || !logger.RequireValid(factionNameInput, $"[{GetType().Name}] The field 'Faction Name Input' is required!")
                 || !logger.RequireValid(factionTypeMenu, $"[{GetType().Name}] The field 'Faction Type Menu' is required!")
                 || !logger.RequireValid(npcTypeMenu, $"[{GetType().Name}] The field 'NPC Type Menu' is required!")
                 || !logger.RequireValid(removeButton, $"[{GetType().Name}] The field 'Remove Button' is required!"))
                 return;
 
+            EventTrigger factionColorImageEventTrigger = factionColorImage.GetComponent<EventTrigger>();
+            EventTrigger.Entry entry = new EventTrigger.Entry();
+            entry.eventID = EventTriggerType.PointerClick;
+            entry.callback.AddListener((eventData) => { OnFactionColorUpdated(); });
+            factionColorImageEventTrigger.triggers.Add(entry);
+
+            factionNameInput.onEndEdit.AddListener(OnFactionNameUpdated);
+            factionTypeMenu.onValueChanged.AddListener(OnFactionTypeUpdated);
+            npcTypeMenu.onValueChanged.AddListener(OnNPCTypeUpdated);
+            removeButton.onClick.AddListener(OnRemove);
+
             this.lobbyMgr.LobbyGameDataUpdated += HandleLobbyGameDataUpdated;
             this.lobbyMgr.FactionSlotAdded += HandleFactionSlotAddedOrRemoved;
             this.lobbyMgr.FactionSlotRemoved += HandleFactionSlotAddedOrRemoved;
 
-            ResetFactionType(prevMapID:-1);
-            ResetNPCType(prevMapID:-1);
+            ResetFactionType(prevMapID: -1);
+
+            role = playerControlled ? FactionSlotRole.host : FactionSlotRole.npc;
 
             // Every faction slot starts with the same default input data
             ResetInputData();
             RefreshInputDataUI();
 
-
-            RaiseRoleUpdated(playerControlled ? FactionSlotRole.host : FactionSlotRole.npc);
-
             // By default, the faction slot is not interactable until it is validated and initialized.
             SetInteractable(true);
 
-            IsInitialized = true;
+            RaiseFactionSlotInitialized();
+            RaiseRoleUpdated(Role);
         }
 
         private void OnDestroy()
@@ -124,16 +147,6 @@ namespace RTSEngine.SinglePlayer.Lobby
             // Refresh the interactability of the slot UI elements (such as displaying the remove button when there are enough factions to remove).
             SetInteractable(IsInteractable); 
         }
-        public void OnFactionSlotValidated (ILobbyFactionSlot newFactionSlot)
-        {
-        }
-        #endregion
-
-        #region Handling Faction Slot Role
-        public void UpdateRoleRequest(FactionSlotRole newRole)
-        {
-            // Can not update roles in a single player lobby.
-        }
         #endregion
 
         #region Handling Faction Slot Input Data
@@ -141,7 +154,7 @@ namespace RTSEngine.SinglePlayer.Lobby
         {
             inputData = new LobbyFactionSlotInputData
             {
-                name = "new_faction",
+                name = Role == FactionSlotRole.host ? "player" : "npc",
 
                 colorID = lobbyMgr.FactionSlotCount-1,
 
@@ -180,20 +193,14 @@ namespace RTSEngine.SinglePlayer.Lobby
 
         #region Updating Lobby Game Data
 
-        public void UpdateLobbyGameDataAttempt(LobbyGameData newLobbyGameData)
-        {
-            lobbyMgr.UpdateLobbyGameDataComplete(newLobbyGameData);
-        }
-
         private void HandleLobbyGameDataUpdated (LobbyGameData prevLobbyGameData, EventArgs args)
         {
             ResetFactionType(prevMapID:prevLobbyGameData.mapID);
-            ResetNPCType(prevMapID:prevLobbyGameData.mapID);
         }
         #endregion
 
         #region Updating Faction Name
-        public void OnFactionNameUpdated ()
+        private void OnFactionNameUpdated (string newText)
         {
             if (!IsInteractable || factionNameInput.text.Trim() == "") 
             {
@@ -208,38 +215,59 @@ namespace RTSEngine.SinglePlayer.Lobby
         #region Updating Faction Type
         private void ResetFactionType(int prevMapID)
         {
-            List<string> factionTypeOptions = lobbyMgr.CurrentMap.factionTypes.Select(type => type.Name).ToList();
+            inputData.prevFactionTypeID = inputData.factionTypeID;
+
+            List<string> factionTypeOptions = lobbyMgr.CurrentMap.GetFactionTypes().Select(type => type.Name).ToList();
             // Last faction type option in the list is the random one
             factionTypeOptions.Add(RandomFactionTypeName);
 
-            RTSHelper.UpdateDropdownValue(ref factionTypeMenu,
-                lastOption: lobbyMgr.GetMap(prevMapID).GetFactionType(inputData.factionTypeID).Name,
-                newOptions: factionTypeOptions);
-
-            inputData.factionTypeID = factionTypeMenu.value;
-        }
-
-        public void OnFactionTypeUpdated ()
-        {
-            if(!IsInteractable)
+            if (inputData.isFactionTypeRandom)
             {
-                factionTypeMenu.value = inputData.factionTypeID;
-                return;
-            }
-
-            // Last faction type option in the list is the random one
-            if(factionTypeMenu.value == factionTypeMenu.options.Count - 1)
-            {
-                inputData.factionTypeID = UnityEngine.Random.Range(0, lobbyMgr.CurrentMap.factionTypes.Length);
-                inputData.isFactionTypeRandom = true;
+                factionTypeMenu.value = factionTypeOptions.Count - 1;
             }
             else
-                inputData.factionTypeID = factionTypeMenu.value;
+            {
+                RTSHelper.UpdateDropdownValue(ref factionTypeMenu,
+                    lastOption: lobbyMgr.GetMap(prevMapID).GetFactionType(inputData.factionTypeID).Name,
+                    newOptions: factionTypeOptions);
+                    inputData.factionTypeID = factionTypeMenu.value;
+            }
+
+            ResetNPCType(prevMapID);
+        }
+
+        private void OnFactionTypeUpdated (int newOption)
+        {
+            inputData.prevFactionTypeID = inputData.factionTypeID;
+
+            if (!IsInteractable)
+            {
+                factionTypeMenu.value = inputData.factionTypeID;
+            }
+            else
+            {
+                // Last faction type option in the list is the random one
+                if (factionTypeMenu.value == factionTypeMenu.options.Count - 1)
+                {
+                    inputData.factionTypeID = UnityEngine.Random.Range(0, lobbyMgr.CurrentMap.GetFactionTypes().Count);
+                    inputData.isFactionTypeRandom = true;
+                }
+                else
+                {
+                    inputData.factionTypeID = factionTypeMenu.value;
+                    inputData.isFactionTypeRandom = false;
+                }
+            }
+
+            if(!inputData.isPrevFactionTypeRandom || !inputData.isFactionTypeRandom)
+                ResetNPCType(prevMapID: -1);
+
+            inputData.isPrevFactionTypeRandom = factionTypeMenu.value == factionTypeMenu.options.Count - 1;
         }
         #endregion
 
         #region Updating Color
-        public void OnFactionColorUpdated ()
+        private void OnFactionColorUpdated ()
         {
             if(!IsInteractable)
                 return;
@@ -253,19 +281,25 @@ namespace RTSEngine.SinglePlayer.Lobby
         private void ResetNPCType(int prevMapID)
         {
             RTSHelper.UpdateDropdownValue(ref npcTypeMenu,
-                lastOption: lobbyMgr.GetMap(prevMapID).GetNPCType(inputData.npcTypeID).Name,
-                newOptions: lobbyMgr.CurrentMap.npcTypes.Select(type => type.Name).ToList());
+                lastOption: lobbyMgr.GetMap(prevMapID).GetNPCType(inputData.prevFactionTypeID, inputData.npcTypeID).Name,
+                newOptions: (inputData.isFactionTypeRandom
+                    ? lobbyMgr.CurrentMap.GetRandomFactionTypeNPCTypes()
+                    : lobbyMgr.CurrentMap.GetNPCTypes(inputData.factionTypeID))
+                    .Select(type => type.Name).ToList());
 
             inputData.npcTypeID = npcTypeMenu.value;
         }
 
-        public void OnNPCTypeUpdated ()
+        private void OnNPCTypeUpdated (int newOption)
         {
             if(!IsInteractable)
             {
                 npcTypeMenu.value = inputData.npcTypeID;
                 return;
             }
+
+            if(!inputData.isFactionTypeRandom)
+                inputData.prevFactionTypeID = inputData.factionTypeID;
 
             inputData.npcTypeID = npcTypeMenu.value;
         }
@@ -274,35 +308,7 @@ namespace RTSEngine.SinglePlayer.Lobby
         #region Removing Faction Slot
         public void OnRemove()
         {
-            lobbyMgr.RemoveFactionSlotComplete(this);
-        }
-
-        public void KickAttempt (int factionSlotID)
-        {
-            lobbyMgr.RemoveFactionSlotRequest(factionSlotID);
-        }
-        #endregion
-
-        #region Starting Lobby
-        public void OnStartLobbyRequest()
-        {
-            // Disable allowing any input on all faction slots and wait for the game to start.
-            foreach(ILobbyFactionSlot slot in lobbyMgr.FactionSlots)
-                slot.SetInteractable(false);
-
-            lobbyUIMgr.SetInteractable(false);
-            playerMessageUIHandler.Message.Display("Starting game...");
-        }
-
-        public void OnStartLobbyInterrupted()
-        {
-            // Disable allowing any input on all faction slots and wait for the game to start.
-            foreach(ILobbyFactionSlot slot in lobbyMgr.FactionSlots)
-                slot.SetInteractable(true);
-
-            lobbyUIMgr.SetInteractable(true);
-
-            playerMessageUIHandler.Message.Display("Game start interrupted!");
+            lobbyMgr.RemoveFactionSlot(this);
         }
         #endregion
 

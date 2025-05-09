@@ -5,20 +5,6 @@ using UnityEngine;
 
 namespace RTSEngine
 {
-    public class ModelCacheAwareObjectInputAttribute : PropertyAttribute
-    {
-        public bool AllowModelParent { get; }
-        public bool AllowChild { get; }
-        public bool AllowNotChild { get; }
-
-        public ModelCacheAwareObjectInputAttribute(bool allowModelParent = true, bool allowChild = true, bool allowNotChild = true)
-        {
-            AllowModelParent = allowModelParent;
-            AllowChild = allowChild;
-            AllowNotChild = allowNotChild;
-        }
-    }
-
     public class IconDrawerAttribute : PropertyAttribute { }
     public class ReadOnlyAttribute : PropertyAttribute { }
 

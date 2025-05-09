@@ -5,10 +5,16 @@ using UnityEngine;
 
 namespace RTSEngine.UI
 {
+    public struct MultipleSelectionUIElement
+    {
+        public bool isSquad;
+        public IEnumerable<IEntity> entities;
+    }
+
     public struct MultipleSelectionTaskUIAttributes : ITaskUIAttributes
     {
         public MultipleSelectionTaskUIData data;
 
-        public IEnumerable<IEntity> selectedEntities;
+        public MultipleSelectionUIElement selectedElement;
     }
 }

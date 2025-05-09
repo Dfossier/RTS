@@ -19,7 +19,7 @@ namespace RTSEngine.Demo
         private GameObject unitCreator = null;
 
         [SerializeField, Tooltip("Door object to open/close when units are created or removed from the carrier.")]
-        private ModelCacheAwareTransformInput door = null;
+        private Transform door = null;
         [SerializeField, Tooltip("Time (in seconds) before the door closes after it is open."), Min(0.0f)]
         private float closeTime = 1.5f;
         private TimeModifiedTimer closeTimer;
@@ -84,8 +84,8 @@ namespace RTSEngine.Demo
 
         private void Open()
         {
-            door.LocalPosition = openPosition;
-            door.LocalRotation = Quaternion.Euler(openEulerAngles);
+            door.localPosition = openPosition;
+            door.localRotation = Quaternion.Euler(openEulerAngles);
 
             closeTimer = new TimeModifiedTimer(closeTime);
 
@@ -94,8 +94,8 @@ namespace RTSEngine.Demo
 
         private void Close()
         {
-            door.LocalPosition = closedPosition;
-            door.LocalRotation = Quaternion.Euler(closedEulerAngles);
+            door.localPosition = closedPosition;
+            door.localRotation = Quaternion.Euler(closedEulerAngles);
 
             isOpen = false;
         }

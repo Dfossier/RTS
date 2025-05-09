@@ -131,22 +131,22 @@ namespace RTSEngine.NPC.BuildingExtension
                 switch (errorMsg)
                 {
                     case ErrorMessage.placementBuildingCenterMissing:
-                        LogEvent($"{task.Prefab.Code}: Building Center for building prefab hasn't been specified in the Building Placement Request!");
+                        LogEvent($"{task.TargetObject.Code}: Building Center for building prefab hasn't been specified in the Building Placement Request!");
                         break;
 
                     case ErrorMessage.taskMissingResourceRequirements:
-                        LogEvent($"{task.Prefab.Code}: Building creation task resource requirements missing!");
+                        LogEvent($"{task.TargetObject.Code}: Building creation task resource requirements missing!");
                         npcResourceMgr.OnIncreaseMissingResourceRequest(task.RequiredResources);
                         break;
                     default:
-                        LogEvent($"'{task.Prefab.Code}': Placement Request Failure - Creation Tasks Requirements Not Met - Erorr: {errorMsg}");
+                        LogEvent($"'{task.TargetObject.Code}': Placement Request Failure - Creation Tasks Requirements Not Met - Erorr: {errorMsg}");
                         break;
                 }
 
                 return false;
             }
 
-            LogEvent($"'{task.Prefab.Code}': Placement Request Success");
+            LogEvent($"'{task.TargetObject.Code}': Placement Request Success");
 
             return true;
         }

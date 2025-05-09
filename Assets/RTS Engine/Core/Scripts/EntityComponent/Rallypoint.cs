@@ -18,7 +18,6 @@ using RTSEngine.ResourceExtension;
 
 namespace RTSEngine.EntityComponent
 {
-    [RequireComponent(typeof(IFactionEntity))]
     public class Rallypoint : FactionEntityTargetComponent<IEntity>, IRallypoint
     {
         #region Attributes
@@ -31,8 +30,8 @@ namespace RTSEngine.EntityComponent
         public override bool AllowPreEntityInit => true;
 
         [SerializeField, Tooltip("Initial rallypoint transform. Determines where created units will move to after they spawn.")]
-        private ModelCacheAwareTransformInput gotoTransform = null;
-        public Vector3 GotoPosition => gotoTransform.Position;
+        private Transform gotoTransform = null;
+        public Vector3 GotoPosition => gotoTransform.position;
 
         [SerializeField, Tooltip("If populated then this defines the types of terrain areas where the rallypoint can be placed at.")]
         private TerrainAreaType[] forcedTerrainAreas = new TerrainAreaType[0];
@@ -57,7 +56,10 @@ namespace RTSEngine.EntityComponent
         private bool setTargetResourceOfSameTypeOnDead = true;
         [SerializeField, Tooltip("In case the above field is enabled, this represents the search range for which resources of the same type will be checked for being the next valid target rallypoint resource.")]
         private float setTargetResourceOnDeadRange = 20.0f;
-        private ResourceTypeInfo lastTargetResourceType; 
+        private ResourceTypeInfo lastTargetResourceType;
+
+        [SerializeField, Tooltip("When enabled and the created units have an attack component, attack-move will be enabled for the movement of the created attack units towards the rallypoint destinationawaitingUnits.")]
+        private bool attackMoveEnabled = true;
 
         // Rallypoint component does not require the faction entity it is attached on to be idle when picking a target
         public override bool RequireIdleEntity => false;
@@ -106,7 +108,8 @@ namespace RTSEngine.EntityComponent
                 SetTarget(GotoPosition, false);
 
             // Rallypoint component requires no auto-target search
-            TargetFinder.Enabled = false;
+            if(targetFinder.IsValid())
+                targetFinder.IsActive = false;
 
             this.factionEntity.Selection.Selected += HandleFactionEntitySelectionUpdated;
             this.factionEntity.Selection.Deselected += HandleFactionEntitySelectionUpdated;
@@ -138,7 +141,7 @@ namespace RTSEngine.EntityComponent
         #region Handling Component Upgrade
         protected override void OnComponentUpgraded(FactionEntityTargetComponent<IEntity> sourceFactionEntityTargetComponent)
         {
-            gotoTransform.Position = sourceFactionEntityTargetComponent.Target.position;
+            gotoTransform.position = sourceFactionEntityTargetComponent.Target.position;
         }
         #endregion
 
@@ -159,22 +162,22 @@ namespace RTSEngine.EntityComponent
         public override bool IsTargetInRange(Vector3 sourcePosition, TargetData<IEntity> target)
             => !maxDistanceEnabled || Vector3.Distance(sourcePosition, target.position) <= maxDistance;
 
-        public override ErrorMessage IsTargetValid(TargetData<IEntity> potentialTarget, bool playerCommand)
+        public override ErrorMessage IsTargetValid(SetTargetInputData data)
         {
-            if (potentialTarget.instance.IsValid())
+            if (data.target.instance.IsValid())
             {
-                if (!potentialTarget.instance.IsInteractable)
+                if (!data.target.instance.IsInteractable)
                     return ErrorMessage.uninteractable;
-                else if (potentialTarget.instance.Health.IsDead)
+                else if (data.target.instance.Health.IsDead)
                     return ErrorMessage.healthDead;
-                else if (potentialTarget.instance == Entity)
+                else if (data.target.instance == Entity)
                     return ErrorMessage.invalid;
             }
 
-            if (!IsTargetInRange(factionEntity.transform.position, potentialTarget.position))
+            if (!IsTargetInRange(factionEntity.transform.position, data.target.position))
                 return ErrorMessage.rallypointTargetNotInRange;
-            else if (!terrainMgr.GetTerrainAreaPosition(potentialTarget.position, forcedTerrainAreas, out _)
-                || (forbiddenTerrainAreas.Length > 0 && terrainMgr.GetTerrainAreaPosition(potentialTarget.position, forbiddenTerrainAreas, out _)))
+            else if (!terrainMgr.GetTerrainAreaPosition(data.target.position, forcedTerrainAreas, out _)
+                || (forbiddenTerrainAreas.Length > 0 && terrainMgr.GetTerrainAreaPosition(data.target.position, forbiddenTerrainAreas, out _)))
                 return ErrorMessage.rallypointTerrainAreaMismatch;
 
             return ErrorMessage.none;
@@ -184,7 +187,7 @@ namespace RTSEngine.EntityComponent
         {
             // In the case where the rallypoint sends
             if (!Target.instance.IsValid())
-                gotoTransform.Position = Target.position;
+                gotoTransform.position = Target.position;
 
             if (input.playerCommand && factionEntity.IsLocalPlayerFaction())
             {
@@ -192,7 +195,7 @@ namespace RTSEngine.EntityComponent
 
                 if (Target.instance.IsValid())
                 {
-                    mouseSelector.FlashSelection(Target.instance, factionEntity.IsFriendlyFaction(Target.instance));
+                    selector.FlashSelection(Target.instance, factionEntity.IsFriendlyFaction(Target.instance));
                     trackGotoTargetPosition = Target.instance.MovementComponent.IsValid();
 
                     Target.instance.Health.EntityDead += HandleRallypointTargetDead;
@@ -202,7 +205,7 @@ namespace RTSEngine.EntityComponent
 
         public void SetGotoTransformActive(bool active)
         {
-            gotoTransform.IsActive = active;
+            gotoTransform.gameObject.SetActive(!Target.instance.IsValid() && active);
 
             OnGotoTransformActiveUpdated(active);
         }
@@ -239,14 +242,17 @@ namespace RTSEngine.EntityComponent
         public ErrorMessage SendActionLocal(IUnit unit, bool playerCommand)
         {
             if (Target.instance.IsValid() && (!trackGotoTargetPosition || IsTargetInRange(Entity.transform.position, Target)))
-                return unit.SetTargetFirst(new SetTargetInputData { target = Target, playerCommand = false, fromRallypoint = true });
+                return unit.SetTargetFirst(new SetTargetInputData { target = Target, playerCommand = false, fromRallypoint = true, isMoveAttackRequest = attackMoveEnabled });
 
             return mvtMgr.SetPathDestination(
-                    unit,
-                    GotoPosition,
-                    0.0f,
-                    null,
-                    new MovementSource { playerCommand = false });
+                new SetPathDestinationData<IEntity>
+                {
+                    source = unit,
+                    destination = GotoPosition,
+                    offsetRadius = 0.0f,
+                    target = null,
+                    mvtSource = new MovementSource { playerCommand = false, isMoveAttackRequest = attackMoveEnabled }
+                });
         }
         #endregion
 
@@ -273,28 +279,29 @@ namespace RTSEngine.EntityComponent
             }
         }
 
-        private ErrorMessage IsTargetResourceValid(TargetData<IEntity> potentialTarget, bool playerCommand)
+        private ErrorMessage IsTargetResourceValid(SetTargetInputData data)
         {
             ErrorMessage errorMsg;
-            if ((errorMsg = IsTargetValid(potentialTarget, playerCommand)) != ErrorMessage.none)
+            if ((errorMsg = IsTargetValid(data)) != ErrorMessage.none)
                 return errorMsg;
 
-            if (!potentialTarget.instance.IsValid() || !potentialTarget.instance.IsResource())
+            if (!data.target.IsValid() || !data.target.instance.IsResource())
                 return ErrorMessage.invalid;
-            else if ((potentialTarget.instance as IResource).ResourceType != lastTargetResourceType)
+            else if ((data.target.instance as IResource).ResourceType != lastTargetResourceType)
                 return ErrorMessage.resourceTypeMismatch;
 
             return ErrorMessage.none;
         }
         #endregion
 
+        #region Helper Functions
         private bool TryFindValidInitialGotoPosition()
         {
             Vector3 originalPosition = factionEntity.transform.position + initialDirection;
-            if (IsTargetValid(originalPosition, playerCommand: false) == ErrorMessage.none)
+            if (IsTargetValid(originalPosition.ToSetTargetInputData(playerCommand: false)) == ErrorMessage.none)
             {
                 if (factionEntity.IsDummy)
-                    gotoTransform.Position = originalPosition;
+                    gotoTransform.position = originalPosition;
                 else
                     SetTarget(originalPosition, false);
 
@@ -324,7 +331,7 @@ namespace RTSEngine.EntityComponent
                 // As long as we haven't inspected all the expected free positions inside this cirlce
                 while (counter < expectedPositionCount)
                 {
-                    if (IsTargetValid(nextDestination, false) == ErrorMessage.none
+                    if (IsTargetValid(nextDestination.ToSetTargetInputData(playerCommand: false)) == ErrorMessage.none
                         && Vector3.Distance(nextDestination, originalPosition) < closestDistance)
                     {
                         foundPosition = true;
@@ -344,7 +351,7 @@ namespace RTSEngine.EntityComponent
                 if (foundPosition)
                 {
                     if (factionEntity.IsDummy)
-                        gotoTransform.Position = closestPosition;
+                        gotoTransform.position = closestPosition;
                     else
                         SetTarget(closestPosition, false);
 
@@ -354,5 +361,6 @@ namespace RTSEngine.EntityComponent
 
             return false;
         }
+        #endregion
     }
 }

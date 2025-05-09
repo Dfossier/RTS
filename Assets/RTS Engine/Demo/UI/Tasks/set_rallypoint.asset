@@ -19,11 +19,13 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: 57a76cfe418b20d429dcaa00327df649, type: 3}
     panelCategory: 3
     forceSlot: 1
-    slotIndex: 4
+    slotIndex: 0
     tooltipEnabled: 1
     description: Set the rallypoint.
     hideTooltipOnClick: 1
     reloadTime: 0.1
     cursor:
       icon: {fileID: 21300000, guid: 57a76cfe418b20d429dcaa00327df649, type: 3}
+      texture: {fileID: 0}
       hotspot: {x: 8, y: 60}
+    controlType: {fileID: 0}

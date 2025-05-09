@@ -37,8 +37,6 @@ namespace RTSEngine.Search
         /// </summary>
         public IReadOnlyList<IEntity> Entities => entities;
 
-        private List<ICachedModel> cachedModels = null;
-
         // Holds the coroutine that periodically checks whether moving entities inside the search cell are still in the cell or have left it
         private IEnumerator entityPositionCheckCoroutine;
         // List of entities in the cell that are actively moving
@@ -55,7 +53,6 @@ namespace RTSEngine.Search
         protected IGridSearchHandler gridSearch { private set; get; }
         protected IGameLoggingService logger { private set; get; }
         protected IGlobalEventPublisher globalEvent { private set; get; }
-        protected IModelCacheManager modelCacheMgr { private set; get; } 
         #endregion
 
         #region Initializing/Terminating
@@ -64,7 +61,6 @@ namespace RTSEngine.Search
             this.gridSearch = gameMgr.GetService<IGridSearchHandler>();
             this.logger = gameMgr.GetService<IGameLoggingService>();
             this.globalEvent = gameMgr.GetService<IGlobalEventPublisher>();
-            this.modelCacheMgr = gameMgr.GetService<IModelCacheManager>(); 
 
             this.Position = position;
             this.Neighbors = neighbors;
@@ -75,8 +71,6 @@ namespace RTSEngine.Search
             unitTargetPositionMarkers = new List<IMovementTargetPositionMarker>();
 
             obstacles = new List<ISearchObstacle>();
-
-            cachedModels = new List<ICachedModel>();
         }
         #endregion
 
@@ -206,9 +200,6 @@ namespace RTSEngine.Search
 
                         newCell.Add(nextEntity);
 
-                        RemoveCachedModel(nextEntity.EntityModel);
-                        newCell.AddCachedModel(nextEntity.EntityModel);
-
                         Remove(nextEntity);
 
                         continue;
@@ -275,54 +266,13 @@ namespace RTSEngine.Search
         }
         #endregion
 
-        #region Cached Models 
-        public bool IsRenderering { private set; get; }
-
-        public void AddCachedModel(ICachedModel cachedModel)
-        {
-            if (!modelCacheMgr.IsActive)
-                return;
-
-            cachedModels.Add(cachedModel);
-
-            cachedModel.CachedModelDisabled += HandleCachedModelDisabled;
-
-            UpdateModelRendering(cachedModel);
-        }
-
-        private void HandleCachedModelDisabled(ICachedModel sender, EventArgs args)
-        {
-            RemoveCachedModel(sender);
-        }
-
-        private bool RemoveCachedModel(ICachedModel cachedModel)
-        {
-            cachedModel.CachedModelDisabled -= HandleCachedModelDisabled;
-
-            return cachedModels.Remove(cachedModel);
-        }
+        #region Rendering
+        public bool IsRendering { private set; get; }
 
         public void OnUpdateRendering (bool isRenderering)
         {
-            this.IsRenderering = isRenderering;
+            this.IsRendering = isRenderering;
 
-            if (!modelCacheMgr.IsActive)
-                return;
-
-            foreach(ICachedModel model in cachedModels)
-                UpdateModelRendering(model);
-        }
-
-        private void UpdateModelRendering(ICachedModel model)
-        {
-            if (!model.IsValid()
-                || model.IsRenderering == this.IsRenderering)
-                return;
-
-            if (this.IsRenderering)
-                model.Show();
-            else
-                model.OnCached();
         }
         #endregion
     }

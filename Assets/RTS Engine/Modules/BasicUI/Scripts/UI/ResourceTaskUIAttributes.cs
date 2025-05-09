@@ -13,5 +13,7 @@ namespace RTSEngine.UI
         public string tooltipText;
 
         public Color maxCapacityColor;
+
+        public bool displayCollectorCount;
     }
 }

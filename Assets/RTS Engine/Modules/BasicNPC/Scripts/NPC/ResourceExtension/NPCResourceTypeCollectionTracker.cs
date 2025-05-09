@@ -20,7 +20,7 @@ namespace RTSEngine.NPC.ResourceExtension
 
         // The instances of the same resource type that are being actively collected and tracked.
         private readonly List<IResource> resourceInstances;
-        public IEnumerable<IResource> ResourceInstances => resourceInstances.ToArray();
+        public IReadOnlyList<IResource> ResourceInstances => resourceInstances.AsReadOnly();
 
         // Actively monitors the instances of NPCUnitRegulator for collector units that are able to collect the tracked resource type.
         public NPCActiveRegulatorMonitor CollectorMonitor { private set; get; } 

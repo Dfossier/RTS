@@ -15,34 +15,30 @@ MonoBehaviour:
   minAmountRange:
     _min: 2
     _max: 2
-    test: 0
   maxAmountRange:
     _min: 3
     _max: 5
-    test: 0
   maxPendingAmount:
     _min: 1
     _max: 2
-    test: 0
   createOnDemand: 1
   startCreatingAfter:
     _min: 2
     _max: 3
-    test: 0
   spawnReloadRange:
     _min: 6
     _max: 11
-    test: 0
   autoCreate: 1
+  factionEntityRequirements: []
   regulatePerBuildingCenter: 1
   placeAround:
   - entityType:
       codes:
       - town_center
+      - town_center_fow
       categories: []
     range:
       _min: 6
       _max: 23
-      test: 0
   forcePlaceAround: 1
   canRotate: 0

@@ -5,6 +5,8 @@ using UnityEngine;
 using RTSEngine.Entities;
 using RTSEngine.Event;
 using RTSEngine.Determinism;
+using RTSEngine.Movement;
+using RTSEngine.Attack;
 
 namespace RTSEngine.EntityComponent
 {
@@ -51,6 +53,37 @@ namespace RTSEngine.EntityComponent
 
             return nextMask;
         }
+
+        public SetPathDestinationData<T> ToSetPathDestinationData<T>(T source)
+        {
+            return new SetPathDestinationData<T>
+            {
+                source = source,
+                destination = target.position,
+                offsetRadius = 0.0f,
+                target = target.instance,
+                mvtSource = new MovementSource
+                {
+                    playerCommand = playerCommand,
+                    isMoveAttackRequest = isMoveAttackRequest,
+                    fromTasksQueue = fromTasksQueue
+                }
+            };
+        }
+
+        public LaunchAttackData<T> ToLaunchAttackData<T>(T source, IEntity sourceEntityRef)
+        {
+            return new LaunchAttackData<T>
+            {
+                source = source,
+                targetEntity = target.instance as IFactionEntity,
+                targetPosition = target.instance.IsValid() ? RTSHelper.GetAttackTargetPosition(sourceEntityRef, target) : target.position,
+                allowTerrainAttack = allowTerrainAttack,
+                playerCommand = playerCommand,
+                ignoreLOS = ignoreLOS,
+                isMoveAttackRequest = isMoveAttackRequest,
+            };
+        }
     }
 
     public enum SetTargetInputDataBooleans 
@@ -80,7 +113,7 @@ namespace RTSEngine.EntityComponent
         EntityTargetComponentData TargetData { get; }
 
         event CustomEventHandler<IEntityTargetComponent, TargetDataEventArgs> TargetUpdated;
-        event CustomEventHandler<IEntityTargetComponent, EventArgs> TargetStop;
+        event CustomEventHandler<IEntityTargetComponent, TargetDataEventArgs> TargetStop;
 
         // When SetIdle on the IEntity is called and there is a source component assigned to the idling request
         // The source will not be set to idle and all entity target components will be queried to see if the provided source would allow or disallow the component to be set to idle.
@@ -91,8 +124,8 @@ namespace RTSEngine.EntityComponent
 
         bool IsTargetInRange(Vector3 sourcePosition, TargetData<IEntity> target);
 
-        ErrorMessage IsTargetValid(TargetData<IEntity> testTarget, bool playerCommand);
         ErrorMessage IsTargetValid(SetTargetInputData testInput);
+        ErrorMessage IsTargetValidOnSearch(SetTargetInputData testInput);
         bool IsTargetValid(SetTargetInputData testInput, out ErrorMessage errorMessage);
 
         ErrorMessage SetTarget(TargetData<IEntity> newTarget, bool playerCommand);

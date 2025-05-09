@@ -12,7 +12,7 @@ namespace RTSEngine.Cameras
     public class MainCameraController : MonoBehaviour, IMainCameraController
     {
         #region Attributes
-        public int Priority => 50;
+        public int ServicePriority => 50;
 
         [SerializeField, Tooltip("The main camera in the scene.")]
         private Camera mainCamera = null;
@@ -20,6 +20,7 @@ namespace RTSEngine.Cameras
         /// Gets the main camera in the game.
         /// </summary>
         public Camera MainCamera => mainCamera;
+        public bool IsOrthographic => MainCamera.orthographic;
 
         [SerializeField, Tooltip("Child of the main camera object, used to display UI elements only. This UI camear is optional but it is always recommended to separate rendering UI elements and the rest of the game elements.")]
         private Camera mainCameraUI = null;
@@ -32,6 +33,8 @@ namespace RTSEngine.Cameras
         public IMainCameraZoomHandler ZoomHandler { private set; get; }
 
         public bool CanUpdateCameraTransform => gameMgr.State != GameStateType.pause;
+
+        public bool IsTransformUpdating => PanningHandler.IsPanning || RotationHandler.IsRotating || ZoomHandler.IsZooming;
 
         // Keeps track of the mouse position in the last frame to determine delta and use it in control components
         private Vector3 lastMousePosition;
@@ -66,7 +69,7 @@ namespace RTSEngine.Cameras
                 return;
             }
 
-            controlHandlers = gameObject.GetComponentsInChildren<IMainCameraControlHandler>();
+            controlHandlers = gameObject.transform.root.GetComponentsInChildren<IMainCameraControlHandler>();
             foreach (var handler in controlHandlers)
             {
                 if (handler is IMainCameraPanningHandler)
@@ -93,6 +96,13 @@ namespace RTSEngine.Cameras
                 return;
             }
 
+            if(MainCameraUI.IsValid() && MainCamera.orthographic != MainCameraUI.orthographic)
+            {
+                logger.LogError($"[{GetType().Name}] Both the Main Camera and Main Camera UI must have the same projection mode! Either set both to 'Orthogrpahic' or both set to 'Perspective'!");
+                return;
+            }
+
+
             foreach (var handler in controlHandlers)
                 handler.Init(gameMgr);
         }
@@ -103,6 +113,9 @@ namespace RTSEngine.Cameras
         {
             if (!CanUpdateCameraTransform)
                 return;
+
+            foreach (var handler in controlHandlers)
+                handler.PreUpdateInput();
 
             foreach (var handler in controlHandlers)
                 handler.UpdateInput();

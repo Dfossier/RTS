@@ -9,12 +9,69 @@ using RTSEngine.Game;
 
 namespace RTSEngine.Attack
 {
+    public interface IAttackDistanceHandler
+    {
+        MovementFormationSelector MovementFormation { get; }
+
+        float GetStoppingDistance(IEntity target, bool min = true, bool onProgressEnableTest = false);
+        bool IsTargetInRange(Vector3 attackPosition, TargetData<IFactionEntity> target, bool onProgressEnableTest = false);
+    }
+
     [System.Serializable]
-    public class AttackFormationSelector
+    public class BuildingAttackDistanceHandler : IAttackDistanceHandler
+    {
+        [SerializeField, Tooltip("Minimum and maximum attack distance when targeting a unit.")]
+        public FloatRange unitStoppingDistance = new FloatRange(0.0f, 10.0f);
+
+        [Space(), SerializeField, Tooltip("Minimum and maximum attack distance when targeting a building.")]
+        private FloatRange buildingStoppingDistance = new FloatRange(0.0f, 10.0f); 
+
+        [Space(), SerializeField, Tooltip("Minimum and maximum attack distance when not targeting a specific target.")]
+        private FloatRange noTargetStoppingDistance = new FloatRange(0.0f, 10.0f);
+
+        public MovementFormationSelector MovementFormation => null;
+
+        private IAttackComponent source;
+
+        public void Init(IGameManager gameMgr, IAttackComponent source)
+        {
+            this.source = source;
+        }
+
+        public float GetStoppingDistance (IEntity target, bool min = true, bool onProgressEnableTest = false)
+        {
+            float stoppingDistance;
+
+            if(target.IsValid())
+            {
+                if (target.IsUnit())
+                    stoppingDistance = min ? unitStoppingDistance.min : unitStoppingDistance.max;
+                else if (target.IsBuilding())
+                    stoppingDistance = min ? buildingStoppingDistance.min : buildingStoppingDistance.max;
+                else
+                    stoppingDistance = min ? noTargetStoppingDistance.min : noTargetStoppingDistance.max;
+            }
+            else
+                stoppingDistance = min ? noTargetStoppingDistance.min : noTargetStoppingDistance.max;
+
+            return stoppingDistance + (target.IsValid() ? target.Radius : 0.0f);
+        }
+
+        public bool IsTargetInRange (Vector3 attackPosition, TargetData<IFactionEntity> target, bool onProgressEnableTest = false)
+        {
+            float distance = Vector3.Distance(attackPosition, RTSHelper.GetAttackTargetPosition(source, target)) + source.Entity.Radius;
+
+            return distance <= GetStoppingDistance(target.instance, min: false)
+                && distance >= GetStoppingDistance(target.instance, min: true);
+        }
+    }
+
+    [System.Serializable]
+    public class AttackFormationSelector : IAttackDistanceHandler
     {
         [SerializeField, Tooltip("Minimum and maximum stopping distance when targeting a unit.")]
         public FloatRange unitStoppingDistance = new FloatRange(2.0f, 6.0f);
-        [SerializeField, Tooltip("Distance at which the attack gets enabled when the target is a unit entity, this value must fit in the min and max bounds of the unit stopping distance.")]
+        [SerializeField, Tooltip("Distance at which the attack gets enabled when the target is a unit entity and the attacker unit is still in movement, this value must fit in the min and max bounds of the unit stopping distance.")]
         public float unitEnableDistance = 2.0f;
 
         [Space(), SerializeField, Tooltip("Minimum and maximum stopping distance when targeting a building.")]
@@ -27,11 +84,12 @@ namespace RTSEngine.Attack
         private bool enforceMinStoppingDistance = false;
         [SerializeField, Tooltip("The minimum stopping distance to enforce when engaging a target.")]
         private float minStoppingDistance = 0.5f;
-        [SerializeField, Tooltip("Stop movement when the attack unit enters the valid range for engaging a target.")]
+
+        [Space(), SerializeField, Tooltip("Stop movement when the attack unit enters the valid range for engaging a target.")]
         private bool stopMovementOnTargetInRange = true;
         public bool StopMovementOnTargetInRange => stopMovementOnTargetInRange;
 
-        [SerializeField, Tooltip("How far does the attack target need to move in order to recalculate the attacker's unit movement."), Min(0), Space()]
+        [Space(), SerializeField, Tooltip("How far does the attack target need to move in order to recalculate the attacker's unit movement."), Min(0), Space()]
         private float updateMvtDistance = 2.0f; 
 
         [Space(), SerializeField, Tooltip("Attack movement formation for this unit type.")]
@@ -72,7 +130,6 @@ namespace RTSEngine.Attack
         {
             float stoppingDistance;
 
-            EntityType targetType = target.IsValid() ? target.Type : EntityType.all;
             if(target.IsValid())
             {
                 if (target.IsUnit())
@@ -90,13 +147,12 @@ namespace RTSEngine.Attack
             return stoppingDistance + (target.IsValid() ? target.Radius : 0.0f);
         }
 
-        public bool IsTargetInRange (Vector3 attackPosition, TargetData<IFactionEntity> target, bool onProgressEnableTest = false, bool debug = false)
+        public bool IsTargetInRange (Vector3 attackPosition, TargetData<IFactionEntity> target, bool onProgressEnableTest = false)
         {
-            float distance = Vector3.Distance(attackPosition, RTSHelper.GetAttackTargetPosition(target));
+            float distance = Vector3.Distance(attackPosition, RTSHelper.GetAttackTargetPosition(source, target));
 
             return distance <= GetStoppingDistance(target.instance, min: false, onProgressEnableTest)
-                && (!enforceMinStoppingDistance || distance >= Mathf.Min(GetStoppingDistance(target.instance, min: true), minStoppingDistance))
-                && gridSearch.IsPositionReserved(source.Entity.transform.position, source.Entity.Radius, source.Entity.MovementComponent.AreasMask, playerCommand: false, ignoreMarker: source.Entity.MovementComponent.TargetPositionMarker) == ErrorMessage.none;
+                && (!enforceMinStoppingDistance || distance >= Mathf.Min(GetStoppingDistance(target.instance, min: true), minStoppingDistance));
         }
     }
 }

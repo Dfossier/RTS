@@ -28,7 +28,6 @@ namespace RTSEngine.Model
         
         public TerrainPositionsFromCameraBoundaries Get()
         {
-
             TerrainPositionsFromCameraBoundaries terrainPositions = new TerrainPositionsFromCameraBoundaries(
                 terrainHitter.Hit(mainCamera.ScreenPointToRay(new Vector2(0 - margin.upperMargin, Screen.height + margin.upperMargin))),
                 terrainHitter.Hit(mainCamera.ScreenPointToRay(new Vector2(Screen.width + margin.upperMargin, Screen.height + margin.upperMargin))),
@@ -38,38 +37,7 @@ namespace RTSEngine.Model
             
             return terrainPositions;
         }
-
-        void OnDrawGizmos()
-        {
-            if (mainCamera != null)
-            {
-                // Define ray end point for visualization, adjust if necessary
-                float rayLength = 1000.0f; // You can adjust this length
-
-                // Upper left corner
-                Ray rayUpperLeft = mainCamera.ScreenPointToRay(new Vector2(0 - margin.upperMargin, Screen.height + margin.upperMargin));
-                Gizmos.color = Color.red; // Change color if needed
-                Gizmos.DrawRay(rayUpperLeft.origin, rayUpperLeft.direction * rayLength);
-
-                // Upper right corner
-                Ray rayUpperRight = mainCamera.ScreenPointToRay(new Vector2(Screen.width + margin.upperMargin, Screen.height + margin.upperMargin));
-                Gizmos.color = Color.green; // Change color if needed
-                Gizmos.DrawRay(rayUpperRight.origin, rayUpperRight.direction * rayLength);
-
-                // Bottom left corner
-                Ray rayBottomLeft = mainCamera.ScreenPointToRay(new Vector2(0 - margin.bottomMargin, 0 - margin.bottomMargin));
-                Gizmos.color = Color.blue; // Change color if needed
-                Gizmos.DrawRay(rayBottomLeft.origin, rayBottomLeft.direction * rayLength);
-
-                // Bottom right corner
-                Ray rayBottomRight = mainCamera.ScreenPointToRay(new Vector2(Screen.width + margin.bottomMargin, 0 - margin.bottomMargin));
-                Gizmos.color = Color.yellow; // Change color if needed
-                Gizmos.DrawRay(rayBottomRight.origin, rayBottomRight.direction * rayLength);
-            }
-        }
-
     }
-
 
     //Code from: https://github.com/keypax/object-pooling-in-unity-demo
     //@author: https://github.com/keypax/

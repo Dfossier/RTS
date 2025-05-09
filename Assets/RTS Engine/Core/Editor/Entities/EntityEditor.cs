@@ -234,7 +234,7 @@ namespace RTSEngine.EditorOnly.Entities
 
         private void OnDisable()
         {
-            RTSEditorHelper.SetEntities();
+            RTSEditorHelper.FetchEntityPrefabs();
         }
 
         protected virtual void OnEntityInspectorGUI()
@@ -245,7 +245,7 @@ namespace RTSEngine.EditorOnly.Entities
             string category = SO.FindProperty("category").stringValue;
             EditorGUILayout.PropertyField(SO.FindProperty("category"));
             if(category != SO.FindProperty("category").stringValue)
-                RTSEditorHelper.SetEntities();
+                RTSEditorHelper.FetchEntityPrefabs();
 
             EditorGUILayout.Space();
 
@@ -256,6 +256,7 @@ namespace RTSEngine.EditorOnly.Entities
             EditorGUILayout.PropertyField(SO.FindProperty("radius"));
             GUI.enabled = true;
             EditorGUILayout.PropertyField(SO.FindProperty("model"));
+            EditorGUILayout.PropertyField(SO.FindProperty("isIdle"));
         }
 
         protected virtual void OnFactionEntityInspectorGUI()
@@ -268,8 +269,8 @@ namespace RTSEngine.EditorOnly.Entities
             EditorGUILayout.PropertyField(SO.FindProperty("initResources"));
             EditorGUILayout.PropertyField(SO.FindProperty("disableResources"));
 
-            EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(SO.FindProperty("coloredRenderers"));
+            //EditorGUILayout.Space();
+            //EditorGUILayout.PropertyField(SO.FindProperty("coloredRenderers"));
         }
 
         protected virtual void OnUnitInspectorGUI()

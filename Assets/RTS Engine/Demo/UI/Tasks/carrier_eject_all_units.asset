@@ -17,13 +17,15 @@ MonoBehaviour:
     enabled: 1
     displayType: 0
     icon: {fileID: 21300000, guid: 1c684a9d8e5cde14b89cb42adabd222a, type: 3}
-    panelCategory: 2
+    panelCategory: 3
     forceSlot: 1
-    slotIndex: 1
+    slotIndex: 5
     tooltipEnabled: 1
     description: Eject all stored units.
     hideTooltipOnClick: 0
     reloadTime: 0
     cursor:
       icon: {fileID: 0}
+      texture: {fileID: 0}
       hotspot: {x: 0, y: 0}
+    controlType: {fileID: 0}

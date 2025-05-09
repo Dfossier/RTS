@@ -3,8 +3,6 @@ using UnityEditor;
 
 using RTSEngine.EntityComponent;
 using RTSEngine.Utilities;
-using RTSEngine.Model;
-using System;
 
 namespace RTSEngine.EditorOnly.EntityComponent
 {
@@ -15,7 +13,7 @@ namespace RTSEngine.EditorOnly.EntityComponent
         private string[][] toolbars = new string[][] {
             new string [] { "General", "Launcher", "Damage",},
             new string [] { "Weapon", "LOS", "Attack-Move" },
-            new string [] { "UI", "Audio", "Events" }
+            new string [] { "UI", "Audio", "Events", "Debug" }
         };
 
         public override void OnInspectorGUI()
@@ -28,10 +26,11 @@ namespace RTSEngine.EditorOnly.EntityComponent
 
         protected override void OnGeneralInspectorGUI()
         {
+            EditorGUILayout.PropertyField(SO.FindProperty("code"));
+            EditorGUILayout.PropertyField(SO.FindProperty("priority"));
             EditorGUILayout.PropertyField(SO.FindProperty("isLocked"));
             EditorGUILayout.PropertyField(SO.FindProperty("isActive"));
             EditorGUILayout.PropertyField(SO.FindProperty("requireIdleEntity"));
-            EditorGUILayout.PropertyField(SO.FindProperty("code"));
             EditorGUILayout.PropertyField(SO.FindProperty("revert"));
 
             EditorGUILayout.Space();
@@ -48,6 +47,7 @@ namespace RTSEngine.EditorOnly.EntityComponent
 
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(SO.FindProperty("requireTarget"));
+            EditorGUILayout.PropertyField(SO.FindProperty("allowMultipleTerrainAttacks"));
             EditorGUILayout.PropertyField(SO.FindProperty("targetPicker"), true);
 
             EditorGUILayout.Space();
@@ -85,14 +85,16 @@ namespace RTSEngine.EditorOnly.EntityComponent
 
         protected override void OnGeneralInspectorGUI()
         {
+            EditorGUILayout.PropertyField(SO.FindProperty("code"));
+            EditorGUILayout.PropertyField(SO.FindProperty("priority"));
             EditorGUILayout.PropertyField(SO.FindProperty("isLocked"));
             EditorGUILayout.PropertyField(SO.FindProperty("isActive"));
             EditorGUILayout.PropertyField(SO.FindProperty("requireIdleEntity"));
-            EditorGUILayout.PropertyField(SO.FindProperty("code"));
             EditorGUILayout.PropertyField(SO.FindProperty("revert"));
 
             EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(SO.FindProperty("progressMaxDistance"), new GUIContent("Attack Range"));
+            //EditorGUILayout.PropertyField(SO.FindProperty("progressMaxDistance"), new GUIContent("Old Attack Range"));
+            EditorGUILayout.PropertyField(SO.FindProperty("attackDistance"), new GUIContent("Attack Range"));
 
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(SO.FindProperty("engageOptions"), true);
@@ -102,6 +104,7 @@ namespace RTSEngine.EditorOnly.EntityComponent
 
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(SO.FindProperty("requireTarget"));
+            EditorGUILayout.PropertyField(SO.FindProperty("allowMultipleTerrainAttacks"));
             EditorGUILayout.PropertyField(SO.FindProperty("targetPicker"), true);
 
             EditorGUILayout.Space();
@@ -125,7 +128,7 @@ namespace RTSEngine.EditorOnly.EntityComponent
 
         private string[][] toolbars = new string[][] {
             new string [] { "General", "Launcher", "Damage", "Weapon" },
-            new string [] { "LOS", "UI", "Audio", "Events" }
+            new string [] { "LOS", "UI", "Audio", "Events", "Debug" }
         };
 
         public override void OnInspectorGUI()
@@ -164,17 +167,20 @@ namespace RTSEngine.EditorOnly.EntityComponent
                 case "Events":
                     OnEventsInspectorGUI();
                     break;
+                case "Debug":
+                    OnDebugInspectorGUI();
+                    break;
             }
         }
 
         protected virtual void OnGeneralInspectorGUI()
         {
+            EditorGUILayout.PropertyField(SO.FindProperty("code"));
+            EditorGUILayout.PropertyField(SO.FindProperty("priority"));
             EditorGUILayout.PropertyField(SO.FindProperty("isLocked"));
             EditorGUILayout.PropertyField(SO.FindProperty("isActive"));
             EditorGUILayout.PropertyField(SO.FindProperty("requireIdleEntity"));
-            EditorGUILayout.PropertyField(SO.FindProperty("code"));
             EditorGUILayout.PropertyField(SO.FindProperty("revert"));
-
 
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(SO.FindProperty("engageOptions"), true);
@@ -184,6 +190,7 @@ namespace RTSEngine.EditorOnly.EntityComponent
 
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(SO.FindProperty("requireTarget"));
+            EditorGUILayout.PropertyField(SO.FindProperty("allowMultipleTerrainAttacks"));
             EditorGUILayout.PropertyField(SO.FindProperty("targetPicker"), true);
 
             EditorGUILayout.Space();
@@ -246,10 +253,11 @@ namespace RTSEngine.EditorOnly.EntityComponent
         protected virtual void OnWeaponInspectorGUI()
         {
             EditorGUILayout.PropertyField(SO.FindProperty("weapon.toggableObjects"), true);
+            EditorGUILayout.PropertyField(SO.FindProperty("weapon.toggleType"), true);
             EditorGUILayout.Space();
 
             EditorGUILayout.PropertyField(SO.FindProperty("inProgressObject"), new GUIContent("Weapon Object"));
-            if (SO.FindProperty("inProgressObject").FindPropertyRelative("obj").objectReferenceValue == null)
+            if (SO.FindProperty("inProgressObject").objectReferenceValue == null)
                 return;
 
             EditorGUILayout.PropertyField(SO.FindProperty("weapon.updateRotation"));
@@ -305,10 +313,14 @@ namespace RTSEngine.EditorOnly.EntityComponent
         protected virtual void OnUIInspectorGUI()
         {
             EditorGUILayout.PropertyField(SO.FindProperty("setTargetTaskUI"), true);
+            EditorGUILayout.PropertyField(SO.FindProperty("setTargetCooldownUIData"), true);
 
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(SO.FindProperty("switchTaskUI"), new GUIContent("Switch Attack Task UI"));
             EditorGUILayout.PropertyField(SO.FindProperty("switchAttackCooldownUIData"), true);
+
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(SO.FindProperty("cancelTaskUI"), new GUIContent("Cancel Attack Task UI"));
         }
 
         protected virtual void OnAudioInspectorGUI()
@@ -323,7 +335,75 @@ namespace RTSEngine.EditorOnly.EntityComponent
             EditorGUILayout.PropertyField(SO.FindProperty("attackRangeEnterEvent"));
             EditorGUILayout.PropertyField(SO.FindProperty("targetLockedEvent"));
             EditorGUILayout.PropertyField(SO.FindProperty("damage.damageDealtEvent"));
+            EditorGUILayout.PropertyField(SO.FindProperty("launcher.attackIterationLaunchEvent"));
             EditorGUILayout.PropertyField(SO.FindProperty("completeEvent"));
         }
+
+        protected virtual void OnDebugInspectorGUI()
+        {
+            if(!Application.isPlaying)
+            {
+                EditorGUILayout.LabelField("Debug fields only visible when application is running!");
+                return;
+            }
+
+            GUI.enabled = false;
+            EditorGUILayout.LabelField("General", EditorStyles.boldLabel);
+            EditorGUILayout.Toggle("Is Active", comp.IsActive);
+            EditorGUILayout.Toggle("Is Component Idle", comp.IsIdle);
+            EditorGUILayout.Toggle("Is Entity Idle", comp.Entity.IsValid() ? comp.Entity.IsIdle : true);
+            EditorGUILayout.Toggle("Is Locked", comp.IsLocked);
+
+            EditorGUILayout.Space();
+
+            EditorGUILayout.LabelField("Target", EditorStyles.boldLabel);
+            EditorGUILayout.Toggle("Has Target", comp.HasTarget);
+            EditorGUILayout.ObjectField("Target Object", comp.Target.instance?.gameObject, typeof(GameObject), allowSceneObjects: true);
+            EditorGUILayout.Vector3Field("Target Position", comp.Target.position);
+            EditorGUILayout.Vector3Field("Target (Optional) Position", comp.Target.opPosition);
+            GUI.enabled = true;
+            EditorGUILayout.PropertyField(SO.FindProperty("showTargetGizmo"));
+            GUI.enabled = false;
+
+            EditorGUILayout.Space();
+
+            EditorGUILayout.LabelField("Target Search", EditorStyles.boldLabel);
+            EditorGUILayout.Toggle("Can Search", comp.CanSearch);
+            EditorGUILayout.Toggle("Search Enabled", comp.TargetFinderData.enabled);
+            EditorGUILayout.Toggle("Entity Can Launch Tasks", comp.Entity.IsValid() ? comp.Entity.CanLaunchTask : false);
+            EditorGUILayout.Toggle("Search When Entity Idle Only", comp.TargetFinderData.idleOnly);
+            EditorGUILayout.FloatField("Search Range", comp.TargetFinderData.range);
+            EditorGUILayout.FloatField("Reload Time", comp.TargetFinderData.reloadTime);
+            EditorGUILayout.FloatField("Current Reload Value", comp.TargetFinderCurrReloadValue);
+
+            EditorGUILayout.Space();
+
+            var losError = comp.HasTarget ? comp.LineOfSight.IsInSight(comp.Target) : ErrorMessage.targetUnassigned;
+
+            EditorGUILayout.LabelField("Attack Iteration", EditorStyles.boldLabel);
+            EditorGUILayout.Toggle("Cooldown Enabled", comp.IsCooldownActive);
+            EditorGUILayout.FloatField("Current Cooldown Value", comp.CurrCooldownValue);
+            EditorGUILayout.PropertyField(SO.FindProperty("isAttackReady"));
+            EditorGUILayout.PropertyField(SO.FindProperty("terrainAttackActive"));
+            EditorGUILayout.Toggle("Move Attack Active", comp.IsAttackMoveActive);
+            EditorGUILayout.Toggle("Is In Target Range", comp.IsInTargetRange);
+            EditorGUILayout.PropertyField(SO.FindProperty("reloadDuration"));
+            EditorGUILayout.FloatField("Current Reload Value", comp.CurrReloadValue);
+            EditorGUILayout.EnumFlagsField("Line Of Sight Error", losError);
+
+            EditorGUILayout.Toggle("Can Launch Attack", comp.HasTarget && comp.CanStartAttackIteration() == ErrorMessage.none);
+            GUI.enabled = true;
+            EditorGUILayout.PropertyField(SO.FindProperty("showAttackIterationGizmos"));
+            GUI.enabled = false;
+
+            EditorGUILayout.PropertyField(SO.FindProperty("delayTriggerEnabled"));
+            EditorGUILayout.PropertyField(SO.FindProperty("attackIterationTriggered"));
+
+            EditorGUILayout.PropertyField(SO.FindProperty("damage.resetDamageDealt"));
+            EditorGUILayout.IntField(comp.Damage.DamageDealt);
+
+            GUI.enabled = true;
+        }
+
     }
 }

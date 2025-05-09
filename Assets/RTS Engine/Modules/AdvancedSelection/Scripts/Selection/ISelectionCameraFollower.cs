@@ -4,6 +4,7 @@ namespace RTSEngine.Selection
 {
     public interface ISelectionCameraFollower : IPreRunGameService
     {
-        void Reset();
+        void FollowNextEntity();
+        void ResetTarget();
     }
 }

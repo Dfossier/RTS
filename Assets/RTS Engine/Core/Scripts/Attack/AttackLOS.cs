@@ -39,14 +39,14 @@ namespace RTSEngine.Attack
             bool useWeaponObj = useWeaponObject && SourceAttackComp.WeaponTransform.IsValid();
             // Use the weapon object or the attacker's object as the reference for the line of sight:
             Vector3 sourcePosition = useWeaponObj
-                ? SourceAttackComp.WeaponTransform.Position 
+                ? SourceAttackComp.WeaponTransform.position 
                 : SourceAttackComp.Entity.transform.position;
 
             Quaternion sourceRotation = useWeaponObj 
-                ? SourceAttackComp.WeaponTransform.Rotation 
+                ? SourceAttackComp.WeaponTransform.rotation 
                 : SourceAttackComp.Entity.transform.rotation;
 
-            Vector3 targetPosition = RTSHelper.GetAttackTargetPosition(target);
+            Vector3 targetPosition = RTSHelper.GetAttackTargetPosition(SourceAttackComp, target);
 
             if (!ignoreAngle && IsAngleBlocked(sourcePosition, sourceRotation, targetPosition))
                 return ErrorMessage.LOSAngleBlocked;

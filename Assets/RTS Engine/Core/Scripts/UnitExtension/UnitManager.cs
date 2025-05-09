@@ -37,7 +37,9 @@ namespace RTSEngine.UnitExtension
         protected IGameManager gameMgr { private set; get; }
         protected IGlobalEventPublisher globalEvent { private set; get; }
         protected IInputManager inputMgr { private set; get; }
-        protected IGameLoggingService logger { private set; get; } 
+        protected IGameLoggingService logger { private set; get; }
+        protected IUnitSquadManager squadMgr { private set; get; } 
+
         #endregion
 
         #region Initializing/Terminating
@@ -46,7 +48,8 @@ namespace RTSEngine.UnitExtension
             this.gameMgr = gameMgr;
             this.globalEvent = this.gameMgr.GetService<IGlobalEventPublisher>();
             this.inputMgr = gameMgr.GetService<IInputManager>();
-            this.logger = gameMgr.GetService<IGameLoggingService>(); 
+            this.logger = gameMgr.GetService<IGameLoggingService>();
+            this.squadMgr = gameMgr.GetService<IUnitSquadManager>(); 
 
             allUnits = new List<IUnit>();
             freeUnits = new List<IUnit>();
@@ -85,7 +88,7 @@ namespace RTSEngine.UnitExtension
                 {
                     IUnit nextUnit = unit.IsValid() ? unit.GetComponent<IUnit>() : null;
                     if (!unit.IsValid())
-                        logger.LogError($"[{GetType().Name}] The 'Pre Spawned Free Units' list has some invalid/unassigned. elements!");
+                        logger.LogError($"[{GetType().Name}] The 'Pre Spawned Free Units' list has some invalid/unassigned. elements!", source: this);
 
                     return nextUnit; 
                 })
@@ -153,14 +156,29 @@ namespace RTSEngine.UnitExtension
             target: null);
         }
 
-        public IUnit CreateUnitLocal(IUnit unitPrefab, Vector3 spawnPosition, Quaternion spawnRotation, InitUnitParameters initParams)
+        public IReadOnlyList<IUnit> CreateUnitLocal(IUnit unitPrefab, Vector3 spawnPosition, Quaternion spawnRotation, InitUnitParameters initParams)
         {
-            IUnit newUnit = Instantiate(unitPrefab.gameObject, spawnPosition, spawnRotation).GetComponent<IUnit>();
+            int unitCount = initParams.isSquad ? initParams.squadCount : 1;
+            IUnit[] createdUnits = new IUnit[unitCount];
 
-            newUnit.gameObject.SetActive(true);
-            newUnit.Init(gameMgr, initParams);
+            while (unitCount > 0)
+            {
+                IUnit nextUnit = Instantiate(unitPrefab.gameObject, spawnPosition, spawnRotation).GetComponent<IUnit>();
 
-            return newUnit;
+                nextUnit.gameObject.SetActive(true);
+                nextUnit.Init(gameMgr, initParams);
+
+                createdUnits[createdUnits.Length - unitCount] = nextUnit;
+
+                unitCount--;
+            }
+
+            if (initParams.isSquad && squadMgr.IsValid())
+            {
+                squadMgr.JoinToNewSquad(createdUnits);
+            }
+
+            return createdUnits;
         }
         #endregion
     }

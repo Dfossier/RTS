@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 using RTSEngine.Entities;
+using RTSEngine.UnitExtension;
 
 namespace RTSEngine.UI
 {
@@ -19,7 +20,10 @@ namespace RTSEngine.UI
         private MultipleSelectionTaskUIData taskData = new MultipleSelectionTaskUIData { description = "Deselect", tooltipEnabled = true };
 
         [SerializeField, Tooltip("If the multiple selected entities is over this threshold, each type of the selected entities will have one task with the selected amount displayed on the task.")]
-        private int entityTypeSelectionTaskThreshold = 10; 
+        private int entityTypeSelectionTaskThreshold = 10;
+
+        [SerializeField, Tooltip("Amount of task UI instances to pre-create at the start of the game to have ready to be instantly used instead of having to create them when needed."), Min(0)]
+        private int preCreateAmount = 10;
 
         // Each created multiple selection task is registered in this list.
         private List<ITaskUI<MultipleSelectionTaskUIAttributes>> tasks = null;
@@ -34,8 +38,14 @@ namespace RTSEngine.UI
                 $"[{GetType().Name}] The 'Panel' field must be assigned!"))
                 return;
 
+            while(tasks.Count < preCreateAmount)
+                Create(tasks, panel.transform);
+
             globalEvent.EntitySelectedGlobal += HandleEntitySelectionUpdate;
             globalEvent.EntityDeselectedGlobal += HandleEntitySelectionUpdate;
+
+            globalEvent.UnitSquadSelectedGlobal += HandleUnitSquadSelectionUpdate;
+            globalEvent.UnitSquadDeselectedGlobal += HandleUnitSquadSelectionUpdate;
 
             Hide();
         }
@@ -48,16 +58,39 @@ namespace RTSEngine.UI
 
             globalEvent.EntitySelectedGlobal -= HandleEntitySelectionUpdate;
             globalEvent.EntityDeselectedGlobal -= HandleEntitySelectionUpdate;
+
+            globalEvent.UnitSquadSelectedGlobal -= HandleUnitSquadSelectionUpdate;
+            globalEvent.UnitSquadDeselectedGlobal -= HandleUnitSquadSelectionUpdate;
+
         }
         #endregion
 
         #region Handling Event: Entity Selected/Deselected
         private void HandleEntitySelectionUpdate(IEntity entity, EventArgs e)
         {
-            if (selectionMgr.Count > 1)
+            bool isIncomingSingleSquadSelection = false;
+
+            if(entity.IsUnit())
+            {
+                IUnit unit = entity as IUnit;
+                if (unit.Squad.IsValid())
+                    isIncomingSingleSquadSelection = selectionMgr.Count < unit.Squad.CurrentCount;
+            }
+
+            if (!selectionMgr.IsUnitSquadSelectedOnly()
+                && !isIncomingSingleSquadSelection
+                && selectionMgr.Count > 1)
                 Show();
             else
                 Hide();
+        }
+
+        private void HandleUnitSquadSelectionUpdate(IUnitSquad unitSquad, EventArgs args)
+        {
+            if (selectionMgr.IsUnitSquadSelectedOnly())
+                Hide();
+            else
+                Show();
         }
         #endregion
 
@@ -86,30 +119,67 @@ namespace RTSEngine.UI
         {
             Hide();
 
-            IEnumerable<IEnumerable<IEntity>> entitySets = null;
+            var selectedEntities = selectionMgr
+                    .GetEntitiesList(EntityType.all, true, false)
+                    .ToList();
+
+            List<MultipleSelectionUIElement> selectedElements = new List<MultipleSelectionUIElement>();
+            while(selectedEntities.Count > 0)
+            {
+                if(selectedEntities[0].Health.IsDead)
+                {
+                    selectedEntities.RemoveAt(0);
+                    continue;
+                }
+
+                if(selectedEntities[0].IsUnit())
+                {
+                    IUnit unit = selectedEntities[0] as IUnit;
+                    if(unit.Squad.IsValid() && !unit.Squad.IsDead)
+                    {
+                        foreach (IUnit squadUnit in unit.Squad.Units)
+                            selectedEntities.Remove(squadUnit);
+
+                        selectedElements.Add(new MultipleSelectionUIElement
+                        {
+                            isSquad = true,
+                            entities = unit.Squad.Units
+                        });
+                        continue;
+                    }
+                }
+
+                selectedElements.Add(new MultipleSelectionUIElement
+
+                {
+                    isSquad = false,
+                    entities = Enumerable.Repeat(selectedEntities[0], 1)
+                });
+                selectedEntities.RemoveAt(0);
+            }
 
             // If the amount of selected units is higher than the maximum allowed multiple selection tasks that represent each entity individually:
-            if (selectionMgr.Count >= entityTypeSelectionTaskThreshold)
+            if (selectedElements.Count >= entityTypeSelectionTaskThreshold)
             {
                 // Get the selected units in a form of a dictionary with each selected entity's code as key and the selected entities of each type in a list as the value.
-                entitySets = selectionMgr
-                    .GetEntitiesDictionary(EntityType.all, localPlayerFaction:false)
-                    .Values;
-            }
-            else
-            {
-                entitySets = selectionMgr
-                    .GetEntitiesList(EntityType.all, true, false)
-                    .Select(entity => Enumerable.Repeat(entity, 1));
+                selectedElements = selectionMgr
+                    .GetEntitiesDictionary(EntityType.all, localPlayerFaction: false)
+                    .Values
+                    .Select(set => new MultipleSelectionUIElement
+                    {
+                        isSquad = false,
+                        entities = set
+                    })
+                    .ToList();
             }
             
-            foreach(IEnumerable<IEntity> set in entitySets)
+            foreach(var element in selectedElements)
             {
                 var newTask = Add();
                 newTask.Reload(new MultipleSelectionTaskUIAttributes
                 {
                     data = taskData,
-                    selectedEntities = set.ToArray()
+                    selectedElement = element
                 });
             }
 

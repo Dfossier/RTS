@@ -1,6 +1,6 @@
 ﻿namespace RTSEngine.Entities
 {
-    interface IEntityObstacleHandler
+    public interface IEntityObstacleHandler
     {
         void SetActive(bool enable);
     }

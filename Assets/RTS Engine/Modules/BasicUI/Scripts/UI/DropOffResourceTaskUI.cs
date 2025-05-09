@@ -1,7 +1,7 @@
 ﻿using RTSEngine.EntityComponent;
 using System;
 using UnityEngine;
-using UnityEngine.UI;
+using TMPro;
 
 namespace RTSEngine.UI
 {
@@ -16,7 +16,7 @@ namespace RTSEngine.UI
         protected override string TooltipDescription => "";
 
         [SerializeField, Tooltip("Child UI Text object used to display the drop off resource's current amount and the maximum allowed carried capacity.")]
-        private Text amountTextUI = null;
+        private TextMeshProUGUI amountTextUI = null;
 
         protected override void OnInit()
         {

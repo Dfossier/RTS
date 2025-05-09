@@ -1,13 +1,11 @@
-﻿using RTSEngine.BuildingExtension;
+﻿using UnityEditor;
+
+using RTSEngine.BuildingExtension;
 using RTSEngine.Utilities;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
-using UnityEngine;
 
 namespace RTSEngine.EditorOnly.BuildingExtension
 {
+
     [CustomEditor(typeof(BuildingPlacement))]
     public class BuildingPlacementEditor : TabsEditorBase<BuildingPlacement>
     {
@@ -36,7 +34,11 @@ namespace RTSEngine.EditorOnly.BuildingExtension
 
             EditorGUILayout.Space();
 
-            if(comp.gameObject.GetComponent<IBuildingPlacementHandler>() != null)
+            EditorGUILayout.PropertyField(SO.FindProperty("placeBuildingAudio"));
+
+            EditorGUILayout.Space();
+
+            if(comp.gameObject.transform.root.GetComponentInChildren<IBuildingPlacementHandler>() != null)
             {
                 EditorGUILayout.HelpBox("A component that is responsible for local player building placement is attached to the same object!", MessageType.Warning);
                 SO.ApplyModifiedProperties();
@@ -72,8 +74,6 @@ namespace RTSEngine.EditorOnly.BuildingExtension
         {
             EditorGUILayout.PropertyField(SO.FindProperty("localFactionPlacementHandler")
                 .FindPropertyRelative("reservePlacementResources"));
-            EditorGUILayout.PropertyField(SO.FindProperty("localFactionPlacementHandler")
-                .FindPropertyRelative("placeBuildingAudio"));
         }
 
         protected virtual void OnRotationInspectorGUI()

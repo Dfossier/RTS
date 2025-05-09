@@ -8,7 +8,7 @@
 
         idle,
 
-        takeDamage, dead,
+        startTakeDamage, inTakeDamage, dead,
 
         moving, movingState,
 

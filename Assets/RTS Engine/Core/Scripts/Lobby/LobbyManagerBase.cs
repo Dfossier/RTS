@@ -17,7 +17,7 @@ using RTSEngine.Utilities;
 
 namespace RTSEngine.Lobby
 {
-    public abstract class LobbyManagerBase : MonoBehaviour, ILobbyManager, IGameBuilder
+    public abstract class LobbyManagerBase<T> : MonoBehaviour, ILobbyManager<T>, IGameBuilder where T : ILobbyFactionSlot
     {
         #region Attributes
         [SerializeField, Tooltip("Code that uniquely identifies the game version/type that this lobby handles.")]
@@ -25,8 +25,8 @@ namespace RTSEngine.Lobby
         public string GameCode => gameCode;
 
         // Holds the active lobby faction slot instances
-        private List<ILobbyFactionSlot> factionSlots = null;
-        public IEnumerable<ILobbyFactionSlot> FactionSlots 
+        private List<T> factionSlots = null;
+        public IReadOnlyList<T> FactionSlots 
         {
             get
             {
@@ -43,13 +43,19 @@ namespace RTSEngine.Lobby
             }
         }
 
-        public ILobbyFactionSlot GetFactionSlot(int factionSlotID) => factionSlots[factionSlotID];
+        public T GetFactionSlot(int factionSlotID) => FactionSlots[factionSlotID];
+        public int GetFactionSlotID(T slot)
+        {
+            ClearEmptyFactionSlots();
+            return factionSlots.IndexOf(slot);
+        }
+        public T GetHostFactionSlot() => FactionSlots.FirstOrDefault(elem => elem.Role == FactionSlotRole.host);
 
-        public ILobbyFactionSlot LocalFactionSlot { protected set; get; } = null;
+        public T LocalFactionSlot { protected set; get; } = default;
 
         [Space, SerializeField, Tooltip("What scenes can be loaded through this lobby?")]
         private LobbyMapData[] maps = new LobbyMapData[0];
-        public IEnumerable<LobbyMapData> Maps => maps;
+        public IReadOnlyList<LobbyMapData> Maps => maps;
         public LobbyMapData CurrentMap => maps[CurrentLobbyGameData.mapID];
         public LobbyMapData GetMap(int mapID) => mapID.IsValidIndex(maps) ? maps[mapID] : CurrentMap;
 
@@ -103,7 +109,7 @@ namespace RTSEngine.Lobby
             timeModifierOptions = new TimeModifierOptions 
             {
                 values = TimeModifierSelector.Options.ToArray(),
-                initialValueID = TimeModifierSelector.CurrentValueIndex
+                initialValueIndex = TimeModifierSelector.CurrentValueIndex
             } ,
             initialResources = InitialResourcesSelector.CurrentValue,
 
@@ -139,15 +145,15 @@ namespace RTSEngine.Lobby
         #endregion
 
         #region Raising Events: Adding/Removing Faction Slots
-        public event CustomEventHandler<ILobbyFactionSlot, EventArgs> FactionSlotAdded;
-        public event CustomEventHandler<ILobbyFactionSlot, EventArgs> FactionSlotRemoved;
+        public event CustomEventHandler<T, EventArgs> FactionSlotAdded;
+        public event CustomEventHandler<T, EventArgs> FactionSlotRemoved;
 
-        private void RaiseFactionSlotAdded (ILobbyFactionSlot newSlot)
+        private void RaiseFactionSlotAdded (T newSlot)
         {
             var handler = FactionSlotAdded;
             handler?.Invoke(newSlot, EventArgs.Empty);
         }
-        private void RaiseFactionSlotRemoved (ILobbyFactionSlot newSlot)
+        private void RaiseFactionSlotRemoved (T newSlot)
         {
             var handler = FactionSlotRemoved;
             handler?.Invoke(newSlot, EventArgs.Empty);
@@ -167,13 +173,13 @@ namespace RTSEngine.Lobby
         #region Services
         private IReadOnlyDictionary<System.Type, ILobbyService> services = null;
 
-        public T GetService<T>() where T : ILobbyService
+        public V GetService<V>() where V : ILobbyService
         {
-            if(!services.ContainsKey(typeof(T)))
-                Debug.LogError ($"[{GetType().Name}] No service of type: '{typeof(T)}' has been registered!");
+            if(!services.ContainsKey(typeof(V)))
+                Debug.LogError ($"[{GetType().Name}] No service of type: '{typeof(V)}' has been registered!");
 
-            if (services.TryGetValue(typeof(T), out ILobbyService value))
-                return (T)value;
+            if (services.TryGetValue(typeof(V), out ILobbyService value))
+                return (V)value;
 
             return default;
         }
@@ -211,7 +217,7 @@ namespace RTSEngine.Lobby
               $"[{GetType().Name}] A component that extends the interface '{typeof(ILobbyManagerUI).Name}' must be attached to the same game object to handle UI."))
                 return; 
 
-            factionSlots = new List<ILobbyFactionSlot>();
+            factionSlots = new List<T>();
 
             // Validating maps
             if (!logger.RequireTrue(maps.Length > 0,
@@ -254,19 +260,7 @@ namespace RTSEngine.Lobby
         #region Updating Lobby Game Data
         public abstract bool IsLobbyGameDataMaster();
 
-        public void UpdateLobbyGameDataRequest (LobbyGameData newLobbyGameData)
-        {
-            if (IsStartingLobby)
-                return;
-
-            // Whenever the map changes, the faction slot index seed list must also change to suit the target faction slots.
-            newLobbyGameData.factionSlotIndexSeed = new List<int>();
-            newLobbyGameData.factionSlotIndexSeed.AddRange(RTSHelper.GenerateRandomIndexList(maps[newLobbyGameData.mapID].factionsAmount.max));
-
-            LocalFactionSlot.UpdateLobbyGameDataAttempt(newLobbyGameData);
-        }
-
-        public void UpdateLobbyGameDataComplete (LobbyGameData newLobbyGameData)
+        public void UpdateLobbyGameData (LobbyGameData newLobbyGameData)
         {
             LobbyGameData prevLobbyGameData = CurrentLobbyGameData;
             CurrentLobbyGameData = newLobbyGameData;
@@ -283,10 +277,10 @@ namespace RTSEngine.Lobby
             }
 
             RaiseLobbyGameDataUpdated(prevLobbyGameData);
-            OnUpdateLobbyGameDataComplete(prevLobbyGameData);
+            OnLobbyGameDataUpdated(prevLobbyGameData);
         }
 
-        protected virtual void OnUpdateLobbyGameDataComplete(LobbyGameData prevLobbyGameData) { }
+        protected virtual void OnLobbyGameDataUpdated(LobbyGameData prevLobbyGameData) { }
         #endregion
 
         #region Adding/Removing Factions Slots
@@ -295,38 +289,36 @@ namespace RTSEngine.Lobby
             factionSlots = factionSlots.Where(slot => slot.IsValid()).ToList();
         }
 
-        public void AddFactionSlot (ILobbyFactionSlot newSlot)
+        public void AddFactionSlot (T newSlot)
         {
             if (IsStartingLobby)
                 return;
 
             factionSlots.Add(newSlot);
 
-            newSlot.RoleUpdated += HandleFactionSlotRoleUpdated;
+            newSlot.FactionRoleUpdated += HandleFactionSlotRoleUpdated;
 
             RaiseFactionSlotAdded(newSlot);
         }
 
-        public abstract void RemoveFactionSlotRequest(int slotID);
+        public abstract bool CanRemoveFactionSlot(T slot);
 
-        public abstract bool CanRemoveFactionSlot(ILobbyFactionSlot slot);
-
-        public void RemoveFactionSlotComplete (ILobbyFactionSlot slot)
+        protected void RemoveFactionSlot (T slot)
         {
             if (!CanRemoveFactionSlot(slot))
                 return;
 
             factionSlots.Remove(slot);
 
-            StartLobbyInterrupt();
+            InterruptStartLobby();
 
-            slot.RoleUpdated -= HandleFactionSlotRoleUpdated;
+            slot.FactionRoleUpdated -= HandleFactionSlotRoleUpdated;
 
             RaiseFactionSlotRemoved(slot);
-            OnRemoveFactionSlotComplete(slot);
+            OnFactionSlotRemoved(slot);
         }
 
-        protected virtual void OnRemoveFactionSlotComplete(ILobbyFactionSlot slot) { }
+        protected virtual void OnFactionSlotRemoved(T slot) { }
 
         protected virtual void HandleFactionSlotRoleUpdated(ILobbyFactionSlot slot, EventArgs args) { }
         #endregion
@@ -334,7 +326,7 @@ namespace RTSEngine.Lobby
         #region Starting/Leaving Lobby
         public void LeaveLobby()
         {
-            if (StartLobbyInterrupt())
+            if (InterruptStartLobby())
                 return;
 
             OnPreLobbyLeave();
@@ -349,14 +341,12 @@ namespace RTSEngine.Lobby
             if (IsStartingLobby)
                 return;
 
-            LocalFactionSlot.OnStartLobbyRequest();
-
             OnStartLobby();
         }
 
         protected virtual void OnStartLobby() { }
 
-        public bool StartLobbyInterrupt()
+        public bool InterruptStartLobby()
         {
             if (!IsStartingLobby)
                 return false;

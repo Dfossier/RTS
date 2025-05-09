@@ -12,14 +12,14 @@ namespace RTSEngine.EntityComponent
         bool HasMaxAmount { get; }
         int MaxAmount { get; }
 
-        IEnumerable<IUnit> StoredUnits { get; }
+        IReadOnlyList<IUnit> CarrierSlots { get; }
         bool AllowMovementToExitCarrier { get; }
 
         event CustomEventHandler<IUnitCarrier, UnitCarrierEventArgs> UnitAdded;
         event CustomEventHandler<IUnitCarrier, UnitCarrierEventArgs> UnitRemoved;
         event CustomEventHandler<IUnitCarrier, UnitCarrierEventArgs> UnitCalled;
 
-        ErrorMessage CanCallUnit(TargetData<IEntity> testTarget, bool playerCommand);
+        ErrorMessage CanCallUnit(SetTargetInputData data);
         ErrorMessage CallUnitsAction(bool playerCommand);
 
         ErrorMessage EjectAction(IUnit unit, bool destroyed, bool playerCommand);

@@ -62,9 +62,9 @@ namespace RTSEngine.EntityComponent
         #endregion
 
         #region Searching/Updating Target
-        public override ErrorMessage IsTargetValid (TargetData<IEntity> testTarget, bool playerCommand)
+        public override ErrorMessage IsTargetValid (SetTargetInputData data)
         {
-            TargetData<IFactionEntity> potentialTarget = testTarget;
+            TargetData<IFactionEntity> potentialTarget = data.target;
 
             if (!potentialTarget.instance.IsValid() || potentialTarget.instance == factionEntity)
                 return ErrorMessage.invalid;

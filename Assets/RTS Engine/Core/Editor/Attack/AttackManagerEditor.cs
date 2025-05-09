@@ -19,7 +19,7 @@ namespace RTSEngine.EditorOnly.Attack
         }
 
         private string[][] toolbars = new string[][] {
-            new string [] { "Attack Move", "Terrain Attack"}
+            new string [] { "Attack Move", "Terrain Attack", "Attack Object Pool"}
         };
 
         public override void OnInspectorGUI()
@@ -31,6 +31,9 @@ namespace RTSEngine.EditorOnly.Attack
         {
             switch (tabName)
             {
+                case "Attack Object Pool":
+                    OnAttackObjectPoolInspectorGUI();
+                    break;
                 case "Attack Move":
                     OnMoveAttacklInspectorGUI();
                     break;
@@ -38,6 +41,11 @@ namespace RTSEngine.EditorOnly.Attack
                     OnTerrainAttacklInspectorGUI();
                     break;
             }
+        }
+
+        private void OnAttackObjectPoolInspectorGUI()
+        {
+            EditorGUILayout.PropertyField(SO.FindProperty("preSpawnData"), true);
         }
 
         protected virtual void OnTerrainAttacklInspectorGUI()

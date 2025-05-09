@@ -9,23 +9,32 @@ namespace RTSEngine.EntityComponent
     {
         #region Attributes
         //'maxDistance' represents the attacking range for a building.
-        public override AttackFormationSelector Formation => null;
+        [SerializeField, Tooltip("Define the minimum and maximum distances from the building to its target that allow it to engage the target.")]
+        private BuildingAttackDistanceHandler attackDistance;
+        public override IAttackDistanceHandler AttackDistanceHandler => attackDistance;
+        #endregion
+
+        #region Initializing/Terminating
+        protected override void OnAttackInit()
+        {
+            attackDistance.Init(gameMgr, this);
+        }
         #endregion
 
         #region Engaging Target
         protected override bool MustStopProgress()
         {
             return base.MustStopProgress()
-                || !IsTargetInRange(transform.position, Target)
-                || LineOfSight.IsObstacleBlocked(transform.position, RTSHelper.GetAttackTargetPosition(Target));
+                || !IsTargetInRange(Entity.transform.position, Target)
+                || LineOfSight.IsObstacleBlocked(Entity.transform.position, RTSHelper.GetAttackTargetPosition(this, Target));
         }
 
         public override float GetProgressRange()
-            => ProgressMaxDistance + Entity.Radius + Target.instance.Radius;
+            => attackDistance.GetStoppingDistance(Target.instance, min: false);
 
-        public override bool IsTargetInRange(Vector3 sourcePosition, TargetData<IEntity> target)
+        public override bool IsTargetInRange(Vector3 attackPosition, TargetData<IEntity> target)
         {
-            return Vector3.Distance(transform.position, RTSHelper.GetAttackTargetPosition(target)) <= ProgressMaxDistance + Entity.Radius + RTSHelper.GetAttackTargetRadius(Target);
+            return attackDistance.IsTargetInRange(attackPosition, target);
         }
         #endregion
     }

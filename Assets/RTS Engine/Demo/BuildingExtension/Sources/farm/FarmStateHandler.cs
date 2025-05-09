@@ -35,9 +35,9 @@ namespace RTSEngine.Demo
         public class CropState
         {
             [SerializeField, Tooltip("Crop game objects that will be shown when this state is active.")]
-            private ModelCacheAwareTransformInput [] show = new ModelCacheAwareTransformInput[0];
+            private Transform[] show = new Transform[0];
             [SerializeField, Tooltip("Crop game objects that will be hidden when this state is active.")]
-            private ModelCacheAwareTransformInput[] hide = new ModelCacheAwareTransformInput[0];
+            private Transform[] hide = new Transform[0];
 
             [SerializeField, Tooltip("The target height that the shown crop objects will reach when this state is active.")]
             private float targetHeight = 0.0f;
@@ -52,15 +52,15 @@ namespace RTSEngine.Demo
             {
                 for (int i = 0; i < hide.Length; i++)
                 {
-                    hide[i].IsActive = false;
+                    hide[i].gameObject.SetActive(false);
                 }
 
                 for (int i = 0; i < show.Length; i++)
                 {
-                    show[i].IsActive = true;
+                    show[i].gameObject.SetActive(true);
 
                     if (snapHeight)
-                        show[i].LocalPosition = new Vector3(show[i].LocalPosition.x, targetHeight, show[i].LocalPosition.z);
+                        show[i].localPosition = new Vector3(show[i].localPosition.x, targetHeight, show[i].localPosition.z); ;
                 }
             }
 
@@ -70,7 +70,7 @@ namespace RTSEngine.Demo
                     || snapHeight)
                     return true;
 
-                float nextHeight = show[0].LocalPosition.y;
+                float nextHeight = show[0].localPosition.y;
 
                 if(Mathf.Abs(nextHeight - targetHeight) <= heightStoppingDistance)
                     return true;
@@ -79,7 +79,7 @@ namespace RTSEngine.Demo
 
                 for (int i = 0; i < show.Length; i++)
                 {
-                    show[i].LocalPosition = new Vector3(show[i].LocalPosition.x, nextHeight, show[i].LocalPosition.z);
+                    show[i].localPosition = new Vector3(show[i].localPosition.x, nextHeight, show[i].localPosition.z);
                 }
 
                 return false;
@@ -100,7 +100,7 @@ namespace RTSEngine.Demo
 
         // Moving the collector inside the farm to simulate farming
         [Space(), SerializeField, Tooltip("Positions that the farm resource collector can take while working in the farm.")]
-        private ModelCacheAwareTransformInput[] workingPositions = new ModelCacheAwareTransformInput[0];
+        private Transform[] workingPositions = new Transform[0];
         [SerializeField, Tooltip("Time before changing the collector's farming position.")]
         private float mvtReloadTime = 3.0f;
         private TimeModifiedTimer mvtTimer;
@@ -192,7 +192,7 @@ namespace RTSEngine.Demo
                     && (!collector.DropOffSource.IsValid() || collector.DropOffSource.State == DropOffState.inactive))
                 {
                     collector.MovementComponent.SetTarget(
-                        workingPositions[UnityEngine.Random.Range(0, workingPositions.Length)].Position,
+                        workingPositions[UnityEngine.Random.Range(0, workingPositions.Length)].position,
                         stoppingDistance: 0.0f,
                         new MovementSource
                         {

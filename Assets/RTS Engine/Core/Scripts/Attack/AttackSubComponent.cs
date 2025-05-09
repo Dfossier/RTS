@@ -3,6 +3,7 @@ using RTSEngine.Effect;
 using RTSEngine.EntityComponent;
 using RTSEngine.Game;
 using RTSEngine.Logging;
+using System;
 
 namespace RTSEngine.Attack
 {
@@ -32,5 +33,12 @@ namespace RTSEngine.Attack
         }
 
         protected virtual void OnInit() { }
+
+        public virtual void Disable() 
+        {
+            OnDisabled();
+        }
+
+        protected virtual void OnDisabled() { }
     }
 }

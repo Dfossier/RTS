@@ -38,8 +38,6 @@ namespace RTSEngine.EditorOnly.NPC.Attack
             EditorGUILayout.Space();
 
             EditorGUILayout.PropertyField(SO.FindProperty("cancelAttackOnTerritoryDefense"), true);
-            if (!SO.FindProperty("cancelAttackOnTerritoryDefense").boolValue)
-                return;
             EditorGUILayout.PropertyField(SO.FindProperty("cancelTerritoryDefenseReloadRange"), true);
         }
 

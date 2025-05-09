@@ -9,7 +9,6 @@ using RTSEngine.Entities;
 
 namespace RTSEngine.EntityComponent
 {
-    [RequireComponent(typeof(IEntity))]
     public class UpgradeLauncher : PendingTaskEntityComponentBase, IUpgradeLauncher, IEntityPostInitializable
     {
         #region Class Attributes
@@ -32,10 +31,10 @@ namespace RTSEngine.EntityComponent
         #region Initializing/Terminating
         protected override void OnPendingInit()
         {
-            if (!logger.RequireTrue(upgradeTasks.All(task => task.PrefabObject.IsValid()),
+            if (!logger.RequireTrue(upgradeTasks.All(task => task.Object.IsValid()),
                 $"[{GetType().Name} - {Entity.Code}] Some elements in the 'Upgrade Tasks' array have the 'Prefab Object' field unassigned!")
 
-                || !logger.RequireTrue(entityTargetUpgradeTasks.All(task => task.PrefabObject.IsValid()),
+                || !logger.RequireTrue(entityTargetUpgradeTasks.All(task => task.Object.IsValid()),
                 $"[{GetType().Name} - {Entity.Code}] Some elements in the 'Upgrade Target Upgrade Tasks' array have the 'Prefab Object' field unassigned!"))
                 return;
 
@@ -70,7 +69,7 @@ namespace RTSEngine.EntityComponent
             {
                 // Divide upgrade tasks into entity upgrades (group with key = true) and entity component upgrades (group with key = false)
                 var upgradeTaskGroups = upgradeTasks
-                    .GroupBy(task => task.Prefab is EntityUpgrade);
+                    .GroupBy(task => task.TargetObject is EntityUpgrade);
 
                 var entityUpgradeTasks = upgradeTaskGroups
                     .Where(group => group.Key == true)
@@ -95,8 +94,8 @@ namespace RTSEngine.EntityComponent
                 // Check for already launched entity component upgrades
                 // Go through each EntityComponentUpgrade in the above group
                 foreach (EntityComponentUpgrade componentUpgrade in entityComponentUpgradeTasks
-                    .Where(task => (task.Prefab is EntityComponentUpgrade))
-                    .Select(task => task.Prefab as EntityComponentUpgrade)
+                    .Where(task => (task.TargetObject is EntityComponentUpgrade))
+                    .Select(task => task.TargetObject as EntityComponentUpgrade)
                     .ToArray())
                 {
                     // For each instance, check if the upgrades have been already launched
@@ -129,13 +128,13 @@ namespace RTSEngine.EntityComponent
                 bool condition;
                 if (isEntityUpgrade)
                 {
-                    EntityUpgrade entityUpgrade = (task.Prefab as EntityUpgrade);
+                    EntityUpgrade entityUpgrade = (task.TargetObject as EntityUpgrade);
                     condition = entityUpgrade.IsValid() && entityUpgrade.SourceCode == prefabCode;
                 }
                 else
                 {
-                    EntityComponentUpgrade entityComponentUpgrade = (task.Prefab as EntityComponentUpgrade);
-                    condition = entityComponentUpgrade.IsValid() && entityComponentUpgrade.GetUpgrade(task.UpgradeIndex).GetSourceCode(task.Prefab.SourceEntity) == prefabCode;
+                    EntityComponentUpgrade entityComponentUpgrade = (task.TargetObject as EntityComponentUpgrade);
+                    condition = entityComponentUpgrade.IsValid() && entityComponentUpgrade.GetUpgrade(task.UpgradeIndex).GetSourceCode(task.TargetObject.SourceEntity) == prefabCode;
                 }
 
                 if(condition)
@@ -154,13 +153,13 @@ namespace RTSEngine.EntityComponent
                 string nextCode;
                 if (isEntityUpgrade)
                 {
-                    nextCode = (upgradeTargetTask.Prefab as EntityUpgrade).SourceCode; 
+                    nextCode = (upgradeTargetTask.TargetObject as EntityUpgrade).SourceCode; 
                 }
                 else
                 {
-                    nextCode = (upgradeTargetTask.Prefab as EntityComponentUpgrade)
+                    nextCode = (upgradeTargetTask.TargetObject as EntityComponentUpgrade)
                            .GetUpgrade(upgradeTargetTask.UpgradeIndex)
-                           .GetSourceCode(upgradeTargetTask.Prefab.SourceEntity);
+                           .GetSourceCode(upgradeTargetTask.TargetObject.SourceEntity);
                 }
 
                 if (nextCode == targetCode)
@@ -207,7 +206,7 @@ namespace RTSEngine.EntityComponent
         #region Handling Upgrade Action
         protected override ErrorMessage CompleteTaskActionLocal(int upgradeTaskID, bool playerCommand)
         {
-            allUpgradeTasks[upgradeTaskID].Prefab.LaunchLocal(
+            allUpgradeTasks[upgradeTaskID].TargetObject.LaunchLocal(
                 gameMgr,
                 allUpgradeTasks[upgradeTaskID].UpgradeIndex,
                 factionEntity.FactionID);
@@ -217,11 +216,11 @@ namespace RTSEngine.EntityComponent
         #endregion
 
         #region Task UI
-        protected override string GetTooltipText(IEntityComponentTaskInput taskInput)
+        protected override string GetTaskTooltipText(IEntityComponentTaskInput taskInput)
         {
             UpgradeTask nextTask = taskInput as UpgradeTask;
 
-            textDisplayer.UpgradeTaskToString(
+            textDisplayer.UpgradeTaskTooltipToString(
                 nextTask,
                 out string tooltipText);
 

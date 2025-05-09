@@ -27,6 +27,9 @@ namespace RTSEngine
         {
             this._min = min;
             this._max = max;
+
+            if (_min.CompareTo(_max) > 0)
+                _max = _min;
         }
 
         public abstract T RandomValue { get; }

@@ -24,6 +24,7 @@ namespace RTSEngine.BuildingExtension
         BuildingPlacementSegmentData SegmentData { get; }
         BuildingPlacementGridData GridOptions { get; }
         ErrorMessage CanPlaceError { get; }
+        int PlacableNavigationMask { get; }
 
         event CustomEventHandler<IBuilding, EventArgs> BuildingPlacementStatusUpdated;
         event CustomEventHandler<IBuilding, EventArgs> BuildingPlacementTransformUpdated;
@@ -41,5 +42,6 @@ namespace RTSEngine.BuildingExtension
         void OnPlacementUpdate(Vector3 position);
 
         bool IsBuildingInBorder();
+        void OnPlacementPreComplete();
     }
 }

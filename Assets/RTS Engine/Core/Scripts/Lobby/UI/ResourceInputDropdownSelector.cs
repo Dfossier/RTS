@@ -22,7 +22,7 @@ namespace RTSEngine.Lobby.UI
 
         public ResourceInputDropdownSelector() : base(Enumerable.Empty<ResourceTypeInput>(), "Resources") { }
 
-        public void Init(ILobbyManager lobbyMgr)
+        public void Init(ILobbyManagerBase lobbyMgr)
         {
             elementsDic.Clear();
             foreach (Option element in options)

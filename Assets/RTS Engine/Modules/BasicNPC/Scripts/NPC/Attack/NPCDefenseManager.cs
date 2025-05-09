@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 using UnityEngine;
 
@@ -173,7 +172,7 @@ namespace RTSEngine.NPC.Attack
                 playerCommand: false,
                 out IReadOnlyList<IUnit> supportUnits);
 
-            if (supportUnits.Any())
+            if (supportUnits.Count > 0)
             {
                 LogEvent($"Enabled unit support on position {supportPosition} with {supportUnits.Count} units!");
 
@@ -181,7 +180,7 @@ namespace RTSEngine.NPC.Attack
                 {
                     source = supportUnits,
                     targetEntity = target,
-                    targetPosition = target.transform.position,
+                    targetPosition = RTSHelper.GetAttackTargetPosition(supportUnits[0], target),
                     playerCommand = false
                 });
             }
@@ -189,15 +188,15 @@ namespace RTSEngine.NPC.Attack
             return true;
         }
 
-        private ErrorMessage IsValidUnitSupport(TargetData<IEntity> entity, bool playerCommand)
+        private ErrorMessage IsValidUnitSupport(SetTargetInputData data)
         {
-            if (!entity.instance.IsValid()
-                || !entity.instance.IsUnit()
-                || !factionMgr.IsSameFaction(entity.instance)
-                || !entity.instance.CanAttack)
+            if (!data.target.instance.IsValid()
+                || !data.target.instance.IsUnit()
+                || !factionMgr.IsSameFaction(data.target.instance)
+                || !data.target.instance.CanAttack)
                 return ErrorMessage.invalid;
             // Make sure that the unit to test has a target that can not attack back so that it can switch to support
-            else if (entity.instance.FirstActiveAttackComponent.HasTarget && entity.instance.FirstActiveAttackComponent.Target.instance.CanAttack)
+            else if (data.target.instance.FirstActiveAttackComponent.HasTarget && data.target.instance.FirstActiveAttackComponent.Target.instance.CanAttack)
                 return ErrorMessage.attackTargetNoChange;
 
             return ErrorMessage.none;

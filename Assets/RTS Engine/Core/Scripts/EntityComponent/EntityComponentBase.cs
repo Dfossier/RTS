@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 using UnityEngine;
 
@@ -7,6 +6,8 @@ using RTSEngine.Entities;
 using RTSEngine.Game;
 using RTSEngine.Logging;
 using RTSEngine.UI;
+using RTSEngine.Event;
+using System;
 
 namespace RTSEngine.EntityComponent
 {
@@ -30,6 +31,10 @@ namespace RTSEngine.EntityComponent
         {
             isActive = IsActive
         };
+
+        // UI
+        private List<EntityComponentTaskUIAttributes> taskUIAttributesCache;
+        private List<string> disabledTaskCodesCache;
 
         protected IGameLoggingService logger { private set; get; }
         protected IPlayerMessageHandler playerMsgHandler { private set; get; }
@@ -55,6 +60,7 @@ namespace RTSEngine.EntityComponent
 
         private void Init(IGameManager gameMgr, IEntity entity)
         {
+            this.gameMgr = gameMgr;
             this.logger = gameMgr.GetService<IGameLoggingService>();
             this.playerMsgHandler = gameMgr.GetService<IPlayerMessageHandler>();
             this.Entity = entity;
@@ -65,7 +71,11 @@ namespace RTSEngine.EntityComponent
                 return;
             }
 
-            this.gameMgr = gameMgr;
+            taskUIAttributesCache = new List<EntityComponentTaskUIAttributes>();
+            disabledTaskCodesCache = new List<string>();
+
+            Entity.FactionUpdateStart += HandleFactionUpdateStart;
+            Entity.FactionUpdateComplete += HandleFactionUpdateComplete;
 
             OnInit();
 
@@ -79,10 +89,38 @@ namespace RTSEngine.EntityComponent
             if (!IsInitialized)
                 return;
 
+            Entity.FactionUpdateStart -= HandleFactionUpdateStart;
+            Entity.FactionUpdateComplete -= HandleFactionUpdateComplete;
+
             OnDisabled();
         }
 
         protected virtual void OnDisabled() { }
+        #endregion
+
+        #region Raising Events
+        public event CustomEventHandler<IEntityComponent, EventArgs> ActiveStatusUpdate;
+        private void RaiseActiveStatusUpdate()
+        {
+            var handler = ActiveStatusUpdate;
+            handler?.Invoke(this, EventArgs.Empty);
+        }
+        #endregion
+
+        #region Handling Faction Update
+        private void HandleFactionUpdateStart(IEntity sender, FactionUpdateArgs args)
+        {
+            OnFactionUpdateStart();
+        }
+
+        protected virtual void OnFactionUpdateStart() { }
+
+        private void HandleFactionUpdateComplete(IEntity sender, FactionUpdateArgs args)
+        {
+            OnFactionUpdateComplete();
+        }
+
+        protected virtual void OnFactionUpdateComplete() { }
         #endregion
 
         #region Handling Component Upgrade
@@ -97,6 +135,7 @@ namespace RTSEngine.EntityComponent
             isActive = active;
 
             OnActiveStatusUpdated();
+            RaiseActiveStatusUpdate();
 
             return ErrorMessage.none;
         }
@@ -112,13 +151,31 @@ namespace RTSEngine.EntityComponent
         #endregion
 
         #region Task UI
-        public virtual bool OnTaskUIRequest(
-            out IEnumerable<EntityComponentTaskUIAttributes> taskUIAttributes,
-            out IEnumerable<string> disabledTaskCodes)
+        public bool OnTaskUIRequest(
+            out IReadOnlyList<EntityComponentTaskUIAttributes> taskUIAttributes,
+            out IReadOnlyList<string> disabledTaskCodes)
         {
-            taskUIAttributes = Enumerable.Empty<EntityComponentTaskUIAttributes>();
-            disabledTaskCodes = Enumerable.Empty<string>();
-            return false; 
+            taskUIAttributesCache.Clear();
+            disabledTaskCodesCache.Clear();
+
+            if (OnTaskUICacheUpdate(taskUIAttributesCache, disabledTaskCodesCache))
+            {
+                taskUIAttributes = taskUIAttributesCache.AsReadOnly();
+                disabledTaskCodes = disabledTaskCodesCache.AsReadOnly();
+                return true;
+            }
+            else
+            {
+                taskUIAttributes = null;
+                disabledTaskCodes = null;
+
+                return false;
+            }
+        }
+
+        protected virtual bool OnTaskUICacheUpdate(List<EntityComponentTaskUIAttributes> taskUIAttributesCache, List<string> disabledTaskCodesCache)
+        {
+            return false;
         }
 
         public virtual bool OnTaskUIClick(EntityComponentTaskUIAttributes taskAttributes) 

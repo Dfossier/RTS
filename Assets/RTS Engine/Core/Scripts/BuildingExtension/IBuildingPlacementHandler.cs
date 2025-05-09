@@ -10,6 +10,7 @@ namespace RTSEngine.BuildingExtension
         bool IsActive { get; }
         int Count { get; }
         IFactionSlot FactionSlot { get; }
+        bool CanRotateCurrent { get; }
 
         event CustomEventHandler<IBuildingPlacementHandler, IPendingPlacementData> PlacementAdded;
         event CustomEventHandler<IBuildingPlacementHandler, IPendingPlacementData> PlacementStopped;
@@ -24,5 +25,6 @@ namespace RTSEngine.BuildingExtension
         void OnUpdate();
 
         ErrorMessage CanPlace(IBuildingPlacer buildingPlacer);
+        bool Complete();
     }
 }

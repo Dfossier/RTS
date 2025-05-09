@@ -12,6 +12,9 @@ using RTSEngine.Terrain;
 using RTSEngine.Search;
 using RTSEngine.Effect;
 using RTSEngine.Model;
+using RTSEngine.Selection;
+using RTSEngine.Movement;
+using RTSEngine.Audio;
 
 namespace RTSEngine.BuildingExtension
 {
@@ -26,6 +29,20 @@ namespace RTSEngine.BuildingExtension
         [SerializeField, Tooltip("If populated then this defines the types of terrain areas where the building can be placed at. When empty, all terrain area types would be valid.")]
         private TerrainAreaType[] placableTerrainAreas = new TerrainAreaType[0];
         public IReadOnlyList<TerrainAreaType> PlacableTerrainAreas => placableTerrainAreas;
+
+        public int PlacableNavigationMask
+        {
+            get
+            {
+                int mask = 0;
+                for (int i = 0; i < placableTerrainAreas.Length; i++)
+                {
+                    mask |= placableTerrainAreas[i].NavigationMask;
+                }
+
+                return mask;
+            }
+        }
 
         [SerializeField, Tooltip("Can the building be placed outside the faction's territory (defined by the Border)?")]
         private bool canPlaceOutsideBorder = false;
@@ -46,10 +63,18 @@ namespace RTSEngine.BuildingExtension
         private List<Collider> overlappedColliders;
         private LayerMask ignoreCollisionLayerMask;
 
+        // This would hold the units of the same faction as the building that overlapping with the building
+        // When the building is placed, these units will be asked to move away.
+        // The goal is not have units that block the placement of buildings.
+        private List<IUnit> overlappedLocalUnits;
+
         private Collider boundaryCollider = null;
 
         // Additional placement conditions that can be hooked up into the building
         private IBuildingPlacerCondition[] conditions;
+
+        [SerializeField, Tooltip("Audio clip to play when the local player places this building.")]
+        private AudioClipFetcher placeAudio = new AudioClipFetcher();
 
         public bool IsPlacementStarted { private set; get; }
         public BuildingPlacedData PlacedData { get; private set; }
@@ -69,6 +94,8 @@ namespace RTSEngine.BuildingExtension
         protected IBuildingManager buildingMgr { private set; get; }
         protected IBuildingPlacement placerMgr { private set; get; }
         protected IGridSearchHandler gridSearch { private set; get; }
+        protected IMovementManager mvtMgr { private set; get; } 
+        protected IGameAudioManager audioMgr { private set; get; }
         #endregion
 
         #region Events
@@ -100,6 +127,8 @@ namespace RTSEngine.BuildingExtension
             this.buildingMgr = gameMgr.GetService<IBuildingManager>();
             this.placerMgr = gameMgr.GetService<IBuildingPlacement>();
             this.gridSearch = gameMgr.GetService<IGridSearchHandler>();
+            this.mvtMgr = gameMgr.GetService<IMovementManager>(); 
+            this.audioMgr = gameMgr.GetService<IGameAudioManager>();
 
             this.Building = entity as IBuilding;
 
@@ -117,7 +146,7 @@ namespace RTSEngine.BuildingExtension
             // This allows the boundary collider to be ignored for mouse clicks and mouse hovers.
             boundaryCollider.gameObject.layer = 2;
 
-            conditions = gameObject.GetComponents<IBuildingPlacerCondition>();
+            conditions = gameObject.GetComponentsInChildren<IBuildingPlacerCondition>();
 
             // If the building is not a placement instance then it is placed by default.
             Placed = !Building.IsPlacementInstance;
@@ -139,6 +168,12 @@ namespace RTSEngine.BuildingExtension
 
         public void InitPlaced(BuildingPlacedData placedData)
         {
+            if(Building.IsLocalPlayerFaction())
+            {
+                AudioClip placeAudioClip = placeAudio.Fetch();
+                audioMgr.PlaySFX(placeAudioClip ? placeAudioClip : placerMgr.PlaceBuildingAudio.Fetch(), Building, loop: false);
+            }
+
             this.PlacedData = placedData;
 
             OnPlacedInit();
@@ -153,12 +188,11 @@ namespace RTSEngine.BuildingExtension
         public void OnPlacementStart(BuildingPlacementUpdateData data)
         {
             overlappedColliders = new List<Collider>();
+            overlappedLocalUnits = new List<IUnit>();
             CanPlace = false;
             IsPlacementStarted = true;
 
             OnPlacementStarted(data);
-
-            OnPlacementUpdate();
         }
         protected virtual void OnPlacementStarted(BuildingPlacementUpdateData data) { }
 
@@ -191,12 +225,11 @@ namespace RTSEngine.BuildingExtension
                 OnDebugPlacement();
             }    
 #endif
-
-            RaiseBuildingPlacementTransformUpdated();
-
             //if the building is not in range of a building center, not on the map or not around the entity that is has to be around within a certain range
             //--> not placable
             TogglePlacementStatus();
+
+            RaiseBuildingPlacementTransformUpdated();
         }
         protected virtual void OnPositionUpdate(Vector3 position)
         {
@@ -241,6 +274,24 @@ namespace RTSEngine.BuildingExtension
             OnPlacementStatusUpdated();
         }
         protected virtual void OnPlacementStatusUpdated() { }
+
+        public void OnPlacementPreComplete()
+        {
+            foreach (IUnit unit in overlappedLocalUnits)
+            {
+                if (!unit.IsValid() || unit.Health.IsDead)
+                    continue;
+
+                if (mvtMgr.GeneratePathDestination(Building.transform.position,
+                    Building.Radius + unit.Radius,
+                    unit.MovementComponent,
+                    out Vector3 targetPosition) == ErrorMessage.none)
+                {
+                    unit.MovementComponent.SetPosition(targetPosition);
+                    unit.MovementComponent.TargetPositionMarker.Toggle(true, targetPosition);
+                }
+            }
+        }
         #endregion
 
         #region Handling Placement Conditions
@@ -251,12 +302,14 @@ namespace RTSEngine.BuildingExtension
                 || Placed 
                 || ignoreCollisionLayerMask == (ignoreCollisionLayerMask | (1 << other.gameObject.layer))
                 || Building.Selection.IsSelectionCollider(other)
-                || other.gameObject.GetComponent<IEffectObject>().IsValid()
-                // If the collider is attached to any model object then do not count it as an obstacle
-                || other.gameObject.GetComponentInParent<EntityModelConnections>())
+                || other.gameObject.GetComponent<IEffectObject>().IsValid())
                 return;
 
-            overlappedColliders.Add(other);
+            IUnit collidedUnit = other.gameObject.GetComponent<EntitySelectionCollider>()?.Entity as IUnit;
+            if (collidedUnit.IsValid() && collidedUnit.IsSameFaction(Building))
+                overlappedLocalUnits.Add(collidedUnit);
+            else
+                overlappedColliders.Add(other);
 
             OnPlacementUpdate();
         }
@@ -267,11 +320,14 @@ namespace RTSEngine.BuildingExtension
             if (!IsPlacementStarted
                 || Placed 
                 || Building.Selection.IsSelectionCollider(other)
-                || other.gameObject.GetComponent<IEffectObject>().IsValid()
-                || other.gameObject.GetComponentInParent<EntityModelConnections>())
+                || other.gameObject.GetComponent<IEffectObject>().IsValid())
                 return;
 
-            overlappedColliders.Remove(other);
+            IUnit collidedUnit = other.gameObject.GetComponent<EntitySelectionCollider>()?.Entity as IUnit;
+            if (collidedUnit.IsValid() && collidedUnit.IsSameFaction(Building))
+                overlappedLocalUnits.Remove(collidedUnit);
+            else
+                overlappedColliders.Remove(other);
 
             OnPlacementUpdate();
         }

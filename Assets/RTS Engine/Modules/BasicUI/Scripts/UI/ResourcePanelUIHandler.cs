@@ -15,6 +15,9 @@ namespace RTSEngine.UI
             [Tooltip("Type of the resource that can be displayed in the UI panel.")]
             public ResourceTypeInfo type;
 
+            [Tooltip("Display the current count of the collectors of the resource type for the local player faction?")]
+            public bool displayCollectorCount;
+
             [Tooltip("Define the faction types for which is it allowed to display this resource type in the UI panel.")]
             public FactionTypeTargetPicker allowedUIFactionTypes;
         }
@@ -68,7 +71,8 @@ namespace RTSEngine.UI
                     tooltipEnabled = resourceDescriptionAsTooltip,
                     tooltipText = tooltipText,
 
-                    maxCapacityColor = maxCapacityColor
+                    maxCapacityColor = maxCapacityColor,
+                    displayCollectorCount = nextResourceUIData.displayCollectorCount
                 });
             }
         }

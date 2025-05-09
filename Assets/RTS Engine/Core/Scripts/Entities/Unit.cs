@@ -5,6 +5,7 @@ using RTSEngine.Movement;
 using RTSEngine.Game;
 using RTSEngine.Animation;
 using RTSEngine.Health;
+using RTSEngine.UnitExtension;
 
 namespace RTSEngine.Entities
 {
@@ -28,6 +29,8 @@ namespace RTSEngine.Entities
                 ? CarriableUnit.CurrCarrier.AllowMovementToExitCarrier
                 : base.CanMove(playerCommand);
         }
+
+        public IUnitSquad Squad => RTSHelper.GetUnitSquad(this);
 
         public IDropOffSource DropOffSource { private set; get; }
         public IResourceCollector CollectorComponent { private set; get; }
@@ -100,13 +103,16 @@ namespace RTSEngine.Entities
 
             if (SpawnRallypoint != null)
                 SpawnRallypoint.SendAction (this, playerCommand: false);
-            else if (Vector3.Distance(initParams.gotoPosition, transform.position) > mvtMgr.StoppingDistance) //only if the goto position is not within the stopping distance of this unit
+            else if (!mvtMgr.IsPositionReached(initParams.gotoPosition, transform.position)) //only if the goto position is not within the stopping distance of this unit
                 mvtMgr.SetPathDestination(
-                    this,
-                    initParams.gotoPosition,
-                    0.0f,
-                    null,
-                    new MovementSource { playerCommand = false });
+                    new SetPathDestinationData<IEntity>
+                    {
+                        source = this,
+                        destination = initParams.gotoPosition,
+                        offsetRadius = 0.0f,
+                        target = null,
+                        mvtSource = new MovementSource { playerCommand = false }
+                    });
         }
 
         protected sealed override void Disable(bool IsUpgrade, bool isFactionUpdate)
@@ -126,6 +132,5 @@ namespace RTSEngine.Entities
         }
 #endif
         #endregion
-
     }
 }

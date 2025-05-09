@@ -51,7 +51,6 @@ namespace RTSEngine.BuildingExtension
         protected IGlobalEventPublisher globalEvent { private set; get; }
         protected IInputManager inputMgr { private set; get; }
         protected IBuildingPlacement placementMgr { private set; get; }
-        protected IGameLoggingService logger { private set; get; } 
         #endregion
 
         #region Initializing/Terminating
@@ -60,7 +59,6 @@ namespace RTSEngine.BuildingExtension
             this.globalEvent = gameMgr.GetService<IGlobalEventPublisher>();
             this.inputMgr = gameMgr.GetService<IInputManager>();
             this.placementMgr = gameMgr.GetService<IBuildingPlacement>();
-            this.logger = gameMgr.GetService<IGameLoggingService>();
 
             freeBuildings = new List<IBuilding>();
 

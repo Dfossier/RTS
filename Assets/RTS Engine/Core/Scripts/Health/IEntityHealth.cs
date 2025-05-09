@@ -41,5 +41,6 @@ namespace RTSEngine.Health
 
         event CustomEventHandler<IEntity, HealthUpdateArgs> EntityHealthUpdated;
         event CustomEventHandler<IEntity, DeadEventArgs> EntityDead;
+        event CustomEventHandler<IEntity, HealthUpdateArgs> EntityMaxHealthUpdated;
     }
 }

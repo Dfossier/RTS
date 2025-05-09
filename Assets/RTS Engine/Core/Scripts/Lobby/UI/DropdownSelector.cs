@@ -5,6 +5,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 using RTSEngine.Lobby.Logging;
+using TMPro;
+using System;
 
 namespace RTSEngine.Lobby.UI
 {
@@ -16,20 +18,23 @@ namespace RTSEngine.Lobby.UI
 
         // Serivces
         private ILobbyLoggingService logger;
+        private ILobbyManagerUI lobbyUI;
 
         [SerializeField]
-        private Dropdown menu = null;
+        private TMP_Dropdown dropdownMenu = null;
+        public int a;
+        public int b = 6;
 
         public bool Interactable
         {
             set
             {
-                menu.interactable = value;
+                dropdownMenu.interactable = value;
             }
 
             get
             {
-                return menu.interactable;
+                return dropdownMenu.interactable;
             }
         }
 
@@ -37,10 +42,10 @@ namespace RTSEngine.Lobby.UI
         private readonly string name;
 
         // The default value of the type to return if the drop down menu value isn't valid.
-        public int CurrentOptionID => menu.value;
+        public int CurrentOptionID => dropdownMenu.value;
         private readonly T defaultValue;
-        public T CurrentValue => GetValue(menu.value);
-        public int CurrentValueIndex => menu.value;
+        public T CurrentValue => GetValue(dropdownMenu.value);
+        public int CurrentValueIndex => dropdownMenu.value;
         public T GetValue(int index) => elementsDic.TryGetValue(index, out T returnValue) ? returnValue : defaultValue;
 
         public DropdownSelector(T defaultValue, string name)
@@ -49,21 +54,25 @@ namespace RTSEngine.Lobby.UI
             this.name = name;
         }
 
-        protected void Init(IEnumerable<string> optionNames, ILobbyManager lobbyMgr)
+        protected void Init(IEnumerable<string> optionNames, ILobbyManagerBase lobbyMgr)
         {
             this.OptionNames = optionNames;
             this.logger = lobbyMgr.GetService<ILobbyLoggingService>();
+            this.lobbyUI = lobbyMgr.GetService<ILobbyManagerUI>();
 
-            if (!logger.RequireValid(menu, $"[{GetType().Name}] The drop down menu of the '{name}' hasn't been assigned."))
+            if (!logger.RequireValid(dropdownMenu, $"[{GetType().Name}] The drop down menu of the '{name}' hasn't been assigned."))
                 return;
 
-            menu.ClearOptions();
-            menu.AddOptions(optionNames.ToList()); 
+            dropdownMenu.onValueChanged.AddListener(OnOptionUpdated);
+            dropdownMenu.ClearOptions();
+            dropdownMenu.AddOptions(optionNames.ToList()); 
         }
+
+        private void OnOptionUpdated(int optionID) => lobbyUI.OnLobbyGameDataUIUpdated();
 
         public void SetOption (int optionID)
         {
-            menu.value = optionID;
+            dropdownMenu.value = optionID;
         }
     }
 }

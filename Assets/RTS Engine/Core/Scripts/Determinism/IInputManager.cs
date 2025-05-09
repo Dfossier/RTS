@@ -8,8 +8,8 @@ namespace RTSEngine.Determinism
     {
         int RegisterEntity(IEntity newEntity, InitEntityParameters initParams);
 
-        ErrorMessage SendInput(CommandInput newInput, IEntity source, IEntity target);
-        ErrorMessage SendInput(CommandInput newInput, IEnumerable<IEntity> source, IEntity target);
+        ErrorMessage SendInput(CommandInput newInput, IEntity source, IEntity target, bool masterInstanceOnly = false);
+        ErrorMessage SendInput(CommandInput newInput, IEnumerable<IEntity> source, IEntity target, bool masterInstanceOnly = false);
         ErrorMessage SendInput(CommandInput newInputAction);
 
         void LaunchInput(CommandInput input);

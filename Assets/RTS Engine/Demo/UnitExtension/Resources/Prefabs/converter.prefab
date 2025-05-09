@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 82619650345370998}
   - component: {fileID: 195228731132680996}
   - component: {fileID: -5743297795756321273}
+  - component: {fileID: 6048797391769417508}
   m_Layer: 0
   m_Name: converter
   m_TagString: Untagged
@@ -32,6 +33,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 86.347145, y: 13.234375, z: 31.55054}
   m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4529403939893284065}
   - {fileID: 4529017118580073487}
@@ -59,11 +61,12 @@ MonoBehaviour:
     y: 0
   _name: Converter
   code: converter
-  category: special_unit,walking_unit
+  category: special_unit,walking_unit,rtse_demo_entity,rtse_demo_entity
   description: Converts enemy units to your faction.
   icon: {fileID: 21300000, guid: 93f32e06c57754a42a58c77f39468c0d, type: 3}
   radius: 0.4
-  model: {fileID: 1585091906693863819}
+  model: {fileID: 1571963908739994}
+  isIdle: 0
   isMainEntity: 0
   isFactionLocked: 0
   initResources:
@@ -79,11 +82,7 @@ MonoBehaviour:
       capacity: 0
     nonConsumable: 0
   coloredRenderers:
-  - renderer:
-      status: 1
-      obj: {fileID: 23516190429617866}
-      indexKey: 0
-      entity: {fileID: 114285707662576322}
+  - renderer: {fileID: 23516190429617866}
     materialID: 0
     transparency: 0
     darkness: 0
@@ -111,6 +110,7 @@ MonoBehaviour:
     enabled: 1
     offset: {x: 0, y: 1.5, z: 0}
     size: {x: 1, y: 1, z: 1}
+    parent: {fileID: 0}
   hoverHealthBarY: 1.5
   hitEffect:
     input: {fileID: 0}
@@ -147,11 +147,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
   canBeAttacked: 1
-  attackTargetPosition:
-    status: 0
-    obj: {fileID: 0}
-    indexKey: 0
-    entity: {fileID: 0}
+  attackTargetPosition: {fileID: 0}
   stopMovingOnDamage: 0
 --- !u!114 &2211588447956169339
 MonoBehaviour:
@@ -165,11 +161,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb986734d7c0b9c4b9288720ed50ab74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator:
-    status: 1
-    obj: {fileID: 1275834770612446211}
-    indexKey: 0
-    entity: {fileID: 114285707662576322}
+  animator: {fileID: 1275834770612446211}
   animatorOverrideController:
     fetchType: 0
     items:
@@ -324,6 +316,24 @@ MonoBehaviour:
       type: 1
       options:
       - {fileID: 11400000, guid: 91a9ec14b39b8cf41852be1ae356a847, type: 2}
+--- !u!114 &6048797391769417508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1089284315477716}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bab46bb0053502243877f36416be80ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  coloredRenderers:
+  - renderer: {fileID: 23516190429617866}
+    materialID: 0
+    colorPropertyName: _Color
+    transparency: 0
+    darkness: 0
 --- !u!1 &1281884696262332
 GameObject:
   m_ObjectHideFlags: 0
@@ -352,6 +362,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 1.3, y: 2.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4506107116004572}
   m_RootOrder: 1
@@ -375,10 +386,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -403,6 +416,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &1571963908739994
 GameObject:
   m_ObjectHideFlags: 0
@@ -414,7 +428,6 @@ GameObject:
   - component: {fileID: 4506107116004572}
   - component: {fileID: 33417138193853276}
   - component: {fileID: 23516190429617866}
-  - component: {fileID: 1585091906693863819}
   - component: {fileID: 1275834770612446211}
   m_Layer: 0
   m_Name: converter_model
@@ -433,6 +446,7 @@ Transform:
   m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
   m_LocalPosition: {x: -0.005180359, y: -0.003, z: 0}
   m_LocalScale: {x: 0.14999999, y: 0.14999999, z: 0.14999999}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4301821513255680}
   - {fileID: 4730019123911596}
@@ -459,10 +473,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -487,29 +503,10 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!114 &1585091906693863819
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1571963908739994}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9f25f7e5fdbfc56499eef5560418c5d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  transformConnections:
-    connectedChildren: []
-  animatorConnections:
-    connectedChildren:
-    - {fileID: 1275834770612446211}
-  rendererConnections:
-    connectedChildren:
-    - {fileID: 23516190429617866}
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!95 &1275834770612446211
 Animator:
-  serializedVersion: 3
+  serializedVersion: 4
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -522,6 +519,7 @@ Animator:
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
@@ -554,6 +552,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -1.3, y: 2.6, z: 5.775292e-14}
   m_LocalScale: {x: 0.8584, y: 0.8584, z: 0.8584}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4506107116004572}
   m_RootOrder: 2
@@ -577,10 +576,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -605,6 +606,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &1967049830340676
 GameObject:
   m_ObjectHideFlags: 0
@@ -633,6 +635,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0, y: 2.6, z: 1.443823e-14}
   m_LocalScale: {x: 0.26, y: 0.26, z: 0.26}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4506107116004572}
   m_RootOrder: 0
@@ -656,10 +659,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -685,6 +690,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &776045001121374452
 GameObject:
   m_ObjectHideFlags: 0
@@ -713,6 +719,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4973360409815278}
   m_RootOrder: 2
@@ -741,6 +748,7 @@ MonoBehaviour:
     reloadTime: 5
     range: 10
     idleOnly: 0
+    center: {fileID: 0}
   setTargetTaskUI: {fileID: 11400000, guid: 061c8973e3c577f4ea6c9b563d77bf00, type: 2}
   orderAudio:
     fetchType: 0
@@ -750,6 +758,7 @@ MonoBehaviour:
       defaultValueRange:
         _min: 1
         _max: 2
+  showTargetGizmo: 1
   movableTerrainAreas:
   - {fileID: 11400000, guid: 37d2dffab9a31a84c81d764228531ba7, type: 2}
   formation:
@@ -761,6 +770,9 @@ MonoBehaviour:
         value: 0.3
       intProperties: []
   movementPriority: 0
+  isMoving: 0
+  isMovementPending: 0
+  startPosition: {x: 0, y: 0, z: 0}
   speed:
     value: 10
   acceleration:
@@ -789,6 +801,8 @@ MonoBehaviour:
       defaultValueRange:
         _min: 1
         _max: 2
+  showPathDestination: 1
+  showPathNextCorner: 1
 --- !u!114 &6191965025946496555
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -827,6 +841,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4973360409815278}
   m_RootOrder: 4
@@ -860,6 +875,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0.0020003319, z: 0}
   m_LocalScale: {x: 0.10000001, y: 1, z: 0.10000001}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4973360409815278}
   m_RootOrder: 1
@@ -883,10 +899,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -911,6 +929,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &6015267318537380348
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -923,6 +942,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d85c063b4ac1858429dc001b5b10f5c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetRenderer:
+    renderer: {fileID: 4505563704360913955}
+    materialID: 0
+    colorPropertyName: _Color
+    transparency: 0
+    darkness: 0
   selectionRenderer: {fileID: 4505563704360913955}
   materialID: 0
 --- !u!1 &4526220766635392655
@@ -955,6 +980,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0.40599942, z: 0}
   m_LocalScale: {x: 0.83750004, y: 0.4740622, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4973360409815278}
   m_RootOrder: 0
@@ -1051,6 +1077,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4973360409815278}
   m_RootOrder: 3
@@ -1079,6 +1106,7 @@ MonoBehaviour:
     reloadTime: 1
     range: 15
     idleOnly: 1
+    center: {fileID: 0}
   setTargetTaskUI: {fileID: 0}
   orderAudio:
     fetchType: 0
@@ -1088,6 +1116,7 @@ MonoBehaviour:
       defaultValueRange:
         _min: 1
         _max: 2
+  showTargetGizmo: 1
   progressEnabledAudio:
     fetchType: 0
     items: []
@@ -1102,15 +1131,12 @@ MonoBehaviour:
     - {fileID: 22100000, guid: 0616708b7620cda478098106e43105d1, type: 2}
   progressDuration: 10
   progressMaxDistance: 5
-  inProgressObject:
-    status: 0
-    obj: {fileID: 0}
-    indexKey: -1
-    entity: {fileID: 0}
+  inProgressObject: {fileID: 0}
   sourceEffect:
     input: {fileID: 1952842693871973169, guid: d6e0df787e86d5c488e88ebae4a446d0, type: 3}
   targetEffect:
     input: {fileID: 4714557981922535360, guid: cb671a831dbc81a4ea8ce50eb235d025, type: 3}
+  showProgressGizmo: 1
   stoppingDistance: 3
   targetPicker:
     type: 0
@@ -1118,6 +1144,6 @@ MonoBehaviour:
       codes: []
       categories: []
     targetUnits: 1
+    targetBuildings: 0
     targetExternal: 1
     targetStored: 1
-    targetBuildings: 0

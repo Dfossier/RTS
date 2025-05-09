@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   key: control_attack_move
   defaultKeyCode: 109
+  enableType: 1

@@ -60,9 +60,9 @@ namespace RTSEngine.UI
         #endregion
 
         #region Creating Task UI elements
-        protected ITaskUI<T> Create(List<ITaskUI<T>> taskList, Transform taskParent)
+        protected ITaskUI<T> Create(List<ITaskUI<T>> taskList, Transform taskParent, GameObject alternativePrefab = null)
         {
-            var nextTask = Instantiate(taskUIPrefab)
+            var nextTask = Instantiate(alternativePrefab.IsValid() ? alternativePrefab : taskUIPrefab)
                 .GetComponent<ITaskUI<T>>();
             nextTask.Init(gameMgr, this as IGameService);
 

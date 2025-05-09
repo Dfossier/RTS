@@ -8,7 +8,7 @@ namespace RTSEngine.Determinism
     public interface ITimeModifier : IPreRunGameService
     {
         TimeModifierOptions Options { get; }
-        int CurrOptionID { get; }
+        int CurrOptionIndex { get; }
 
         bool CanFreezeTimeOnPause { get; }
 
@@ -19,7 +19,7 @@ namespace RTSEngine.Determinism
         ErrorMessage SetModifier(float newModifier, bool playerCommand);
         ErrorMessage SetModifierLocal(float newModifier, bool playerCommand);
 
-        void AddTimer(GlobalTimeModifiedTimer timeModifiedTimer, Action removalCallback);
-        void RemoveTimer(GlobalTimeModifiedTimer timer, bool triggerRemovalCallback = true);
+        void AddTimer(GlobalTimeModifiedTimer timeModifiedTimer, Action timerThroughCallback);
+        void RemoveTimer(GlobalTimeModifiedTimer timer);
     }
 }

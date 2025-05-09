@@ -12,6 +12,7 @@ using RTSEngine.BuildingExtension;
 using RTSEngine.UnitExtension;
 using RTSEngine.Determinism;
 using RTSEngine.Utilities;
+using System;
 
 namespace RTSEngine.Entities
 {
@@ -37,7 +38,8 @@ namespace RTSEngine.Entities
         private ResourceInput[] disableResources = new ResourceInput[0];
         public IEnumerable<ResourceInput> DisableResources => disableResources;
 
-        [Space(), SerializeField, Tooltip("What parts of the model will be colored with the faction colors?")]
+        // REMOVE ME IN V > 2023.0.3
+        [Space(), HideInInspector, SerializeField, Tooltip("What parts of the model will be colored with the faction colors?")]
         private ModelCacheAwareColoredRenderer[] coloredRenderers = new ModelCacheAwareColoredRenderer[0];
 
         public new IFactionEntityHealth Health { private set; get; }
@@ -45,6 +47,8 @@ namespace RTSEngine.Entities
         public IRallypoint Rallypoint { private set; get; }
         public IDropOffTarget DropOffTarget { private set; get; }
         public IUnitCarrier UnitCarrier { private set; get; }
+        public IBuildingCreator BuildingCreator { private set; get; }
+        public IEnumerable<IResourceGenerator> ResourceGenerators { private set; get; }
 
         // Services
         protected IResourceManager resourceMgr { private set; get; }
@@ -77,6 +81,8 @@ namespace RTSEngine.Entities
             Rallypoint = GetEntityComponent<IRallypoint>();
             DropOffTarget = transform.GetComponentInChildren<IDropOffTarget>();
             UnitCarrier = GetEntityComponent<IUnitCarrier>();
+            BuildingCreator = GetEntityComponent<IBuildingCreator>();
+            ResourceGenerators = transform.GetComponentsInChildren<IResourceGenerator>();
 
             base.FetchComponents();
         }
@@ -91,15 +97,12 @@ namespace RTSEngine.Entities
         #endregion
 
         #region Updating Faction Colors
-        protected sealed override void UpdateColors()
+        protected sealed override void UpdateSelectionColor()
         {
             if(IsFree)
                 SelectionColor = this.IsUnit() ? unitMgr.FreeUnitColor : buildingMgr.FreeBuildingColor;
             else
                 SelectionColor = gameMgr.GetFactionSlot(FactionID).Data.color;
-
-            foreach (ModelCacheAwareColoredRenderer cr in coloredRenderers)
-                cr.UpdateColor(IsFree ? Color.white : Slot.Data.color, this);
         }
         #endregion
 
@@ -128,6 +131,8 @@ namespace RTSEngine.Entities
         public sealed override ErrorMessage SetFactionLocal (IEntity source, int targetFactionID)
         {
             var eventArgs = new FactionUpdateArgs(source, targetFactionID);
+
+            RaiseFactionUpdateStart(eventArgs);
             globalEvent.RaiseEntityFactionUpdateStartGlobal(this, eventArgs);
 
             selectionMgr.Remove(this);
@@ -148,8 +153,7 @@ namespace RTSEngine.Entities
                 IsFree = true;
             }
 
-            //update colors.
-            UpdateColors();
+            UpdateSelectionColor();
 
             RaiseFactionUpdateComplete(eventArgs);
             globalEvent.RaiseEntityFactionUpdateCompleteGlobal(this, eventArgs);

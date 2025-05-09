@@ -193,13 +193,15 @@ namespace RTSEngine.NPC.ResourceExtension
                 //go through the ResourceTypeCollection instances that regulate each resource type
                 foreach (NPCResourceTypeCollectionTracker nextCollectionTracker in collectionTrackers.Values)
                 {
-                    IEnumerable<NPCUnitRegulator> nextCollectorRegulators = nextCollectionTracker.CollectorMonitor
-                        .AllCodes
-                        .Select(collectorCode => npcUnitCreator.GetActiveUnitRegulator(collectorCode))
-                        .Where(collectorRegulator => collectorRegulator.IsValid());
+                    int collectorCount = 0;
+                    for (int i = 0; i < nextCollectionTracker.CollectorMonitor.AllCodes.Count; i++)
+                    {
+                        NPCUnitRegulator collectorRegulator = npcUnitCreator.GetActiveUnitRegulator(nextCollectionTracker.CollectorMonitor.AllCodes[i]);
+                        if (!collectorRegulator.IsValid())
+                            collectorCount += collectorRegulator.Count;
+                    }
 
-                    if (!nextCollectorRegulators.Any() 
-                        || !nextCollectionTracker.CanAddCollector(nextCollectorRegulators.Sum(collectorRegulator => collectorRegulator.Count)))
+                    if (!nextCollectionTracker.CanAddCollector(collectorCount))
                         continue;
 
                     // Set state back to active so we can keep monitoring whether resource collectors have been correctly assigned or not.
@@ -247,10 +249,9 @@ namespace RTSEngine.NPC.ResourceExtension
 
             int requiredCollectors = targetCollectorsAmount - resource.WorkerMgr.Amount;
 
-            IUnit[] currentCollectors = npcUnitCreator
+            IReadOnlyList<IUnit> currentCollectors = npcUnitCreator
                 .GetActiveUnitRegulator(collectionTrackers[resource.ResourceType].CollectorMonitor.RandomCode)
-                .InstancesIdleFirst
-                .ToArray();
+                .InstancesIdleFirst;
 
             foreach (IUnit nextCollector in currentCollectors)
             {
@@ -265,7 +266,7 @@ namespace RTSEngine.NPC.ResourceExtension
                     && (nextCollector.IsIdle || canStillForceSwitch)
                     && nextCollector.CollectorComponent.Target.instance != resource)
                 {
-                    nextCollector.CollectorComponent.SetTarget(RTSHelper.ToTargetData(resource), playerCommand: false);
+                    nextCollector.CollectorComponent.SetTarget(RTSHelper.ToTargetData(resource), playerCommand: true);
 
                     requiredCollectors--;
                     assignedCollectors++;

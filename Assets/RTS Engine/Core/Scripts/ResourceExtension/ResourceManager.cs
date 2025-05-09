@@ -20,6 +20,7 @@ namespace RTSEngine.ResourceExtension
 
         [SerializeField, Tooltip("Define resources that can be used inside this map.")]
         private ResourceTypeInfo[] mapResourceTypes = new ResourceTypeInfo[0];
+        public IReadOnlyList<ResourceTypeInfo> MapResourceTypes => mapResourceTypes;
 
         // Key: faction ID
         // Value: FactionSlotResourceManager instance that handles resources for faction slot of ID = key
@@ -44,9 +45,10 @@ namespace RTSEngine.ResourceExtension
             this.globalEvent = gameMgr.GetService<IGlobalEventPublisher>();
             this.logger = gameMgr.GetService<IGameLoggingService>();
 
-            if (!logger.RequireValid(mapResourceTypes,
-              $"[{GetType().Name}] Some of the defined entries in the 'Map Resources' field are not valid!"))
-                return;
+            if(!mapResourceTypes.IsValid())
+            {
+                logger.LogWarning($"[{GetType().Name}] Some of the defined entries in the 'Map Resources' field are not valid! The invalid ones will not be used in this game!");
+            }
 
             allResources = new List<IResource>();
 
@@ -319,6 +321,18 @@ namespace RTSEngine.ResourceExtension
             return false;
         }
 
+        public bool IsResourceTypeValidInGame(ResourceTypeInfo resourceType)
+        {
+            return mapResourceTypes.Contains(resourceType);
+        }
+
+        public bool IsResourceTypeValidInGame(ResourceTypeInfo resourceType, int factionID)
+        {
+            return resourceType.IsValid()
+                && FactionResources.TryGetValue(factionID, out IFactionSlotResourceManager factionSlotHandler)
+                && factionSlotHandler.ResourceHandlers.ContainsKey(resourceType);
+        }
+
         public bool IsResourceTypeValidInGame(ResourceInput resourceInput, int factionID)
         {
             return logger.RequireTrue(FactionResources.ContainsKey(factionID),
@@ -329,7 +343,6 @@ namespace RTSEngine.ResourceExtension
 
                && logger.RequireTrue(FactionResources[factionID].ResourceHandlers.ContainsKey(resourceInput.type),
                     $"[{GetType().Name}] Resource '{resourceInput.type.Key}' is not defined in the 'mapResources' array (not recognized as a usable resource in this map)!");
-
         }
 
         public bool HasResourceTypeReachedLimitCapacity (ResourceTypeInfo resourceType, int factionID)

@@ -18,11 +18,14 @@ namespace RTSEngine.Entities
         bool IsMainEntity { get; }
         bool IsFactionLocked { get; }
 
+        IEnumerable<IResourceGenerator> ResourceGenerators { get; }
+
         IEnumerable<ResourceInput> InitResources { get; }
         IEnumerable<ResourceInput> DisableResources { get; }
 
         new IFactionEntityHealth Health { get; }
 
+        IBuildingCreator BuildingCreator { get; }
         IRallypoint Rallypoint { get; }
         IDropOffTarget DropOffTarget { get; }
         IUnitCarrier UnitCarrier { get; }

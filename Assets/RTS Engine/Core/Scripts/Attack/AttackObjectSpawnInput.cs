@@ -19,7 +19,7 @@ namespace RTSEngine.Attack
 
         public float delayTime;
         public bool damageInDelay;
-        public ModelCacheAwareTransformInput delayParent;
+        public Transform delayParent;
 
         public bool damageFriendly;
 
@@ -35,7 +35,7 @@ namespace RTSEngine.Attack
 
                                       float delayTime,
                                       bool damageInDelay,
-                                      ModelCacheAwareTransformInput delayParent,
+                                      Transform delayParent,
 
                                       bool damageFriendly,
 

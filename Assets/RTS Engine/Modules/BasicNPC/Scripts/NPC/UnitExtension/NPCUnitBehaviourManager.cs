@@ -68,6 +68,9 @@ namespace RTSEngine.NPC.UnitExtension
             sendBackOnDefenseCancel = true
         };
 
+
+        private List<IUnit> sendableUnits;
+
         // Game services
         protected IAttackManager attackMgr { private set; get; }
         protected IMovementManager mvtMgr { private set; get; }
@@ -85,6 +88,8 @@ namespace RTSEngine.NPC.UnitExtension
 
             this.attackMgr = gameMgr.GetService<IAttackManager>();
             this.mvtMgr = gameMgr.GetService<IMovementManager>();
+
+            sendableUnits = new List<IUnit>(RTSOptimizations.INIT_SENDABLE_UNITS_CAPACITY);
 
             // Initial state
             forceCreation.timer = new TimeModifiedTimer(forceCreation.targetCountUpdateDelay.RandomValue + forceCreation.targetCountUpdatePeriod.RandomValue);
@@ -120,9 +125,9 @@ namespace RTSEngine.NPC.UnitExtension
         {
             regulatorMonitor = new NPCActiveRegulatorMonitor(gameMgr, factionMgr);
 
-            foreach (GameObject prefab in prefabs)
+            for (int i = 0; i < prefabs.Length; i++)
             {
-                IUnit unit = prefab.GetComponent<IUnit>();
+                IUnit unit = prefabs[i].GetComponent<IUnit>();
                 if (!logger.RequireValid(unit,
                     $"[{GetType().Name} - {factionMgr.FactionID}] 'Prefabs' field has some unassigned elements."))
                     return;
@@ -151,13 +156,13 @@ namespace RTSEngine.NPC.UnitExtension
 
             forceCreation.timer.Reload(forceCreation.targetCountUpdatePeriod);
 
-            foreach (string unitCode in regulatorMonitor.AllCodes.ToArray())
+            for (int i = 0; i < regulatorMonitor.AllCodes.Count; i++)
             {
-                NPCUnitRegulator nextUnitRegulator = npcUnitCreator.GetActiveUnitRegulator(unitCode);
+                NPCUnitRegulator nextUnitRegulator = npcUnitCreator.GetActiveUnitRegulator(regulatorMonitor.AllCodes[i]);
 
                 nextUnitRegulator.UpdateTargetCount(nextUnitRegulator.TargetCount + forceCreation.targetCountUpdateAmount);
 
-                LogEvent($"{unitCode}: Updated target count to {nextUnitRegulator.TargetCount}");
+                LogEvent($"{regulatorMonitor.AllCodes[i]}: Updated target count to {nextUnitRegulator.TargetCount}");
             }
         }
         #endregion
@@ -203,25 +208,30 @@ namespace RTSEngine.NPC.UnitExtension
 
             awaitingAttackEngageOrderResponse = false;
 
-            IReadOnlyList<IUnit> sendableUnits = regulatorMonitor.AllCodes
-                .SelectMany(unitCode =>
+            sendableUnits.Clear();
+            for (int i = 0; i < regulatorMonitor.AllCodes.Count; i++)
+            {
+                string unitCode = regulatorMonitor.AllCodes[i];
+                if (attackEngageOrderBehaviour.sendIdleOnly)
                 {
-                    // For each tracked unit type, we get the regulator and its current available instances (idle or all depending on the behaviour data)
-                    List<IUnit> availableUnits = (attackEngageOrderBehaviour.sendIdleOnly
-                    ? npcUnitCreator.GetActiveUnitRegulator(unitCode).InstancesIdleOnly
-                    : (attackEngageOrderBehaviour.sendNoTargetThreatOnly
-                        ? npcUnitCreator.GetActiveUnitRegulator(unitCode).Instances
-                            .Where(unit => !unit.CanAttack || !unit.FirstActiveAttackComponent.HasTarget || !unit.FirstActiveAttackComponent.Target.instance.CanAttack)
-                        : npcUnitCreator.GetActiveUnitRegulator(unitCode).Instances)).ToList();
+                    sendableUnits.AddRange(npcUnitCreator.GetActiveUnitRegulator(unitCode).IdleInstances);
+                }
+                else if (attackEngageOrderBehaviour.sendNoTargetThreatOnly)
+                {
+                    sendableUnits.AddRange(npcUnitCreator.GetActiveUnitRegulator(unitCode).IdleInstances);
+                    for (int j = 0; j < npcUnitCreator.GetActiveUnitRegulator(unitCode).NonIdleInstances.Count; j++)
+                    {
+                        IUnit unit = npcUnitCreator.GetActiveUnitRegulator(unitCode).NonIdleInstances[j];
+                        if ((unit.FirstActiveAttackComponent.Target.instance != nextAttackEngageOrderTargetData.target)
+                            && (!unit.CanAttack || !unit.FirstActiveAttackComponent.HasTarget || !unit.FirstActiveAttackComponent.Target.instance.CanAttack))
+                            sendableUnits.Add(unit);
+                    }
+                }
+                else
+                    sendableUnits.AddRange(npcUnitCreator.GetActiveUnitRegulator(unitCode).Instances);
+            }
 
-                    // Only get a certain range from the availale units, the same list of units will be used until defense mode is enabled or the attack is disabled
-                    return availableUnits.GetRange(0, (int)(attackEngageOrderBehaviour.sendRatioRange.RandomValue * availableUnits.Count));
-                })
-                .Where(unit => unit.IsValid())
-                .ToList();
-
-
-            if (!sendableUnits.Any())
+            if (sendableUnits.Count == 0)
                 return;
 
             if (attackEngageOrderBehaviour.attack)
@@ -231,7 +241,9 @@ namespace RTSEngine.NPC.UnitExtension
                     {
                         source = sendableUnits,
                         targetEntity = nextAttackEngageOrderTargetData.target,
-                        targetPosition = nextAttackEngageOrderTargetData.target.IsValid() ? nextAttackEngageOrderTargetData.target.transform.position : nextAttackEngageOrderTargetData.targetPosition,
+                        targetPosition = nextAttackEngageOrderTargetData.target.IsValid() 
+                            ? RTSHelper.GetAttackTargetPosition(sendableUnits[0], nextAttackEngageOrderTargetData.target)
+                            : nextAttackEngageOrderTargetData.targetPosition,
                         playerCommand = true
                     });
 
@@ -242,11 +254,14 @@ namespace RTSEngine.NPC.UnitExtension
                 LogEvent($"[ATTACK ORDER] Sending in {sendableUnits.Count} units to move to target {nextAttackEngageOrderTargetData.target}");
 
                 mvtMgr.SetPathDestination(
-                    sendableUnits,
-                    nextAttackEngageOrderTargetData.target.IsValid() ? nextAttackEngageOrderTargetData.target.transform.position : nextAttackEngageOrderTargetData.targetPosition,
-                    nextAttackEngageOrderTargetData.target.IsValid() ? nextAttackEngageOrderTargetData.target.Radius : 0.0f,
-                    nextAttackEngageOrderTargetData.target,
-                    new MovementSource { playerCommand = true });
+                    new SetPathDestinationData<IReadOnlyList<IEntity>>
+                    {
+                        source = sendableUnits,
+                        destination = nextAttackEngageOrderTargetData.target.IsValid() ? nextAttackEngageOrderTargetData.target.transform.position : nextAttackEngageOrderTargetData.targetPosition,
+                        offsetRadius = nextAttackEngageOrderTargetData.target.IsValid() ? nextAttackEngageOrderTargetData.target.Radius : 0.0f,
+                        target = nextAttackEngageOrderTargetData.target,
+                        mvtSource = new MovementSource { playerCommand = true }
+                    });
             }
         }
         #endregion
@@ -260,21 +275,23 @@ namespace RTSEngine.NPC.UnitExtension
             State = NPCUnitBehaviourState.defending;
             LogEvent($"[ORDER UPDATED] Defense Order Received.");
 
-            List<IUnit> sendableUnits = regulatorMonitor.AllCodes
-                .SelectMany(unitCode => npcUnitCreator.GetActiveUnitRegulator(unitCode).Instances)
-                .ToList();
-
             int count = 0;
-
-            foreach (IUnit unit in sendableUnits)
+            for (int i = 0; i < regulatorMonitor.AllCodes.Count; i++)
             {
-                if (!unit.CanAttack
-                    || (unit.FirstActiveAttackComponent.HasTarget && !territoryDefenseOrderBehaviour.forceChangeDefenseCenter))
-                    continue;
+                for (int j = 0; j < npcUnitCreator.GetActiveUnitRegulator(regulatorMonitor.AllCodes[i]).Instances.Count; j++)
+                {
+                    IUnit unit = npcUnitCreator.GetActiveUnitRegulator(regulatorMonitor.AllCodes[i]).Instances[j];
 
-                // the playerCommand is set to ON in order to bypass the LOS constraints when having the attack units automatically find targets all over the border territory
-                unit.FirstActiveAttackComponent.SetSearchRangeCenterAction(args.NextDefenseCenter.BorderComponent, playerCommand: true);
-                count++;
+                    if (!unit.CanAttack
+                        || (unit.FirstActiveAttackComponent.HasTarget && !territoryDefenseOrderBehaviour.forceChangeDefenseCenter))
+                        continue;
+
+                    // the playerCommand is set to ON in order to bypass the LOS constraints when having the attack units automatically find targets all over the border territory
+                    if(unit.FirstActiveAttackComponent.BorderTargetFinderData.center != args.NextDefenseCenter.BorderComponent.Building.transform
+                        || unit.FirstActiveAttackComponent.BorderTargetFinderData.range != args.NextDefenseCenter.BorderComponent.Size)
+                        unit.FirstActiveAttackComponent.SetSearchRangeCenterAction(args.NextDefenseCenter.BorderComponent, playerCommand: true);
+                    count++;
+                }
             }
 
             LogEvent($"[DEFENSE ORDER] Sending in {count} units to defend building center {args.NextDefenseCenter.BorderComponent?.Building.gameObject.name}");
@@ -282,18 +299,19 @@ namespace RTSEngine.NPC.UnitExtension
 
         private void HandleTerritoryDefenseCancelled(INPCDefenseManager sender, EventArgs args)
         {
-            IEnumerable<IUnit> sendableUnits = regulatorMonitor.AllCodes
-                .SelectMany(unitCode => npcUnitCreator.GetActiveUnitRegulator(unitCode).Instances);
-
             int count = 0;
-
-            foreach (IUnit unit in sendableUnits)
+            for (int i = 0; i < regulatorMonitor.AllCodes.Count; i++)
             {
-                if (!unit.CanAttack)
-                    continue;
+                for (int j = 0; j < npcUnitCreator.GetActiveUnitRegulator(regulatorMonitor.AllCodes[i]).Instances.Count; j++)
+                {
+                    IUnit unit = npcUnitCreator.GetActiveUnitRegulator(regulatorMonitor.AllCodes[i]).Instances[j];
 
-                unit.FirstActiveAttackComponent.SetSearchRangeCenterAction(null, playerCommand: false);
-                count++;
+                    if (!unit.CanAttack)
+                        continue;
+
+                    unit.FirstActiveAttackComponent.SetSearchRangeCenterAction(null, playerCommand: false);
+                    count++;
+                }
             }
 
             LogEvent($"[DEFENSE ORDER] Cancelling defense order for {count} units.");
@@ -311,33 +329,24 @@ namespace RTSEngine.NPC.UnitExtension
             State = NPCUnitBehaviourState.idle;
             LogEvent($"[ORDER UPDATED] Idle Order Receieved, Sending To Spawn.");
 
-            IBuilding[] buildingRallypoints = factionMgr.Buildings
-                .Where(building => building.Rallypoint.IsValid())
-                .ToArray();
 
-            // Organize the tracked units via their spawn rallypoints (if they have one)
-            IEnumerable<IGrouping<IRallypoint, IUnit>> sendableUnitGroups = regulatorMonitor.AllCodes
-                .SelectMany(unitCode => npcUnitCreator.GetActiveUnitRegulator(unitCode).Instances)
-                .GroupBy(unit => unit.SpawnRallypoint.IsValid()
-                    ? unit.SpawnRallypoint 
-                    : (buildingRallypoints.Length > 0 
-                        ? buildingRallypoints[UnityEngine.Random.Range(0, buildingRallypoints.Length)].Rallypoint
-                        : null));
-
-            // Send tracked units to their spawn rallypoints and if they have none, send them back to the faction spawn position
-            foreach (IGrouping<IRallypoint, IUnit> nextUnitGroup in sendableUnitGroups)
+            for (int i = 0; i < regulatorMonitor.AllCodes.Count; i++)
             {
-                List<IUnit> nextUnits = nextUnitGroup.Where(unit => unit.IsValid()).ToList();
-                if (nextUnits.Count == 0)
-                    return;
-                LogEvent($"[SEND TO SPAWN ORDER] Sending {nextUnits.Count} units of code {nextUnits[0].Code} back to spawn positions.");
+                LogEvent($"[SEND TO SPAWN ORDER] Sending units of code {regulatorMonitor.AllCodes[i]} back to spawn positions.");
 
+                if (npcUnitCreator.GetActiveUnitRegulator(regulatorMonitor.AllCodes[i]).Instances.Count == 0)
+                    continue;
+
+                IUnit refUnit = npcUnitCreator.GetActiveUnitRegulator(regulatorMonitor.AllCodes[i]).Instances[0];
                 mvtMgr.SetPathDestination(
-                    nextUnits,
-                    nextUnitGroup.Key.IsValid() ? nextUnitGroup.Key.Entity.transform.position : factionSlot.FactionSpawnPosition,
-                    nextUnitGroup.Key.IsValid() ? nextUnitGroup.Key.Entity.Radius : 0.0f,
-                    target: null,
-                    new MovementSource { playerCommand = true });
+                    new SetPathDestinationData<IReadOnlyList<IEntity>>
+                    {
+                        source = npcUnitCreator.GetActiveUnitRegulator(regulatorMonitor.AllCodes[i]).Instances,
+                        destination = refUnit.SpawnRallypoint.IsValid() ? refUnit.SpawnRallypoint.Entity.transform.position : factionSlot.FactionSpawnPosition,
+                        offsetRadius = refUnit.SpawnRallypoint.IsValid() ? refUnit.SpawnRallypoint.Entity.Radius : 0.0f,
+                        target = null,
+                        mvtSource = new MovementSource { playerCommand = true }
+                    });
             }
         }
         #endregion
@@ -374,7 +383,7 @@ namespace RTSEngine.NPC.UnitExtension
                             code = code,
                             amount = regulator.Count,
                             pendingAmount = regulator.CurrPendingAmount,
-                            idleAmount = regulator.InstancesIdleOnly.Count(),
+                            idleAmount = regulator.IdleInstances.Count(),
                         };
                 })
                 .ToArray();

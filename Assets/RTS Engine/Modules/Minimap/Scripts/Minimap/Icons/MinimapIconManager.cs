@@ -27,14 +27,12 @@ namespace RTSEngine.Minimap.Icons
         [SerializeField, Tooltip("Height of the the minimap icons. When you have multiple elements that can be drawn on the minimap, you want to assign them different heights depending on what gets priority to be visible first in your game.")]
         private float height = 20.0f;
 
-        protected IGameLoggingService logger { private set; get; }
         protected IGlobalEventPublisher globalEvent { private set; get; }
         #endregion
 
         #region Initializing/Terminating
         protected sealed override void OnObjectPoolInit()
         {
-            this.logger = gameMgr.GetService<IGameLoggingService>();
             this.globalEvent = gameMgr.GetService<IGlobalEventPublisher>();
 
             if (!logger.RequireValid(prefab,

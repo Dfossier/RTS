@@ -16,4 +16,6 @@ MonoBehaviour:
   layers:
     serializedVersion: 2
     m_Bits: 256
+  navigationAreas: 00000000
   baseHeight: 0
+  testHeightOffset: 1

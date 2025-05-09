@@ -6,7 +6,6 @@ using UnityEngine.UI;
 
 using RTSEngine.Entities;
 using RTSEngine.Event;
-using RTSEngine.Task;
 using RTSEngine.Faction;
 using System.Linq;
 
@@ -83,9 +82,11 @@ namespace RTSEngine.UI
 
         private void Hide()
         {
-            foreach (var task in tasks)
-                if (task.enabled)
-                    task.Disable();
+            for (int i = 0; i < tasks.Count; i++)
+            {
+                if (tasks[i].enabled)
+                    tasks[i].Disable();
+            }
 
             currSingleSelected = null;
             currPendingTasks.Clear(); 
@@ -94,9 +95,11 @@ namespace RTSEngine.UI
         private ITaskUI<EntityComponentPendingTaskUIAttributes> Add()
         {
             //find the first available (disabled) pending task slot to use next
-            foreach (var task in tasks)
-                if (!task.enabled)
-                    return task;
+            for (int i = 0; i < tasks.Count; i++)
+            {
+                if (!tasks[i].enabled)
+                    return tasks[i];
+            }
 
             //none found? create one!
             return Create(tasks, panel.transform);
@@ -124,7 +127,7 @@ namespace RTSEngine.UI
                 || !currSingleSelected.PendingTasksHandler.IsValid())
                 return;
 
-            if (currSingleSelected.PendingTasksHandler.OnPendingTaskUIRequest(out var taskUIAttributes))
+            if (currSingleSelected.PendingTasksHandler.OnPendingTaskUIRequest(out IReadOnlyList<EntityComponentPendingTaskUIAttributes> taskUIAttributes))
             {
                 List<EntityComponentPendingTaskUIAttributes> nextPendingTasks = taskUIAttributes.ToList();
 

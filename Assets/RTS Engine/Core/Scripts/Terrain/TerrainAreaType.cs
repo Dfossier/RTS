@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 
 namespace RTSEngine.Terrain
 {
@@ -12,6 +13,22 @@ namespace RTSEngine.Terrain
         [SerializeField, Tooltip("All layers that the game objects of the terrain area uses must be added here.")]
         private LayerMask layers = new LayerMask();
         public LayerMask Layers => layers;
+
+        [SerializeField, Tooltip("Input the navigation area indexes that are used on this terrain area.")]
+        private int[] navigationAreas = new int[0];
+        public int NavigationMask
+        {
+            get
+            {
+                int mask = 0;
+                for (int i = 0; i < navigationAreas.Length; i++)
+                {
+                    mask |= navigationAreas[i] + 1;
+                }
+
+                return mask;
+            }
+        }
 
         [SerializeField, Tooltip("This values allows to determine the initial height that the Terrain Manager would start searching at when it is searching for a valid position on this terrain area.")]
         private float baseHeight = 0.0f;

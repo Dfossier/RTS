@@ -5,6 +5,7 @@ using RTSEngine.Audio;
 using RTSEngine.Determinism;
 using RTSEngine.Event;
 using RTSEngine.Utilities;
+using System;
 
 namespace RTSEngine.Effect
 {
@@ -40,10 +41,14 @@ namespace RTSEngine.Effect
         [SerializeField, Tooltip("Enable to apply the position offset on the local position instead of the global position?")]
         private bool offsetLocalPosition = false;
 
+        [SerializeField, Tooltip("Invoked when the effect object is created in the pool.")]
+        private UnityEvent initEvent = null;
         [SerializeField, Tooltip("Invoked when the effect object is enabled.")]
         private UnityEvent enableEvent = null;
         [SerializeField, Tooltip("Invoked when the effect object is disabled.")]
         private UnityEvent disableEvent = null;
+        [SerializeField, Tooltip("Invoked when the effect object is fully deactivated after it was disabled and the disable time is through.")]
+        private UnityEvent deactivateEvent = null;
 
         // Used as a replacement for parenting the attack object to differnet objects over the course of its lifetime, which can wreck its scale.
         protected FollowTransform followTransform = null;
@@ -55,7 +60,29 @@ namespace RTSEngine.Effect
         protected IGlobalEventPublisher globalEvent { private set; get; }
         protected IEffectObjectPool effectObjPool { private set; get; }
         protected IGameAudioManager audioMgr { private set; get; }
+        #endregion
 
+        #region Raising Events
+        public event CustomEventHandler<IEffectObject, EventArgs> EnableEvent;
+        private void RaiseEnableEvent()
+        {
+            var handler = EnableEvent;
+            handler?.Invoke(this, EventArgs.Empty);
+        }
+
+        public event CustomEventHandler<IEffectObject, EventArgs> DisableEvent;
+        private void RaiseDisableEvent()
+        {
+            var handler = DisableEvent;
+            handler?.Invoke(this, EventArgs.Empty);
+        }
+
+        public event CustomEventHandler<IEffectObject, EventArgs> DeactivateEvent;
+        private void RaiseDeactivateEvent()
+        {
+            var handler = DeactivateEvent;
+            handler?.Invoke(this, EventArgs.Empty);
+        }
         #endregion
 
         #region Initializing/Terminating
@@ -71,6 +98,8 @@ namespace RTSEngine.Effect
 
             // Create the FollowTransform instance to be used to "parent" the attack object to delay parent or to the target it deals damage to.
             followTransform = new FollowTransform(source: transform, OnFollowTargetInvalid);
+
+            initEvent.Invoke();
 
             OnEffectObjectInit();
         }
@@ -114,6 +143,7 @@ namespace RTSEngine.Effect
             gameObject.SetActive(true);
 
             enableEvent.Invoke();
+            RaiseEnableEvent();
 
             OnEffectObjectSpawn();
         }
@@ -167,9 +197,10 @@ namespace RTSEngine.Effect
             if (State != EffectObjectState.running)
                 return;
 
-            disableEvent.Invoke();
-
             State = EffectObjectState.disabling;
+            disableEvent.Invoke();
+            RaiseDisableEvent();
+
             timer = new TimeModifiedTimer(disableTime);
             // Enable life time to allow for the disable time to go through
             enableLifeTime = true;
@@ -186,6 +217,8 @@ namespace RTSEngine.Effect
                 return;
 
             State = EffectObjectState.inactive;
+            deactivateEvent.Invoke();
+            RaiseDeactivateEvent();
 
             OnDeactivated();
         }

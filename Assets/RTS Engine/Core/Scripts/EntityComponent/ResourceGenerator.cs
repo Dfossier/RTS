@@ -7,10 +7,8 @@ using RTSEngine.UI;
 using RTSEngine.Entities;
 using RTSEngine.ResourceExtension;
 using RTSEngine.Determinism;
-using RTSEngine.Game;
 using RTSEngine.Event;
 using RTSEngine.Audio;
-using System.Linq;
 using RTSEngine.Utilities;
 using RTSEngine.Logging;
 
@@ -42,6 +40,7 @@ namespace RTSEngine.EntityComponent
 
         [SerializeField, Tooltip("Resources to generate every period."), Space(10)]
         private ResourceInput[] resources = new ResourceInput[0];
+        public IReadOnlyList<ResourceInput> Resources => resources;
 
         // Holds the amount of the currently generated resources.
         private ModifiableResourceTypeValue[] generatedResources = new ModifiableResourceTypeValue[0];
@@ -84,6 +83,9 @@ namespace RTSEngine.EntityComponent
 
         [SerializeField, Tooltip("Event triggered when the resource generator's generated resources are collected.")]
         private UnityEvent onCollected = new UnityEvent();
+
+        [SerializeField, Tooltip("Event triggered when the required resources for the generator are not available.")]
+        private UnityEvent onRequirementMissing = new UnityEvent();
         #endregion
 
         #region Raising Events
@@ -104,9 +106,11 @@ namespace RTSEngine.EntityComponent
             this.FactionEntity = Entity as IFactionEntity;
 
             // Assign an empty list of the generated resources
-            generatedResources = resources
-                .Select(resource => new ModifiableResourceTypeValue())
-                .ToArray();
+            generatedResources = new ModifiableResourceTypeValue[resources.Length];
+            for (int i = 0; i < generatedResources.Length; i++)
+            {
+                generatedResources[i] = new ModifiableResourceTypeValue();
+            }
 
             collectionThresholdDic.Clear();
             // Populate the collection threshold dictionary for easier direct access later when collecting resources
@@ -117,6 +121,8 @@ namespace RTSEngine.EntityComponent
             timer = new TimeModifiedTimer(period);
             isThresholdMet = false;
             hasShownLimitCapacityError = false;
+
+            globalEvent.RaiseResourceGeneratorInitGlobal(this);
         }
         #endregion
 
@@ -186,7 +192,10 @@ namespace RTSEngine.EntityComponent
         private ErrorMessage GeneratePeriodResourcesActionLocal(bool playerCommand)
         {
             if (!resourceMgr.HasResources(requiredResources, FactionEntity.FactionID))
+            {
+                onRequirementMissing.Invoke();
                 return ErrorMessage.taskMissingResourceRequirements;
+            }
 
             // Assume that the target threshold is met:
             isThresholdMet = true;
@@ -287,29 +296,21 @@ namespace RTSEngine.EntityComponent
             onCollected.Invoke();
 
             if(playerCommand && Entity.IsLocalPlayerFaction())
-                audioMgr.PlaySFX(collectionAudio.Fetch(), false);
+                audioMgr.PlaySFX(collectionAudio.Fetch(), FactionEntity, loop:false);
 
             return ErrorMessage.none;
         }
         #endregion
 
         #region Task UI
-        /// <summary>
-        /// Allows to provide information regarding the resource collection task, if there's one, that is displayed in the task panel when the resource generator is selected.
-        /// </summary>
-        /// <param name="taskUIAttributes">TaskUIAttributes instance that contains the information required to display the resource collection task.</param>
-        /// <param name="disabledTaskCodes">In case the resource generation task is to be disabeld, it will be the single element of this IEnumerable.</param>
-        /// <returns>True if there's a resource collection task that requires to be displayed, otherwise false.</returns>
-        public override bool OnTaskUIRequest(
-            out IEnumerable<EntityComponentTaskUIAttributes> taskUIAttributes,
-            out IEnumerable<string> disabledTaskCodes)
+        protected override bool OnTaskUICacheUpdate(List<EntityComponentTaskUIAttributes> taskUIAttributesCache, List<string> disabledTaskCodesCache)
         {
             return RTSHelper.OnSingleTaskUIRequest(
                 this,
-                out taskUIAttributes,
-                out disabledTaskCodes,
+                taskUIAttributesCache,
+                disabledTaskCodesCache,
                 collectionTaskUI,
-                extraCondition: !autoCollect && isThresholdMet);
+                showCondition: !autoCollect && isThresholdMet);
         }
 
         /// <summary>

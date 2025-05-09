@@ -2,12 +2,15 @@
 
 using RTSEngine.Entities;
 using RTSEngine.Game;
+using RTSEngine.UnitExtension;
 
 namespace RTSEngine.Selection
 {
     public interface ISelectionManager : IPreRunGameService
     {
         int Count { get; }
+        int LocalFactionCount { get; }
+        IUnitSquad SingleSelectedUnitSquad { get; }
 
         bool IsSelected(IEntity entity, bool localPlayerFaction = false);
         bool IsSelectedOnly(IEntity entity, bool localPlayerFaction = false);
@@ -22,5 +25,7 @@ namespace RTSEngine.Selection
         bool Remove(IEntity entity);
         void Remove(IEnumerable<IEntity> entities);
         void RemoveAll();
+        bool IsUnitSquadSelectedOnly();
+        bool IsUnitSquadSelectedOnly(IUnitSquad unitSquad);
     }
 }

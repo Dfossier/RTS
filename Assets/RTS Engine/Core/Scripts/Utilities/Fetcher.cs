@@ -42,6 +42,15 @@ namespace RTSEngine.Utilities
 
             return items[cursor]; //return the next item in the array
         }
+        private T GetPrevious ()
+        {
+            if (cursor == 0)
+                cursor = items.Length - 1;
+            else
+                cursor--;
+
+            return items[cursor]; 
+        }
 
         public virtual T Fetch ()
         {
@@ -68,9 +77,45 @@ namespace RTSEngine.Utilities
                 case FetchType.inOrder: 
                     return GetNext();
 
-                default: 
-                    return items[Random.Range(0, items.Length)];
+                default:
+                    cursor = Random.Range(0, items.Length);
+                    return items[cursor];
             }
+        }
+
+        public virtual T FetchNext()
+        {
+            if (!CanFetch() 
+                || items.Length <= 0)
+                return null;
+
+            OnPreFetch();
+
+            return GetNext();
+        }
+
+        public virtual T FetchPrevious()
+        {
+            if (!CanFetch() 
+                || items.Length <= 0)
+                return null;
+
+            OnPreFetch();
+
+            return GetPrevious();
+        }
+
+        public virtual T Fetch(int index)
+        {
+            if (!CanFetch() 
+                || items.Length <= 0
+                || index.IsValidIndex(items))
+                return null;
+
+            OnPreFetch();
+
+            cursor = index;
+            return items[index];
         }
 
         protected virtual void OnPreFetch() { }

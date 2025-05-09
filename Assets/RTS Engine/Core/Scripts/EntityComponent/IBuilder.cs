@@ -3,12 +3,9 @@ using System.Collections.Generic;
 
 namespace RTSEngine.EntityComponent
 {
-    public interface IBuilder : IEntityTargetProgressComponent
+    public interface IBuilder : IEntityTargetProgressComponent, IBuildingCreator
     {
         TargetData<IBuilding> Target { get; }
-
-        IReadOnlyList<BuildingCreationTask> CreationTasks { get; }
-        IReadOnlyList<BuildingCreationTask> UpgradeTargetCreationTasks { get; }
 
         float TimeMultiplier { get; }
     }

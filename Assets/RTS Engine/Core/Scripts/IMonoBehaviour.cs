@@ -7,7 +7,7 @@ namespace RTSEngine
 {
     public interface IMonoBehaviour
     {
-        bool enabled { get; }
+        bool enabled { set; get; }
 
         Transform transform { get; }
         GameObject gameObject { get; }

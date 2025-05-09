@@ -16,15 +16,15 @@ namespace RTSEngine.Animation
 {
     public class UnitAnimatorController : MonoBehaviour, IAnimatorController, IEntityPostInitializable
     {
-        #region Class Attributes
+        #region Attributes
         public IUnit Unit { private set; get; }
 
         //[SerializeField, Tooltip("Animator responsible for playing the unit animaiton clips."), Header("General")]
         //private ModelCacheAwareAnimatorInput animatorInput;
 
         [SerializeField, Tooltip("Animator responsible for playing the unit animaiton clips."), Header("General")]
-        private ModelCacheAwareAnimatorInput animator = null;
-        public ModelCacheAwareAnimatorInput Animator => animator;
+        private Animator animator = null;
+        public Animator Animator => animator;
 
         private TimeModifiedFloat animatorSpeed;
 
@@ -39,7 +39,9 @@ namespace RTSEngine.Animation
         /// Using a parameter in the Animator component, this determines whether the unit is currently in the moving animator state or not.
         /// This allows other components to handle movement related actions smoothly and sync them correctly with the unit's movement
         /// </summary>
-        public bool IsInMvtState => animator.GetBool(UnitAnimator.Parameters[AnimatorState.movingState]);
+        public bool IsInMvtState =>
+            (animator.gameObject.activeInHierarchy && animator.GetBool(UnitAnimator.Parameters[AnimatorState.movingState]))
+            || CurrState == AnimatorState.moving;
 
         [SerializeField, Tooltip("Play the take damage animation when the unit is damaged?"), Header("Damage Animation")]
         private bool damageAnimationEnabled = false;
@@ -47,6 +49,7 @@ namespace RTSEngine.Animation
         private float damageAnimationDuration = 0.2f;
 
         public bool IsDamageAnimationEnabled => damageAnimationEnabled;
+        private Coroutine damageAnimationCoroutine;
 
         //used for the override reset coroutine which waits for the state to get to idle before resetting the animator state
         private Coroutine overrideResetCoroutine;
@@ -69,22 +72,22 @@ namespace RTSEngine.Animation
 
             this.Unit = entity as IUnit;
 
-            if (!logger.RequireValid(animator,
-              $"[{GetType().Name}] The 'Animator' field must be assigned!"))
+            if (!animator.IsValid())
+            {
+                logger.LogError($"[{GetType().Name}] The 'Animator' field must be assigned!");
                 return;
+            }
 
             resetControllerWaitWhile = new WaitWhile(() => CurrState != AnimatorState.idle);
 
-            animatorSpeed = new TimeModifiedFloat(animator.Speed);
-            animator.Speed = animatorSpeed.Value;
+            animatorSpeed = new TimeModifiedFloat(animator.speed);
+            animator.speed = animatorSpeed.Value;
 
             ResetAnimatorState();
 
             Unit.Health.EntityHealthUpdated += HandleUnitHealthUpdated;
 
             timeModifier.ModifierUpdated += HandleModifierUpdated;
-
-            Unit.EntityModel.ModelShown += HandleModelShown;
         }
 
         public void Disable()
@@ -94,23 +97,13 @@ namespace RTSEngine.Animation
             Unit.Health.EntityHealthUpdated -= HandleUnitHealthUpdated;
 
             timeModifier.ModifierUpdated -= HandleModifierUpdated;
-
-            Unit.EntityModel.ModelShown -= HandleModelShown;
-        }
-        #endregion
-
-        #region Handling Event: Entity Model
-        private void HandleModelShown(IEntityModel entityModel, EventArgs args)
-        {
-            // SetOverrideController(currController);
-            // SetState(CurrState);
         }
         #endregion
 
         #region Handling Event: Time Modifier Update
         private void HandleModifierUpdated(ITimeModifier sender, EventArgs args)
         {
-            animator.Speed = animatorSpeed.Value;
+            animator.speed = animatorSpeed.Value;
         }
         #endregion
 
@@ -123,7 +116,7 @@ namespace RTSEngine.Animation
 
             if (damageAnimationEnabled)
             {
-                SetState(AnimatorState.takeDamage);
+                SetState(AnimatorState.startTakeDamage);
 
                 StartCoroutine(DisableTakeDamageAnimation(damageAnimationDuration));
             }
@@ -144,20 +137,28 @@ namespace RTSEngine.Animation
             if (LockState == true)
                 return;
 
-            if (CurrState == AnimatorState.dead
-                // If the damage animation is active, only allow to change the animation if the next one is a death animation.
-                || (CurrState == AnimatorState.takeDamage && newState != AnimatorState.dead))
+            if (CurrState == AnimatorState.dead)
                 return;
+
+            // If the damage animation is active, only allow to change the animation if the next one is a death animation.
+            if(newState != AnimatorState.dead && IsStartingOrInTakeDamageState())
+            {
+                if (CurrState == AnimatorState.startTakeDamage && newState != AnimatorState.inTakeDamage)
+                    return;
+
+                else if (CurrState == AnimatorState.inTakeDamage && newState != AnimatorState.idle)
+                    return;
+            }
 
             CurrState = newState;
 
-            animator.SetBool(UnitAnimator.Parameters[AnimatorState.takeDamage], CurrState == AnimatorState.takeDamage);
+            animator.SetBool(UnitAnimator.Parameters[AnimatorState.startTakeDamage], CurrState == AnimatorState.startTakeDamage);
 
             // Stop the idle animation in case take damage animation is played since the take damage animation is broken by the idle anim
             animator.SetBool(UnitAnimator.Parameters[AnimatorState.idle], CurrState == AnimatorState.idle);
 
             // If the new animator state is the taking damage one then do not disable the rest of animations since as soon as the take damage animation is disabled, we want to get back to the last active state
-            if (CurrState == AnimatorState.takeDamage)
+            if (CurrState == AnimatorState.startTakeDamage)
             {
                 animator.SetBool(UnitAnimator.Parameters[AnimatorState.inProgress], false);
                 return;
@@ -170,8 +171,14 @@ namespace RTSEngine.Animation
             animator.SetBool(UnitAnimator.Parameters[AnimatorState.movingState], CurrState == AnimatorState.moving);
         }
 
+        private bool IsStartingOrInTakeDamageState() => (CurrState == AnimatorState.startTakeDamage || CurrState == AnimatorState.inTakeDamage);
+
         private IEnumerator DisableTakeDamageAnimation (float delay)
         {
+            yield return new WaitUntil(() => animator.GetBool(UnitAnimator.Parameters[AnimatorState.inTakeDamage]) == true);
+
+            SetState(AnimatorState.inTakeDamage);
+
             yield return new WaitForSeconds(delay);
 
             SetState(AnimatorState.idle);
@@ -188,8 +195,11 @@ namespace RTSEngine.Animation
                 || CurrState == AnimatorState.dead)
                 return;
 
+            if (overrideResetCoroutine.IsValid())
+                StopCoroutine(overrideResetCoroutine);
+
             this.currController = newOverrideController;
-            animator.Controller = newOverrideController;
+            animator.runtimeAnimatorController = newOverrideController;
 
             // Since changing the override controller resets all parameters, we need to re-set the current animator state
             SetState(CurrState);

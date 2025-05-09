@@ -3,6 +3,7 @@ using RTSEngine.Event;
 using RTSEngine.Game;
 using RTSEngine.Logging;
 using RTSEngine.Audio;
+using UnityEngine;
 
 namespace RTSEngine.UI
 {
@@ -34,6 +35,13 @@ namespace RTSEngine.UI
         private void HandleShowPlayerMessageGlobal(object sender, MessageEventArgs args)
         {
             DisplayMessage(args);
+        }
+        #endregion
+
+        #region Helper Functions
+        public void Hide()
+        {
+            Message.Hide();
         }
         #endregion
     }

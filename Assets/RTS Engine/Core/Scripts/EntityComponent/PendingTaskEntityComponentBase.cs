@@ -46,7 +46,7 @@ namespace RTSEngine.EntityComponent
         #endregion
 
         #region Initializing/Terminating
-        protected override void OnInit()
+        protected sealed override void OnInit()
         {
             this.globalEvent = gameMgr.GetService<IGlobalEventPublisher>();
             this.textDisplayer = gameMgr.GetService<IGameUITextDisplayManager>(); 
@@ -66,7 +66,7 @@ namespace RTSEngine.EntityComponent
 
         protected virtual void OnPendingInit() { }
 
-        protected override void OnDisabled()
+        protected sealed override void OnDisabled()
         {
             OnPendingDisabled();
 
@@ -74,6 +74,20 @@ namespace RTSEngine.EntityComponent
         }
 
         protected virtual void OnPendingDisabled() { }
+        #endregion
+
+        #region Handling Faction Update
+        protected sealed override void OnFactionUpdateStart() 
+        {
+            Entity.PendingTasksHandler.CancelBySourceComponent(this);
+
+            globalEvent.RaisePendingTaskEntityComponentRemoved(this);
+        }
+
+        protected sealed override void OnFactionUpdateComplete() 
+        {
+            globalEvent.RaisePendingTaskEntityComponentAdded(this);
+        }
         #endregion
 
         #region Activating/Deactivating Component
@@ -169,33 +183,45 @@ namespace RTSEngine.EntityComponent
         #endregion
 
         #region Task UI
-        public override bool OnTaskUIRequest(out IEnumerable<EntityComponentTaskUIAttributes> taskUIAttributes, out IEnumerable<string> disabledTaskCodes)
+        protected override bool OnTaskUICacheUpdate(List<EntityComponentTaskUIAttributes> taskUIAttributesCache, List<string> disabledTaskCodesCache)
         {
-            taskUIAttributes = Enumerable.Empty<EntityComponentTaskUIAttributes>();
-            disabledTaskCodes = Enumerable.Empty<string>();
-
             if (!Entity.CanLaunchTask
                 || !IsActive
                 || !RTSHelper.IsLocalPlayerFaction(Entity))
                 return false;
 
-            //for upgrade tasks, we show tasks that do not have required conditions to launch but make them locked.
-            taskUIAttributes = Tasks
-                .Where(task => task.IsEnabled && task.IsFactionTypeAllowed(factionEntity.Slot.Data.type))
-                .Select(task => new EntityComponentTaskUIAttributes
+            for (int i = 0; i < Tasks.Count; i++)
+            {
+                IEntityComponentTaskInput task = Tasks[i];
+
+                if (!task.IsEnabled || !task.IsFactionTypeAllowed(factionEntity.Slot.Data.type))
+                    continue;
+
+                taskUIAttributesCache.Add(new EntityComponentTaskUIAttributes
                 {
                     data = task.Data,
+                    factionID = factionEntity.FactionID,
+
+                    title = GetTaskTitleText(task),
+                    requiredResources = task.RequiredResources,
+                    factionEntityRequirements = task.FactionEntityRequirements,
 
                     locked = task.CanStart() != ErrorMessage.none,
                     lockedData = task.MissingRequirementData,
 
-                    tooltipText = GetTooltipText(task)
+                    tooltipText = GetTaskTooltipText(task)
                 });
+            }
 
             return true;
         }
 
-        protected abstract string GetTooltipText(IEntityComponentTaskInput taskInput);
+        protected virtual string GetTaskTitleText(IEntityComponentTaskInput taskInput)
+        {
+            textDisplayer.EntityComponentTaskTitleToString(taskInput, out string text);
+            return text;
+        }
+        protected abstract string GetTaskTooltipText(IEntityComponentTaskInput taskInput);
 
         public override bool OnTaskUIClick(EntityComponentTaskUIAttributes taskAttributes)
         {

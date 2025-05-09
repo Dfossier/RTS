@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using UnityEngine;
 
@@ -17,7 +16,7 @@ namespace RTSEngine.NPC
         public NPCType Type { private set; get; }
 
         private Dictionary<Type, INPCComponent> oneInstanceComponents;
-        private Dictionary<Type, IEnumerable<INPCComponent>> multipleInstanceComponents;
+        private Dictionary<Type, IReadOnlyList<INPCComponent>> multipleInstanceComponents;
 
         public IFactionManager FactionMgr { private set; get; }
 
@@ -46,7 +45,7 @@ namespace RTSEngine.NPC
             gameMgr.GameStartRunning += HandleGameStartRunning;
 
             oneInstanceComponents = new Dictionary<Type, INPCComponent>();
-            multipleInstanceComponents = new Dictionary<Type, IEnumerable<INPCComponent>>();
+            multipleInstanceComponents = new Dictionary<Type, IReadOnlyList<INPCComponent>>();
         }
 
         private void OnDestroy()
@@ -57,29 +56,28 @@ namespace RTSEngine.NPC
         private void HandleGameStartRunning(IGameManager sender, EventArgs args)
         {
             var allComponents = GetComponentsInChildren<INPCComponent>();
-            var componentGroups = allComponents 
-                .GroupBy(component => component.IsSingleInstance);
 
-            oneInstanceComponents = componentGroups
-                // Fetch singular components
-                .Where(group => group.Key)
-                .SelectMany(group => group)
-                .ToDictionary(
-                component => component.GetType().GetSuperInterfaceType<INPCComponent>(),
-                component => component
-                );
+            for (int i = 0; i < allComponents.Length; i++)
+            {
+                INPCComponent comp = allComponents[i];
+                Type compType = comp.GetType().GetSuperInterfaceType<INPCComponent>();
 
-            multipleInstanceComponents = componentGroups
-                // Fetch sets of components
-                .Where(group => !group.Key)
-                .SelectMany(group => group)
-                .GroupBy(component => component.GetType().GetSuperInterfaceType<INPCComponent>())
-                .ToDictionary(
-                group => group.Key,
-                group => group.Select(component => component));
+                if (comp.IsSingleInstance)
+                    oneInstanceComponents.Add(compType, comp);
+                else if(!multipleInstanceComponents.ContainsKey(compType))
+                {
+                    List<INPCComponent> sameTypeComps = new List<INPCComponent>();
+                    for (int j = 0; j < allComponents.Length; j++)
+                    {
+                        if (allComponents[j].GetType().GetSuperInterfaceType<INPCComponent>() == compType)
+                            sameTypeComps.Add(allComponents[j]);
+                    }
+                    multipleInstanceComponents.Add(compType, sameTypeComps.AsReadOnly());
+                }
+            }
 
-            foreach (var component in allComponents)
-                component.Init(gameMgr, this);
+            for (int i = 0; i < allComponents.Length; i++)
+                allComponents[i].Init(gameMgr, this);
 
             RaiseInitComplete();
         }
@@ -95,13 +93,20 @@ namespace RTSEngine.NPC
             return (T)oneInstanceComponents[typeof(T)];
         }
 
-        public IEnumerable<T> GetNPCComponentSet<T>() where T : INPCComponent
+        public IReadOnlyList<T> GetNPCComponentSet<T>() where T : INPCComponent
         {
             if (!logger.RequireTrue(multipleInstanceComponents.ContainsKey(typeof(T)),
                 $"[NPCManager - Faction ID: {FactionMgr.FactionID}] NPC Faction does not have an active set of instances of type '{typeof(T)}' that implement the '{typeof(INPCComponent).Name}' interface!"))
                 return default;
 
-            return multipleInstanceComponents[typeof(T)].ToArray().Cast<T>();
+            IReadOnlyList<INPCComponent> compsList = multipleInstanceComponents[typeof(T)];
+            List<T> compsListCasted = new List<T>();
+            for (int i = 0; i < compsList.Count; i++)
+            {
+                compsListCasted.Add((T)compsList[i]);
+            }
+
+            return compsListCasted.AsReadOnly();
         }
         #endregion
     }

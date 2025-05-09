@@ -10,5 +10,7 @@ namespace RTSEngine.Lobby
     {
         void SetInteractable(bool interactable);
         void Toggle(bool show);
+
+        void OnLobbyGameDataUIUpdated();
     }
 }

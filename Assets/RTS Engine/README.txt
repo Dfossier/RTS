@@ -1,4 +1,4 @@
-RTS Engine version: 2022.3.2
+RTS Engine version: 2024.0.1
 
 Thanks for purchasing the Unity RTS Engine! 
 

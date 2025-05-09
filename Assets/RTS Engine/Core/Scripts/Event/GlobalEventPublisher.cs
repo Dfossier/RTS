@@ -12,6 +12,8 @@ using RTSEngine.Selection;
 using RTSEngine.Faction;
 using RTSEngine.Model;
 using RTSEngine.Search;
+using RTSEngine.UnitExtension;
+using RTSEngine.Attack;
 
 namespace RTSEngine.Event
 {
@@ -106,10 +108,16 @@ namespace RTSEngine.Event
         }
 
         public event CustomEventHandler<IEntity, HealthUpdateArgs> EntityHealthUpdatedGlobal;
+        public event CustomEventHandler<IEntity, HealthUpdateArgs> EntityMaxHealthUpdatedGlobal;
         public event CustomEventHandler<IEntity, DeadEventArgs> EntityDeadGlobal;
         public void RaiseEntityHealthUpdatedGlobal(IEntity sender, HealthUpdateArgs e)
         {
             var handler = EntityHealthUpdatedGlobal;
+            handler?.Invoke(sender, e);
+        }
+        public void RaiseEntityMaxHealthUpdatedGlobal(IEntity sender, HealthUpdateArgs e)
+        {
+            var handler = EntityMaxHealthUpdatedGlobal;
             handler?.Invoke(sender, e);
         }
         public void RaiseEntityDeadGlobal(IEntity sender, DeadEventArgs e)
@@ -534,22 +542,6 @@ namespace RTSEngine.Event
         }
         #endregion
 
-        #region ICachedModel
-        public event CustomEventHandler<ICachedModel, EventArgs> CachedModelEnabledGlobal;
-        public event CustomEventHandler<ICachedModel, EventArgs> CachedModelDisabledGlobal;
-
-        public void RaiseCachedModelEnabledGlobal(ICachedModel sender)
-        {
-            var handler = CachedModelEnabledGlobal;
-            handler?.Invoke(sender, EventArgs.Empty);
-        }
-        public void RaiseCachedModelDisabledGlobal(ICachedModel sender)
-        {
-            var handler = CachedModelDisabledGlobal;
-            handler?.Invoke(sender, EventArgs.Empty);
-        }
-        #endregion
-
         #region Search
         public event CustomEventHandler<ISearchObstacle, EventArgs> SearchObstacleEnabledGlobal;
         public event CustomEventHandler<ISearchObstacle, EventArgs> SearchObstacleDisabledGlobal;
@@ -567,11 +559,46 @@ namespace RTSEngine.Event
         #endregion
 
         #region Resource Generator
+        public event CustomEventHandler<IResourceGenerator, EventArgs> ResourceGeneratorInitGlobal;
+
+        public void RaiseResourceGeneratorInitGlobal(IResourceGenerator sender)
+        {
+            var handler = ResourceGeneratorInitGlobal;
+            handler?.Invoke(sender, EventArgs.Empty);
+        }
+
         public event CustomEventHandler<IResourceGenerator, ResourceAmountEventArgs> ResourceGeneratorCollectedGlobal;
 
         public void RaiseResourceGeneratorCollectedGlobal(IResourceGenerator sender, ResourceAmountEventArgs args)
         {
             var handler = ResourceGeneratorCollectedGlobal;
+            handler?.Invoke(sender, args);
+        }
+        #endregion
+
+        #region IUnitSquad
+        public event CustomEventHandler<IUnitSquad, EventArgs> UnitSquadSelectedGlobal;
+        public event CustomEventHandler<IUnitSquad, EventArgs> UnitSquadDeselectedGlobal;
+
+        public void RaiseUnitSquadSelectedGlobal(IUnitSquad sender, EventArgs args)
+        {
+            var handler = UnitSquadSelectedGlobal;
+            handler?.Invoke(sender, args);
+        }
+
+        public void RaiseUnitSquadDeselectedGlobal(IUnitSquad sender, EventArgs args)
+        {
+            var handler = UnitSquadDeselectedGlobal;
+            handler?.Invoke(sender, args);
+        }
+        #endregion
+
+        #region Attack Object
+        public event CustomEventHandler<IAttackObject, AttackObjectTargetEventArgs> AttackObjectApplyDamageGlobal;
+
+        public void RaiseAttackObjectApplyDamageGlobal(IAttackObject sender, AttackObjectTargetEventArgs args)
+        {
+            var handler = AttackObjectApplyDamageGlobal;
             handler?.Invoke(sender, args);
         }
         #endregion

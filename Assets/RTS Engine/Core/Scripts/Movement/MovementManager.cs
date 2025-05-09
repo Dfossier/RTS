@@ -17,12 +17,40 @@ using RTSEngine.Utilities;
 
 namespace RTSEngine.Movement
 {
+    public struct SetPathDestinationData<T>
+    {
+        public T source;
+
+        public Vector3 destination;
+        public float offsetRadius;
+        public IEntity target;
+        public MovementSource mvtSource;
+    }
+
     public class MovementManager : MonoBehaviour, IMovementManager
     {
         #region Attributes
-        [SerializeField, Tooltip("Determines the distance at which a unit stops before it reaches its movement target position.")]
-        private float stoppingDistance = 0.3f;
+        [SerializeField, Tooltip("Determines the distance at which a unit stops before it reaches its movement target position."), Min(float.Epsilon)]
+        private float stoppingDistance = 0.1f;
         public float StoppingDistance => stoppingDistance;
+
+        [SerializeField, Tooltip("Enable this option to allow to have a different maximum stopping distance for moving units on Y-axis (height) of the destination. This can be useful due to the difference in the height of the path calculations and the navigation meshes generated when it comes to uneven surfaces.")]
+        private bool enableHeightSpecificStoppingDistance = true;
+        [SerializeField, Tooltip("When the above option is enabled, this is the allowed stopping distance on the Y-axis between the moving unit position and its destination to mark the destination as reached. The other stopping distance is used for the X and Z axis."), Min(float.Epsilon)]
+        private float heightSpecificStoppingDistance = 0.2f;
+        public float HeightSpecificStoppingDistance => heightSpecificStoppingDistance;
+
+        public bool IsPositionReached(Vector3 inputPosition, Vector3 targetPosition)
+        { 
+            if(!enableHeightSpecificStoppingDistance)
+                return Vector3.Distance(inputPosition, targetPosition) <= stoppingDistance;
+
+            return Vector2.Distance(
+                new Vector2(inputPosition.x, inputPosition.z),
+                new Vector2(targetPosition.x, targetPosition.z)
+            ) <= stoppingDistance
+            && Mathf.Abs(inputPosition.y - targetPosition.y) <= heightSpecificStoppingDistance;
+        }
 
         [SerializeField, EnforceType(typeof(IEffectObject), prefabOnly: true), Tooltip("Visible to the local player when they command unit(s) to move to a location.")]
         private GameObject movementTargetEffectPrefab = null;
@@ -52,7 +80,7 @@ namespace RTSEngine.Movement
         protected IEffectObjectPool effectObjPool { private set; get; }
         protected IGameLoggingService logger { private set; get; }
         protected IGridSearchHandler gridSearch { private set; get; }
-        protected IAttackManager attackMgr { private set; get; } 
+        protected IAttackManager attackMgr { private set; get; }
         protected IGameAudioManager audioMgr { private set; get; }
         #endregion
 
@@ -67,7 +95,7 @@ namespace RTSEngine.Movement
             this.logger = gameMgr.GetService<IGameLoggingService>();
             this.gridSearch = gameMgr.GetService<IGridSearchHandler>();
             this.attackMgr = gameMgr.GetService<IAttackManager>();
-            this.audioMgr = gameMgr.GetService<IGameAudioManager>(); 
+            this.audioMgr = gameMgr.GetService<IGameAudioManager>();
 
             MvtSystem = gameObject.GetComponent<IMovementSystem>();
 
@@ -95,23 +123,23 @@ namespace RTSEngine.Movement
         #endregion
 
         #region Setting Path Destination Helper Methods
-        private void OnPathDestinationCalculationStart (IEntity entity)
+        private void OnPathDestinationCalculationStart(IEntity entity)
         {
             // Disable the target position marker so it won't intefer in determining the target positions
             entity.MovementComponent.TargetPositionMarker.Toggle(false);
         }
-        private void OnPathDestinationCalculationStart (IReadOnlyList<IEntity> entities)
+        private void OnPathDestinationCalculationStart(IReadOnlyList<IEntity> entities)
         {
             for (int i = 0; i < entities.Count; i++)
                 // Disable the target position marker so it won't intefer in determining the target positions
                 entities[i].MovementComponent.TargetPositionMarker.Toggle(false);
         }
 
-        private void OnPathDestinationCalculationInterrupted (IEntity entity)
+        private void OnPathDestinationCalculationInterrupted(IEntity entity)
         {
             entity.MovementComponent.TargetPositionMarker.Toggle(true);
         }
-        private void OnPathDestinationCalculationInterrupted (IReadOnlyList<IEntity> entities)
+        private void OnPathDestinationCalculationInterrupted(IReadOnlyList<IEntity> entities)
         {
             for (int i = 0; i < entities.Count; i++)
                 entities[i].MovementComponent.TargetPositionMarker.Toggle(true);
@@ -119,7 +147,7 @@ namespace RTSEngine.Movement
         #endregion
 
         #region Setting Path Destination: Single Entity
-        public ErrorMessage SetPathDestination(IEntity entity, Vector3 destination, float offsetRadius, IEntity target, MovementSource source)
+        public ErrorMessage SetPathDestination(SetPathDestinationData<IEntity> data)
         {
             return inputMgr.SendInput(
                 new CommandInput()
@@ -127,128 +155,137 @@ namespace RTSEngine.Movement
                     sourceMode = (byte)InputMode.entity,
                     targetMode = (byte)InputMode.movement,
 
-                    sourcePosition = entity.transform.position,
-                    targetPosition = destination,
+                    sourcePosition = data.source.transform.position,
+                    targetPosition = data.destination,
 
-                    floatValue = offsetRadius,
+                    floatValue = data.offsetRadius,
 
                     // MovementSource:
-                    code = $"{source.sourceTargetComponent?.Code}" +
-                    $"{RTSHelper.STR_SEPARATOR_L1}{source.targetAddableUnit?.Code}",
-                    opPosition = source.targetAddableUnitPosition,
-                    playerCommand = source.playerCommand,
-                    intValues = inputMgr.ToIntValues((int)source.BooleansToMask())
-                    //intValues = inputMgr.ToIntValues(source.isAttackMove ? 1 : 0, source.isOriginalAttackMove ? 1 : 0)
+                    code = $"{data.mvtSource.sourceTargetComponent?.Code}" +
+                    $"{RTSHelper.STR_SEPARATOR_L1}{data.mvtSource.targetAddableUnit?.Code}",
+                    opPosition = data.mvtSource.targetAddableUnitPosition,
+                    playerCommand = data.mvtSource.playerCommand,
+                    intValues = inputMgr.ToIntValues((int)data.mvtSource.BooleansToMask())
+                    //intValues = inputMgr.ToIntValues(data.mvtSource.isAttackMove ? 1 : 0, data.mvtSource.isOriginalAttackMove ? 1 : 0)
                 },
-                source: entity,
-                target: target);
+                source: data.source,
+                target: data.target);
         }
 
-        public ErrorMessage SetPathDestinationLocal(IEntity entity, Vector3 destination, float offsetRadius, IEntity target, MovementSource source)
+        public ErrorMessage SetPathDestinationLocal(SetPathDestinationData<IEntity> data)
         {
-            if (!entity.IsValid())
+            if (!data.source.IsValid())
             {
-                logger.LogError("[MovementManager] Can not move an invalid entity!");
+                logger.LogError("[MovementManager] Can not move an invalid data.source!");
                 return ErrorMessage.invalid;
             }
-            else if (!entity.CanMove(source.playerCommand))
+            else if (!data.source.CanMove(data.mvtSource.playerCommand))
                 return ErrorMessage.mvtDisabled;
 
-            OnPathDestinationCalculationStart(entity);
+            OnPathDestinationCalculationStart(data.source);
 
             // Used for the movement target effect and rotation look at of the unit
-            Vector3 originalDestination = destination;
-            TargetData <IEntity> targetData = new TargetData<IEntity>
+            Vector3 originalDestination = data.destination;
+            Vector3 destination = data.destination;
+            TargetData<IEntity> targetData = new TargetData<IEntity>
             {
-                instance = target,
-                position = destination,
+                instance = data.target,
+                position = data.destination,
                 opPosition = originalDestination
             };
 
             // First check if the actual destination is a valid target position, if it can't be then search for a valid one depending on the movement formation
-            // If the offset radius is not zero, then the unit will be moving towards a target entity and a calculation for a path destination around that target is required
-            if (offsetRadius > 0.0f
-                || (terrainMgr.SampleHeight(destination, entity.MovementComponent, out destination.y)
-                    && IsPositionClear(ref destination, entity.MovementComponent, source.playerCommand) != ErrorMessage.none))
+            // If the offset radius is not zero, then the unit will be moving towards a target data.source and a calculation for a path destination around that target is required
+            if (data.offsetRadius > 0.0f
+                || !terrainMgr.SampleHeight(destination, data.source.MovementComponent, out destination.y)
+                || IsPositionClear(ref destination, data.source.MovementComponent, data.mvtSource.playerCommand) != ErrorMessage.none)
             {
                 targetData.position = destination;
 
                 GeneratePathDestination(
-                    entity,
+                    data.source,
                     targetData,
-                    entity.MovementComponent.Formation,
-                    offsetRadius,
-                    source,
+                    data.source.MovementComponent.Formation,
+                    data.offsetRadius,
+                    data.mvtSource,
                     ref pathDestinations);
 
                 if (pathDestinations.Count == 0)
                 {
-                    OnPathDestinationCalculationInterrupted(entity);
-                    //logger.LogError($"[Movement Manager] Unable to determine path destination! Please follow error trace to find the movement's source!");
+                    OnPathDestinationCalculationInterrupted(data.source);
+                    //logger.LogError($"[Movement Manager] Unable to determine path destination! Please follow error trace to find the movement's data.mvtSource!");
                     return ErrorMessage.mvtTargetPositionNotFound;
                 }
 
                 // Get the closest target position
-                //destination = pathDestinations.OrderBy(pos => (pos - entity.transform.position).sqrMagnitude).First();
-                pathDestinations.Sort((pos1, pos2) => (pos1 - entity.transform.position).sqrMagnitude.CompareTo((pos2 - entity.transform.position).sqrMagnitude));
+                //destination = pathDestinations.OrderBy(pos => (pos - data.source.transform.position).sqrMagnitude).First();
+                pathDestinations.Sort((pos1, pos2) => (pos1 - data.source.transform.position).sqrMagnitude.CompareTo((pos2 - data.source.transform.position).sqrMagnitude));
                 destination = pathDestinations[0];
             }
 
-            if (source.playerCommand && !target.IsValid() && RTSHelper.IsLocalPlayerFaction(entity))
+            if (data.mvtSource.playerCommand && !data.target.IsValid() && RTSHelper.IsLocalPlayerFaction(data.source))
             {
-                SpawnMovementTargetEffect(entity, originalDestination, source);
+                SpawnMovementTargetEffect(data.source, originalDestination, data.mvtSource);
 
-                audioMgr.PlaySFX(entity.MovementComponent.OrderAudio, false); //play the movement audio.
+                audioMgr.PlaySFX(data.source.MovementComponent.OrderAudio, data.source, loop:false); //play the movement audio.
             }
 
-            return entity.MovementComponent.OnPathDestination(
+            return data.source.MovementComponent.OnPathDestination(
                 new TargetData<IEntity>
                 {
-                    instance = target,
+                    instance = data.target,
                     position = destination,
                     opPosition = originalDestination
                 },
-                source);
+                data.mvtSource);
         }
         #endregion
 
         #region Setting Path Destination: Multiple Entities
-        public ErrorMessage SetPathDestination(IReadOnlyList<IEntity> entities, Vector3 destination, float offsetRadius, IEntity target, MovementSource source)
+        public ErrorMessage SetPathDestination(SetPathDestinationData<IReadOnlyList<IEntity>> data)
         {
+            // Only one data.source to move? use the dedicated method instead!
+            if (data.source.Count == 1) 
+                return SetPathDestination(new SetPathDestinationData<IEntity> 
+                {
+                    source = data.source[0],
+                    destination = data.destination,
+                    offsetRadius = data.offsetRadius,
+                    target = data.target,
+                    mvtSource = data.mvtSource
+                });
+
             return inputMgr.SendInput(new CommandInput()
             {
                 sourceMode = (byte)InputMode.entityGroup,
                 targetMode = (byte)InputMode.movement,
 
-                targetPosition = destination,
-                floatValue = offsetRadius,
+                targetPosition = data.destination,
+                floatValue = data.offsetRadius,
 
-                playerCommand = source.playerCommand,
-                intValues = inputMgr.ToIntValues((int)source.BooleansToMask())
+                playerCommand = data.mvtSource.playerCommand,
+                intValues = inputMgr.ToIntValues((int)data.mvtSource.BooleansToMask())
             },
-            source: entities,
-            target: target);
+            source: data.source,
+            target: data.target);
         }
 
-        public ErrorMessage SetPathDestinationLocal(IReadOnlyList<IEntity> entities, Vector3 destination, float offsetRadius, IEntity target, MovementSource source)
+        public ErrorMessage SetPathDestinationLocal(SetPathDestinationData<IReadOnlyList<IEntity>> data)
         {
-            if (!entities.IsValid())
+            if (!data.source.IsValid())
             {
                 logger.LogError("[MovementManager] Some or all entities that are attempting to move are invalid!!");
                 return ErrorMessage.invalid;
             }
-            // Only one entity to move? use the dedicated method instead!
-            else if (entities.Count < 2) 
-                return SetPathDestinationLocal(entities[0], destination, offsetRadius, target, source);
 
-            // Sort the attack units based on their codes, we assume that units that share the same code (which is the defining property of an entity in the RTS Engine) are identical.
+            // Sort the attack units based on their codes, we assume that units that share the same code (which is the defining property of an data.source in the RTS Engine) are identical.
             // Additionally, filter out any units that are not movable.
 
             // CHANGE ME: In case the below OrderBy call is creating too much garbage, it needs to change
             // Maybe using a pre existing list that gets cleared everytime but holds the same capacity would help? But how to handle the simple sorting?
             var sortedMvtSources = RTSHelper.SortEntitiesByCode(
-                entities,
-                entity => entity.CanMove(source.playerCommand))
+                data.source,
+                entity => entity.CanMove(data.mvtSource.playerCommand))
                 .Values
                 .OrderBy(mvtSourceSet => mvtSourceSet[0].MovementComponent.MovementPriority)
                 .ToList();
@@ -256,8 +293,8 @@ namespace RTSEngine.Movement
 
             TargetData <IEntity> targetData = new TargetData<IEntity>
             {
-                instance = target,
-                position = destination,
+                instance = data.target,
+                position = data.destination,
             };
 
             for (int i = 0; i < sortedMvtSources.Count; i++) 
@@ -270,19 +307,19 @@ namespace RTSEngine.Movement
                     mvtSourceSet,
                     targetData,
                     mvtSourceSet[0].MovementComponent.Formation,
-                    offsetRadius,
-                    source,
+                    data.offsetRadius,
+                    data.mvtSource,
                     ref pathDestinations);
 
                 if (pathDestinations.Count == 0)
                 {
                     OnPathDestinationCalculationInterrupted(mvtSourceSet);
-                    //logger.LogError($"[Movement Manager] Unable to determine path destination! Please follow error trace to find the movement's source!");
+                    //logger.LogError($"[Movement Manager] Unable to determine path destination! Please follow error trace to find the movement's data.mvtSource!");
                     return ErrorMessage.mvtTargetPositionNotFound;
                 }
 
                 // Compute the directions of the units we have so we know the direction they will face in regards to the target.
-                Vector3 unitsDirection = RTSHelper.GetEntitiesDirection(entities, destination);
+                Vector3 unitsDirection = RTSHelper.GetEntitiesDirection(data.source, data.destination);
                 unitsDirection.y = 0;
 
                 // Index counter for the generated path destinations.
@@ -295,7 +332,7 @@ namespace RTSEngine.Movement
                     IEntity mvtSource = mvtSourceSet[j];
 
                     // If this movement is towards a target, pick the closest position to the target for each unit
-                    if (target.IsValid())
+                    if (data.target.IsValid())
                     {
                         //pathDestinations.OrderBy(pos => (pos - mvtSource.transform.position).sqrMagnitude).ToList();
                         pathDestinations.Sort((pos1, pos2) => (pos1 - mvtSource.transform.position).sqrMagnitude.CompareTo((pos2 - mvtSource.transform.position).sqrMagnitude));
@@ -304,19 +341,19 @@ namespace RTSEngine.Movement
                     if (mvtSource.MovementComponent.OnPathDestination(
                         new TargetData<IEntity>
                         {
-                            instance = target,
+                            instance = data.target,
                             position = pathDestinations[destinationID],
 
                             opPosition = pathDestinations[destinationID] + unitsDirection // Rotation look at position
                         },
-                        source) != ErrorMessage.none)
+                        data.mvtSource) != ErrorMessage.none)
                     {
                         OnPathDestinationCalculationInterrupted(mvtSource);
                         continue;
                     }
 
                     // Only move to the next path destination if we're moving towards a non target, if not keep removing the first element of the list which was the closest to the last unit
-                    if (target.IsValid())
+                    if (data.target.IsValid())
                         pathDestinations.RemoveAt(0);
                     else
                         destinationID++;
@@ -331,12 +368,12 @@ namespace RTSEngine.Movement
             }
 
 
-            if (source.playerCommand && !target.IsValid() && RTSHelper.IsLocalPlayerFaction(entities.FirstOrDefault()))
+            if (data.mvtSource.playerCommand && !data.target.IsValid() && RTSHelper.IsLocalPlayerFaction(data.source.FirstOrDefault()))
             {
-                IEntity refEntity = entities.First();
-                SpawnMovementTargetEffect(refEntity, destination, source);
+                IEntity refEntity = data.source.First();
+                SpawnMovementTargetEffect(refEntity, data.destination, data.mvtSource);
 
-                audioMgr.PlaySFX(refEntity.MovementComponent.OrderAudio, false); //play the movement audio.
+                audioMgr.PlaySFX(refEntity.MovementComponent.OrderAudio, refEntity, loop:false); //play the movement audio.
             }
 
             return ErrorMessage.none;
@@ -461,6 +498,51 @@ namespace RTSEngine.Movement
 
             // We have computed at least one path destination, the count of the list is either smaller or equal to the initial value of the "amount" argument.
             return ErrorMessage.none; 
+        }
+
+        // Generate single path destination around an origin position within a certain range
+        public ErrorMessage GeneratePathDestination (Vector3 originPosition, float range, IMovementComponent refMvtComp, out Vector3 targetPosition)
+        {
+            targetPosition = originPosition + (Random.insideUnitSphere * range);
+
+            int expectedPositionCount = Mathf.FloorToInt(2.0f * Mathf.PI * range / (refMvtComp.Entity.Radius * 2.0f));
+
+            // If no expected positions are to be found and the radius offset is zero then set the expected position count to 1 to test the actual target position if it is valid
+            if (expectedPositionCount == 0)
+                expectedPositionCount = 1;
+
+            // Represents increment value of the angle inside the current circle with the above perimeter
+            float angleIncValue = 360f / expectedPositionCount;
+            float currentAngle = 0.0f;
+
+            Vector3 nextDestination = originPosition + Vector3.right * range;
+
+            int counter = 0; 
+
+            // As long as we haven't inspected all the expected free positions inside this cirlce
+            while (counter < expectedPositionCount) 
+            {
+                // Always make sure that the next path destination has a correct height in regards to the height of the map.
+                if (terrainMgr.SampleHeight(nextDestination, refMvtComp, out nextDestination.y))
+                {
+                    // Check if there is no obstacle and no other reserved target position on the currently computed potential path destination
+                    if (IsPositionClear(ref nextDestination, refMvtComp, playerCommand: false) == ErrorMessage.none)
+                    {
+                        targetPosition = nextDestination;
+                        return ErrorMessage.none;
+                    }
+
+                    // Increment the angle value to find the next position on the circle
+                    currentAngle += angleIncValue;
+
+                    // Rotate the nextDestination vector around the y axis by the current angle value
+                    nextDestination = originPosition + range * new Vector3(Mathf.Cos(Mathf.Deg2Rad * currentAngle), 0.0f, Mathf.Sin(Mathf.Deg2Rad * currentAngle));
+                }
+
+                counter++;
+            }
+
+            return ErrorMessage.invalid;
         }
         #endregion
 

@@ -35,6 +35,7 @@ MonoBehaviour:
   - entityType:
       codes:
       - town_center
+      - town_center_fow
       categories: []
     range:
       _min: 4

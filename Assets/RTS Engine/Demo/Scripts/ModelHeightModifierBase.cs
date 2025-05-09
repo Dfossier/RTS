@@ -30,8 +30,8 @@ namespace RTSEngine.Demo
         protected IEntity entity { private set; get; }
 
         [SerializeField, Tooltip("Model object of the building.")]
-        private ModelCacheAwareTransformInput model = null;
-        protected ModelCacheAwareTransformInput Model => model;
+        private Transform model = null;
+        protected Transform Model => model;
 
         protected ModelPositionModifierData currModifier { private set; get; }
         private float currVelocity;
@@ -85,10 +85,10 @@ namespace RTSEngine.Demo
             if (!isActive)
                 return;
 
-            Vector3 nextPosition = model.LocalPosition;
+            Vector3 nextPosition = model.localPosition;
             nextPosition.y = Mathf.SmoothDamp(nextPosition.y, targetHeightUpdateFunction(), ref currVelocity, 1 / currModifier.speed.Value);
 
-            model.LocalPosition = nextPosition;
+            model.localPosition = nextPosition;
         }
 
         protected void Deactivate(float resetHeight)
@@ -96,10 +96,10 @@ namespace RTSEngine.Demo
             isActive = false;
             targetHeightUpdateFunction = null;
 
-            model.LocalPosition = new Vector3(
-                model.LocalPosition.x,
+            model.localPosition = new Vector3(
+                model.localPosition.x,
                 resetHeight,
-                model.LocalPosition.z);
+                model.localPosition.z);
         }
 
         protected void Activate(ModelPositionModifierData nextModifier, Func<float> targetHeightUpdateFunction)
@@ -111,10 +111,10 @@ namespace RTSEngine.Demo
             currVelocity = 0.0f;
 
             // Enabling building construction elevator effect
-            model.LocalPosition = new Vector3(
-                model.LocalPosition.x, 
+            model.localPosition = new Vector3(
+                model.localPosition.x, 
                 currModifier.initialHeight, 
-                model.LocalPosition.z);
+                model.localPosition.z);
 
             isActive = true;
         }

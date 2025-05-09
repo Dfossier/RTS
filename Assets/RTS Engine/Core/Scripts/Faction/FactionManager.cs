@@ -22,6 +22,12 @@ namespace RTSEngine.Faction
 
         private Dictionary<string, int> factionEntityToAmount;
         public IReadOnlyDictionary<string, int> FactionEntityToAmount => factionEntityToAmount;
+        private Dictionary<string, List<IFactionEntity>> factionEntityCodeDic;
+        public IReadOnlyList<IFactionEntity> GetFactionEntitiesListByCode(string code)
+            => factionEntityCodeDic.TryGetValue(code, out List<IFactionEntity> list)
+            ? list
+            : new IFactionEntity[0];
+
         private Dictionary<string, int> factionEntityCategoryToAmount;
         public IReadOnlyDictionary<string, int> FactionEntityCategoryToAmount => factionEntityCategoryToAmount;
 
@@ -33,16 +39,18 @@ namespace RTSEngine.Faction
 
         private List<IUnit> units; 
         public IEnumerable<IUnit> Units => units.ToArray();
+        private List<IUnit> workerUnits;
+        public IReadOnlyList<IUnit> WorkerUnits => workerUnits;
 
         private List<IUnit> attackUnits;
         public IEnumerable<IUnit> GetAttackUnits(float range = 1.0f)
             => attackUnits.GetRange(0, (int)(attackUnits.Count * (range >= 0.0f && range <= 1.0f ? range : 1.0f)));
 
         private List<IBuilding> buildings;
-        public IEnumerable<IBuilding> Buildings => buildings.ToArray();
+        public IReadOnlyList<IBuilding> Buildings => buildings.AsReadOnly();
 
         private List<IBuilding> buildingCenters;
-        public IEnumerable<IBuilding> BuildingCenters => buildingCenters.ToArray();
+        public IReadOnlyList<IBuilding> BuildingCenters => buildingCenters.AsReadOnly();
 
         private List<FactionEntityAmountLimit> limits = new List<FactionEntityAmountLimit>();
 
@@ -86,12 +94,14 @@ namespace RTSEngine.Faction
             factionEntities = new List<IFactionEntity>();
             factionEntityToAmount = new Dictionary<string, int>();
             factionEntityCategoryToAmount = new Dictionary<string, int>();
+            factionEntityCodeDic = new Dictionary<string, List<IFactionEntity>>();
 
             mainEntities = new List<IFactionEntity>();
 
             dropOffTargets = new List<IFactionEntity>();
 
             units = new List<IUnit>();
+            workerUnits = new List<IUnit>();
             attackUnits = new List<IUnit>();
 
             buildings = new List<IBuilding>();
@@ -159,6 +169,8 @@ namespace RTSEngine.Faction
                 return;
 
             AddFactionEntityAmount(building);
+
+            RaiseOwnFactionEntityAdded(new EntityEventArgs<IFactionEntity>(building));
         }
 
         private void HandleFactionEntityDeadGlobal(IFactionEntity factionEntity, DeadEventArgs args)
@@ -166,7 +178,11 @@ namespace RTSEngine.Faction
             if (factionEntity.IsUnit())
                 RemoveUnit(factionEntity as IUnit);
             else if (factionEntity.IsBuilding())
-                RemoveBuilding(factionEntity as IBuilding);
+            {
+                IBuilding building = factionEntity as IBuilding;
+                if(!building.IsPlacementInstance)
+                    RemoveBuilding(building);
+            }
         }
 
         private void HandleEntityFactionUpdateStartGlobal(IEntity updatedInstance, FactionUpdateArgs args)
@@ -199,6 +215,12 @@ namespace RTSEngine.Faction
                 return;
 
             factionEntities.Add(factionEntity);
+            if(!factionEntityCodeDic.TryGetValue(factionEntity.Code, out List<IFactionEntity> entityTypeList))
+            {
+                entityTypeList = new List<IFactionEntity>();
+                factionEntityCodeDic.Add(factionEntity.Code, entityTypeList);
+            }
+            entityTypeList.Add(factionEntity);
 
             if (factionEntity.IsMainEntity)
                 mainEntities.Add(factionEntity);
@@ -207,8 +229,6 @@ namespace RTSEngine.Faction
                 dropOffTargets.Add(factionEntity);
 
             UpdateLimit(factionEntity.Code, factionEntity.Category, increment: true);
-
-            RaiseOwnFactionEntityAdded(new EntityEventArgs<IFactionEntity>(factionEntity));
         }
 
         private void RemoveFactionEntity (IFactionEntity factionEntity)
@@ -217,6 +237,7 @@ namespace RTSEngine.Faction
                 return;
 
             factionEntities.Remove(factionEntity);
+            factionEntityCodeDic[factionEntity.Code].Remove(factionEntity);
 
             if (factionEntity.IsMainEntity)
                 mainEntities.Remove(factionEntity);
@@ -225,8 +246,6 @@ namespace RTSEngine.Faction
                 dropOffTargets.Remove(factionEntity);
 
             UpdateLimit(factionEntity.Code, factionEntity.Category, increment:false);
-
-            RaiseOwnFactionEntityRemoved(new EntityEventArgs<IFactionEntity>(factionEntity));
 
             // Check if the faction doesn't have any buildings/units anymore and trigger the faction defeat in that case
             CheckFactionDefeat(); 
@@ -243,6 +262,10 @@ namespace RTSEngine.Faction
 			units.Add (unit);
             if (unit.AttackComponents.Count > 0)
                 attackUnits.Add(unit);
+            if (unit.BuilderComponent.IsValid() || unit.CollectorComponent.IsValid())
+                workerUnits.Add(unit);
+
+            RaiseOwnFactionEntityAdded(new EntityEventArgs<IFactionEntity>(unit));
         }
 
 		private void RemoveUnit (IUnit unit)
@@ -256,6 +279,10 @@ namespace RTSEngine.Faction
 			units.Remove (unit);
             if (unit.AttackComponents.Count > 0)
                 attackUnits.Remove(unit);
+            if (unit.BuilderComponent.IsValid() || unit.CollectorComponent.IsValid())
+                workerUnits.Remove(unit);
+
+            RaiseOwnFactionEntityRemoved(new EntityEventArgs<IFactionEntity>(unit));
         }
 
         private void AddBuilding (IBuilding building)
@@ -277,6 +304,8 @@ namespace RTSEngine.Faction
             RemoveFactionEntityAmount(building);
 
 			buildings.Remove (building);
+
+            RaiseOwnFactionEntityRemoved(new EntityEventArgs<IFactionEntity>(building));
         }
         #endregion
 
@@ -292,26 +321,30 @@ namespace RTSEngine.Faction
                 if (!factionEntityCategoryToAmount.ContainsKey(category))
                     factionEntityCategoryToAmount.Add(category, 0);
 
-                factionEntityCategoryToAmount[category]++;
+                factionEntityCategoryToAmount[category] += 1;
             }
 
             if (!factionEntityToAmount.ContainsKey(factionEntity.Code))
                 factionEntityToAmount.Add(factionEntity.Code, 0);
-            factionEntityToAmount[factionEntity.Code]++;
-
+            factionEntityToAmount[factionEntity.Code] += 1;
         }
 
         private void RemoveFactionEntityAmount(IFactionEntity factionEntity)
         {
             if (factionEntity.IsDummy
-                || !factionEntity.CanLaunchTask)
+                || (!factionEntity.CanLaunchTask && !factionEntity.Health.IsDead))
                 return;
 
-
+            // check whether the category/code exist in the dictionaries
+            // in case of a building that has not been constructed yet, it is not present in these two dictionaries
             foreach (string category in factionEntity.Category)
-                factionEntityCategoryToAmount[category]--;
+            {
+                if(factionEntityCategoryToAmount.ContainsKey(category))
+                    factionEntityCategoryToAmount[category] = factionEntityCategoryToAmount[category] - 1;
+            }
 
-            factionEntityToAmount[factionEntity.Code]--;
+            if(factionEntityToAmount.ContainsKey(factionEntity.Code))
+                factionEntityToAmount[factionEntity.Code] = factionEntityToAmount[factionEntity.Code] - 1;
         }
         #endregion
 

@@ -87,6 +87,9 @@ namespace RTSEngine.Attack
         // Responsible for assigning the actual damage to the target's health.
         protected AttackDamage damage { private set; get; }
 
+        private new Rigidbody rigidbody;
+        private new Collider collider;
+
         protected IAttackManager attackMgr { private set; get; }
         protected ITerrainManager terrainMgr { private set; get; } 
         #endregion
@@ -95,7 +98,11 @@ namespace RTSEngine.Attack
         protected sealed override void OnEffectObjectInit()
         {
             this.attackMgr = gameMgr.GetService<IAttackManager>();
-            this.terrainMgr = gameMgr.GetService<ITerrainManager>(); 
+            this.terrainMgr = gameMgr.GetService<ITerrainManager>();
+
+            rigidbody = GetComponent<Rigidbody>();
+            collider = GetComponent<Collider>();
+            collider.isTrigger = false;
         }
 
         protected sealed override void OnEffectObjectDestroy()
@@ -107,6 +114,8 @@ namespace RTSEngine.Attack
         public void OnSpawn(AttackObjectSpawnInput data)
         {
             base.OnSpawn(data);
+
+            collider.isTrigger = true;
 
             didDamage = false;
 
@@ -148,7 +157,9 @@ namespace RTSEngine.Attack
             }
         }
 
-        private Vector3 TargetPosition => Data.target.IsValid() ? Data.target.Selection.transform.position : Data.targetPosition;
+        private Vector3 TargetPosition => Data.target.IsValid() && Data.source.IsValid()
+            ? Data.target.Health.GetAttackTargetPosition(Data.source.Entity)
+            : Data.targetPosition;
 
         private void PrepareMovement()
         {
@@ -222,9 +233,9 @@ namespace RTSEngine.Attack
             // Following the target
             if (followTarget
                 && Data.target.IsValid()
-                && Vector3.Distance(transform.position, Data.target.Selection.transform.position) <= followTargetMaxDistance)
+                && Vector3.Distance(transform.position, TargetPosition) <= followTargetMaxDistance)
             {
-                mvtDirection = (Data.target.Selection.transform.position - transform.position).normalized;
+                mvtDirection = (TargetPosition - transform.position).normalized;
             }
 
             // Handle movement
@@ -244,6 +255,9 @@ namespace RTSEngine.Attack
         #region Updating State (Enabling/Disabling)
         protected override void OnDeactivated() 
         {
+            followTransform.ResetTarget();
+
+            collider.isTrigger = false;
             attackMgr.Despawn(this);
 
             if(Data.source.IsValid())
@@ -334,7 +348,7 @@ namespace RTSEngine.Attack
             // Child object of the target?
             if (targetObject.IsValid() && childOnDamage == true)
                 followTransform.SetTarget(
-                    target.IsValid() ? target.TransformInput : new ModelCacheAwareTransformInput(targetObject.transform),
+                    target.IsValid() ? target.transform : targetObject.transform,
                     offset: (transform.position - targetObject.transform.position),
                     enableCallback: true
                 );
@@ -342,6 +356,8 @@ namespace RTSEngine.Attack
             // Disable on damage? Handle it through the effect object.
             if (disableOnDamage == true)
                 Deactivate();
+
+            globalEvent.RaiseAttackObjectApplyDamageGlobal(this, new AttackObjectTargetEventArgs(targetObject, target, targetPosition));
         }
         #endregion
     }

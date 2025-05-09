@@ -175,7 +175,6 @@ namespace RTSEngine.EditorOnly
 
             EditorGUILayout.Space();
 
-
             lastLeftViewOptionID = leftViewOptionID;
             lastLeftViewOptionID = EditorGUILayout.Popup(leftViewOptionID, leftViewOptions);
             if(lastLeftViewOptionID != leftViewOptionID)

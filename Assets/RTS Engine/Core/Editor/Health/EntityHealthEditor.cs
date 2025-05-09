@@ -3,6 +3,7 @@
 using RTSEngine.Health;
 using RTSEngine.Utilities;
 using UnityEngine;
+using System;
 
 namespace RTSEngine.EditorOnly.Health
 {
@@ -65,7 +66,7 @@ namespace RTSEngine.EditorOnly.Health
         }
 
         private string[][] toolbars = new string[][] {
-            new string[] {"General", "Destruction", "Health States" }
+            new string[] {"General", "Destruction", "Health States", "Debug" }
         };
 
         public override void OnInspectorGUI()
@@ -85,6 +86,9 @@ namespace RTSEngine.EditorOnly.Health
                     break;
                 case "Health States":
                     OnHealthStatesInspectorGUI();
+                    break;
+                case "Debug":
+                    OnDebugInspectorGUI();
                     break;
             }
         }
@@ -136,5 +140,11 @@ namespace RTSEngine.EditorOnly.Health
             EditorGUILayout.PropertyField(SO.FindProperty("states"));
             EditorGUILayout.PropertyField(SO.FindProperty("destroyState"));
         }
+
+        protected virtual void OnDebugInspectorGUI()
+        {
+            EditorGUILayout.IntField("Current Health", comp.CurrHealth);
+        }
+
     }
 }

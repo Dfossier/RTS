@@ -1,4 +1,4 @@
-RTS Engine Module: Minimap - v2022.3.1
+RTS Engine Module: Minimap - v2024.0.0
 
 - Module feaures, requirements, installation and guide: https://docs.gamedevspice.com/rtsengine/manual/08_Modules/07_Minimap.html
 

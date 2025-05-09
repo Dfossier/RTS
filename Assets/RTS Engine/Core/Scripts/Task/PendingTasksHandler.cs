@@ -28,12 +28,16 @@ namespace RTSEngine.Task
         private int maxCount = 4;
 
         private List<PendingTask> queue = new List<PendingTask>();
-        public IEnumerable<PendingTask> Queue => queue;
+        public IReadOnlyList<PendingTask> Queue => queue.AsReadOnly();
         public int QueueCount => queue.Count;
+        public PendingTask First => QueueCount > 0 ? queue[0] : default;
 
         // Timer of the first task in the queue, when it is through, the first task in queue is completed and the next one is loaded.
         public TimeModifiedTimer QueueTimer { private set; get; }
         public float QueueTimerValue => QueueTimer.CurrValue;
+
+        // UI
+        private List<EntityComponentPendingTaskUIAttributes> taskUIAttributesCache;
 
         // Game services
         protected IGlobalEventPublisher globalEvent { private set; get; } 
@@ -56,6 +60,8 @@ namespace RTSEngine.Task
             this.playerMsgHandler = gameMgr.GetService<IPlayerMessageHandler>();
 
             this.Entity = entity;
+
+            taskUIAttributesCache = new List<EntityComponentPendingTaskUIAttributes>(maxCount);
 
             isLocked = false;
             QueueTimer = new TimeModifiedTimer();
@@ -199,10 +205,32 @@ namespace RTSEngine.Task
                 StartNext();
         }
 
+        public void CancelBySourceComponent(IPendingTaskEntityComponent sourceComponnet)
+        {
+            //in case the RemoveAll removes the first pending task in the queue, the queue must start the next one in case there is one.
+            PendingTask lastFirst = First;
+
+            queue.RemoveAll(pendingTask => 
+            {
+                if (pendingTask.sourceComponent == sourceComponnet)
+                {
+                    CancelInternal(pendingTask);
+                    return true;
+                }
+                return false; 
+            });
+
+            globalEvent.RaiseEntityComponentPendingTaskUIReloadRequestGlobal(Entity);
+
+            PendingTask newFirst = First;
+            if (!lastFirst.Equals(newFirst))
+                StartNext();
+        }
+
         public void CancelBySourceID(IPendingTaskEntityComponent sourceComponnet, int sourceID)
         {
             //in case the RemoveAll removes the first pending task in the queue, the queue must start the next one in case there is one.
-            PendingTask lastFirst = queue.FirstOrDefault();
+            PendingTask lastFirst = First;
 
             queue.RemoveAll(pendingTask => 
             {
@@ -216,7 +244,7 @@ namespace RTSEngine.Task
 
             globalEvent.RaiseEntityComponentPendingTaskUIReloadRequestGlobal(Entity);
 
-            PendingTask newFirst = queue.FirstOrDefault();
+            PendingTask newFirst = First;
             if (!lastFirst.Equals(newFirst))
                 StartNext();
         }
@@ -235,32 +263,39 @@ namespace RTSEngine.Task
         #endregion
 
         #region Handling UI
-        public bool OnPendingTaskUIRequest(out IEnumerable<EntityComponentPendingTaskUIAttributes> taskUIAttributes)
+        public bool OnPendingTaskUIRequest(out IReadOnlyList<EntityComponentPendingTaskUIAttributes> taskUIAttributes)
         {
-            taskUIAttributes = Enumerable.Empty<EntityComponentPendingTaskUIAttributes>();
+            taskUIAttributes = null;
 
             if (!Entity.CanLaunchTask
                 || !RTSHelper.IsLocalPlayerFaction(Entity))
                 return false;
 
-            int currIndex = -1;
-            int incrementIndex(ref int index) { index++; return index; }
+            taskUIAttributesCache.Clear();
+            for (int i = 0; i < Queue.Count; i++)
+            {
+                PendingTask pendingTask = Queue[i];
 
-            taskUIAttributes = Queue
-                .Where(pendingTask => pendingTask.sourceComponent.IsActive)
-                .Select(pendingTask => new EntityComponentPendingTaskUIAttributes
-                {
-                    data = pendingTask.sourceTaskInput.Data,
+                if (!pendingTask.sourceComponent.IsActive)
+                    continue;
 
-                    pendingData = new EntityComponentPendingTaskUIData
-                    {
-                        queueIndex = incrementIndex(ref currIndex),
-                        handler = this
-                    },
+                taskUIAttributesCache.Add(
+                   new EntityComponentPendingTaskUIAttributes
+                   {
+                       data = pendingTask.sourceTaskInput.Data,
 
-                    locked = pendingTask.sourceTaskInput.CanComplete() != ErrorMessage.none,
-                    lockedData = pendingTask.sourceTaskInput.MissingRequirementData,
-                });
+                       pendingData = new EntityComponentPendingTaskUIData
+                       {
+                           queueIndex = i,
+                           handler = this
+                       },
+
+                       locked = pendingTask.sourceTaskInput.CanComplete() != ErrorMessage.none,
+                       lockedData = pendingTask.sourceTaskInput.MissingRequirementData,
+                   });
+            }
+
+            taskUIAttributes = taskUIAttributesCache;
 
             return true;
         }

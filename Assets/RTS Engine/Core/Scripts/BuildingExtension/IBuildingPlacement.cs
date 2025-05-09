@@ -1,4 +1,5 @@
-﻿using RTSEngine.EntityComponent;
+﻿using RTSEngine.Audio;
+using RTSEngine.EntityComponent;
 using RTSEngine.Game;
 using RTSEngine.Terrain;
 using System.Collections.Generic;
@@ -14,10 +15,13 @@ namespace RTSEngine.BuildingExtension
         float BuildingPositionYOffset { get; }
         float TerrainMaxDistance { get; }
 
+        AudioClipFetcher PlaceBuildingAudio { get; }
+
         IReadOnlyList<TerrainAreaType> PlacableTerrainAreas { get; }
         LayerMask PlacableLayerMask { get; }
         IReadOnlyList<TerrainAreaType> IgnoreTerrainAreas { get; }
         IGridPlacementHandler GridHandler { get; }
+        IBuildingPlacementHandler LocalFactionHandler { get; }
 
         bool RegisterFactionPlacementHandler(int factionID, IBuildingPlacementHandler newHandler);
 

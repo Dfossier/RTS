@@ -107,15 +107,24 @@ namespace RTSEngine.NPC.ResourceExtension
             capacityResourceHandler.FactionResourceAmountUpdated += HandleFactionResourceAmountUpdated;
 
             // Add the faction entities that can influence the capacity resource managed by this component
-            var potentialFactionEntities = factionEntities
-                .Select(obj => obj.IsValid() ? obj.GetComponent<IFactionEntity>() : null)
-                .Where(factionEntity => factionEntity.IsValid() && factionEntity.InitResources.Any(resourceInput => resourceInput.type == TargetCapacityResource));
-
-            foreach (IFactionEntity nextEntity in potentialFactionEntities)
+            for (int i = 0; i < factionEntities.Count; i++)
             {
+                IFactionEntity nextEntity = factionEntities[i].IsValid() ? factionEntities[i].GetComponent<IFactionEntity>() : null;
                 if (!logger.RequireValid(nextEntity,
                     $"[{GetType().Name} - {factionMgr.FactionID}] 'Faction Entities' list has some unassigned or invalid elements.",
                     source: this))
+                    continue;
+
+                bool hasTargetCapacityResource = false;
+                foreach(ResourceInput resourceInput in nextEntity.InitResources)
+                {
+                    if (resourceInput.type == TargetCapacityResource)
+                    {
+                        hasTargetCapacityResource = true;
+                        break;
+                    }
+                }
+                if (!hasTargetCapacityResource)
                     continue;
 
                 if (nextEntity.IsUnit())
@@ -225,9 +234,12 @@ namespace RTSEngine.NPC.ResourceExtension
         #region Helper Methods
         private int GetResourceCapacityValue(IEnumerable<ResourceInput> resourceInputs)
         {
-            return resourceInputs
-                .Where(resourceInput => resourceInput.type == TargetCapacityResource)
-                .FirstOrDefault().value.capacity;
+            foreach(ResourceInput resourceInput in resourceInputs)
+            {
+                if (resourceInput.type == TargetCapacityResource)
+                    return resourceInput.value.capacity;
+            }
+            return 0;
         }
 
         public bool IsTargetCapacityReached => capacityResourceHandler.Capacity >= targetCapacityRange.RandomValue;
