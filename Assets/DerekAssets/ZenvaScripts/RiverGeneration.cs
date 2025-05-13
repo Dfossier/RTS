@@ -98,6 +98,8 @@ public class RiverGeneration : MonoBehaviour
 
     private void BuildRiver((Vector2, Vector2, Vector2, Vector2) riverOrigin, int verticesWidth, TerrainData terrainData)
     {
+        List<GameObject> riverObjs = new List<GameObject>();
+
         bool foundWater = false;
         int loopcount = 0;
         HashSet<Vector2> visitedCoordinates = new HashSet<Vector2>();
@@ -188,7 +190,10 @@ public class RiverGeneration : MonoBehaviour
                     // Instantiate a 3D plane at the river point
                     Vector3 planePosition = new Vector3((int)minNeighborTuple.Item1.x, (float)(heightMap.heightvalues[riverObjectCoord.coordinateXIndex, riverObjectCoord.coordinateZIndex] - 0.4), (int)minNeighborTuple.Item1.y);
                     GameObject riverPlane = Instantiate(gizmoPlane, planePosition, Quaternion.identity);
-                riverPlane.transform.parent = riverList.transform;
+                    riverPlane.transform.parent = riverList.transform;
+                    
+                    // add the river object instance to the list
+                    riverObjs.Add(riverPlane);
 
                     // Calculate the slope between the current point and the previous point
                     if (previousRiverPoint != Vector2.zero)
@@ -224,6 +229,8 @@ public class RiverGeneration : MonoBehaviour
                 break; // Break out of the loop if there are no neighbors
             }
         }
+
+        MergeMeshes(riverObjs, gameObject);
     }
     private float GetAverageHeight((Vector2, Vector2, Vector2, Vector2) currentCoordinate, TerrainData terrainData)
     {
@@ -267,5 +274,43 @@ public class RiverGeneration : MonoBehaviour
                tileCoord.tileZIndex >= 0 && tileCoord.tileZIndex <= (terrainData.levelDepthInTiles-1) &&
                tileCoord.coordinateXIndex >= 0 && tileCoord.coordinateXIndex <= (verticesWidth) &&
                tileCoord.coordinateZIndex >= 0 && tileCoord.coordinateZIndex <= (verticesWidth);
+    }
+
+    private void MergeMeshes(List<GameObject> rivers, GameObject root){
+
+        var meshFilters = new List<MeshFilter>();
+        foreach (var river in rivers)
+        {
+            meshFilters.Add(river.GetComponent<MeshFilter>());
+        }
+
+        CombineInstance[] combine = new CombineInstance[meshFilters.Count];
+
+        int i = 0;
+        while (i < meshFilters.Count)
+        {
+            combine[i].mesh = meshFilters[i].sharedMesh;
+            combine[i].transform = meshFilters[i].transform.localToWorldMatrix;
+            // meshFilters[i].gameObject.SetActive(false);
+            Destroy(meshFilters[i].gameObject);
+
+            i++;
+        }
+
+        GameObject obj = new GameObject("RiverRoot");
+        obj.transform.position = new Vector3(0, 0, 0);
+        obj.AddComponent<MeshFilter>();
+        obj.AddComponent<MeshRenderer>();
+
+        obj.GetComponent<MeshFilter>().mesh = new Mesh();
+        obj.GetComponent<MeshFilter>().mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+        obj.GetComponent<MeshFilter>().mesh.CombineMeshes(combine);
+
+        Material sharedMat = rivers[0].GetComponent<MeshRenderer>().sharedMaterial;
+        obj.GetComponent<MeshRenderer>().material = sharedMat;
+
+        obj.gameObject.SetActive(true);
+
+        obj.gameObject.transform.SetParent(riverList.transform, true);
     }
 }
