@@ -132,18 +132,18 @@ public class TerrainGenerator : MonoBehaviour
             //freeunitGen.GenerateUnits(this.levelWidthInTiles, this.tileWidthInVertices, this.terrainData);
             Destroy(seaPlane);
             terrainData.loadCount = 0;
-            StartCoroutine(InstantiateRTSEngineAfterDelay());
+            //StartCoroutine(InstantiateRTSEngineAfterDelay());
         }
     }
-    IEnumerator InstantiateRTSEngineAfterDelay()
-    {
-        // Wait for the NavMesh to be built or a specific delay
+    //IEnumerator InstantiateRTSEngineAfterDelay()
+    //{
+    //    // Wait for the NavMesh to be built or a specific delay
 
-        yield return new WaitForSeconds(20f); // Adjust the wait time as needed
+    //    yield return new WaitForSeconds(20f); // Adjust the wait time as needed
         
 
-        Instantiate(rtsEngine, sceneTransform);
-    }
+    //    Instantiate(rtsEngine, sceneTransform);
+    //}
     void UpdateVisibleChunks()
     {
         HashSet<Vector2> alreadyUpdatedChunkCoords = new HashSet<Vector2>();
