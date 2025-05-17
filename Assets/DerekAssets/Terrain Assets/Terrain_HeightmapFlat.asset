@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: eb49c415c73a941729b11c3076268f15, type: 3}
-  m_Name: New Height Map Settings
+  m_Name: Terrain_HeightmapFlat
   m_EditorClassIdentifier: 
   autoUpdate: 1
   noiseSettings:
@@ -117,37 +117,46 @@ MonoBehaviour:
       outWeight: 0.33333334
     - serializedVersion: 3
       time: 0.16104826
-      value: 0.18535073
-      inSlope: 0.23097038
-      outSlope: 0.23097038
-      tangentMode: 0
+      value: 0.15765852
+      inSlope: Infinity
+      outSlope: Infinity
+      tangentMode: 103
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.601174
-      value: 0.40705198
-      inSlope: 1.2874022
-      outSlope: 1.2874022
-      tangentMode: 0
+      time: 0.3653712
+      value: 0.202568
+      inSlope: Infinity
+      outSlope: Infinity
+      tangentMode: 103
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.7242992
-      value: 0.7055397
-      inSlope: 0.32413742
-      outSlope: 0.32413742
-      tangentMode: 0
+      time: 0.46097538
+      value: 0.27008057
+      inSlope: Infinity
+      outSlope: Infinity
+      tangentMode: 103
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.99850297
-      value: 0.9933111
-      inSlope: 1.012341
-      outSlope: 1.012341
-      tangentMode: 0
+      time: 0.6597163
+      value: 0.2956325
+      inSlope: Infinity
+      outSlope: Infinity
+      tangentMode: 103
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.79453504
+      value: 0.34315628
+      inSlope: Infinity
+      outSlope: Infinity
+      tangentMode: 103
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
