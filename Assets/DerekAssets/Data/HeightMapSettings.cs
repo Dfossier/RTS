@@ -16,7 +16,7 @@ public class HeightMapSettings : UpdatableData
 
     // [Range(2, 50)]
     private int smoothResolutionPerSegment = 50;
-	public int oldSmoothResolutionPerSegment = 0;
+	public int oldSmoothResolutionPerSegment = 0; // sometimes it will stay as 50 or any other value smoothResolutionPerSegment is, then you need to manually set it to a different value like 0
 
     public float minHeight => heightMultiplier * heightCurve.Evaluate(0);
     public float maxHeight => heightMultiplier * heightCurve.Evaluate(1);
@@ -28,14 +28,6 @@ public class HeightMapSettings : UpdatableData
     public float maxMoisture = 1;
 
 #if UNITY_EDITOR
-    private void OnEnable()
-    {
-        if (oldSmoothResolutionPerSegment != 0)
-        {
-            oldSmoothResolutionPerSegment = 0;
-        }
-    }
-
     protected override void OnValidate()
     {
         noiseSettings.ValidateValues();
