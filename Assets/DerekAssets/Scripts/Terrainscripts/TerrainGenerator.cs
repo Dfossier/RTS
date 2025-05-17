@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Collections;
 using Unity.AI.Navigation;
+using UnityEngine.SceneManagement;
 
 public class TerrainGenerator : MonoBehaviour
 {
+    public bool startGameAfterTerrainGen = true;
     [SerializeField]
     public GameObject rtsEngine;
     [SerializeField]
@@ -114,7 +116,7 @@ public class TerrainGenerator : MonoBehaviour
             UpdateVisibleChunks();
         }
 
-        if (chunkCount == levelDepthInTiles*levelWidthInTiles)
+        if (chunkCount == levelDepthInTiles * levelWidthInTiles)
         {
             //After chunks are created, build the river, then send resulting heightmaps to OnHeightMapReceived function inside each TerrainChunk
             //this is where the chunks are all finally loaded so we will now populate the biome mesh with rivers, resources, and starting positions
@@ -122,8 +124,9 @@ public class TerrainGenerator : MonoBehaviour
             UpdateVisibleChunks();
             treeGeneration.GenerateTrees(this.levelWidthInTiles, this.tileWidthInVertices, this.terrainData);
             chunkCount = 0;
-            Vector3 seaPlane2Position = new Vector3 (123, (float)1.4, 123);
-            Instantiate(seaPlane2, seaPlane2Position, Quaternion.identity);
+            Vector3 seaPlane2Position = new Vector3(123, (float)1.4, 123);
+            var seaPlaneInst = Instantiate(seaPlane2, seaPlane2Position, Quaternion.identity);
+            seaPlaneInst.transform.parent = transform.parent;
         }
 
         if (terrainData.loadCount == levelDepthInTiles*levelWidthInTiles)
@@ -143,6 +146,11 @@ public class TerrainGenerator : MonoBehaviour
         {
             navMeshSurface.BuildNavMesh();
             Debug.Log("navmesh baked!");
+            if (startGameAfterTerrainGen)
+            {
+                DontDestroyOnLoad(transform.parent);
+                SceneManager.LoadScene("GameScene");
+            }
         }
         else
         {
