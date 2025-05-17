@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Collections;
+using Unity.AI.Navigation;
 
 public class TerrainGenerator : MonoBehaviour
 {
@@ -61,14 +62,14 @@ public class TerrainGenerator : MonoBehaviour
     Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
     List<TerrainChunk> visibleTerrainChunks = new List<TerrainChunk>();
 
-    public NavMeshSurface navMeshSurface;
+    public Unity.AI.Navigation.NavMeshSurface navMeshSurface;
 
     private void Awake()
     {
         Static_HeightMapSettings = heightMapSettings;
         
         if(navMeshSurface == null)
-            navMeshSurface = gameObject.GetComponent<NavMeshSurface>();
+            navMeshSurface = gameObject.GetComponent<Unity.AI.Navigation.NavMeshSurface>();
     }
 
     void Start()
@@ -132,18 +133,27 @@ public class TerrainGenerator : MonoBehaviour
             //freeunitGen.GenerateUnits(this.levelWidthInTiles, this.tileWidthInVertices, this.terrainData);
             Destroy(seaPlane);
             terrainData.loadCount = 0;
-            //StartCoroutine(InstantiateRTSEngineAfterDelay());
+            StartCoroutine(InstantiateRTSEngineAfterDelay());
         }
     }
-    //IEnumerator InstantiateRTSEngineAfterDelay()
-    //{
-    //    // Wait for the NavMesh to be built or a specific delay
-
-    //    yield return new WaitForSeconds(20f); // Adjust the wait time as needed
+    IEnumerator InstantiateRTSEngineAfterDelay()
+    {
+        // Wait for the NavMesh to be built or a specific delay
+        if (navMeshSurface != null)
+        {
+            navMeshSurface.BuildNavMesh();
+            Debug.Log("navmesh baked!");
+        }
+        else
+        {
+            Debug.Log("navmesh surface is empty");
+        }
+        
+        yield return new WaitForSeconds(20f); // Adjust the wait time as needed
         
 
     //    Instantiate(rtsEngine, sceneTransform);
-    //}
+    }
     void UpdateVisibleChunks()
     {
         HashSet<Vector2> alreadyUpdatedChunkCoords = new HashSet<Vector2>();
