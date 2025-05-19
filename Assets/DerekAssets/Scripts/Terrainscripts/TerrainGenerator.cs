@@ -146,9 +146,9 @@ public class TerrainGenerator : MonoBehaviour
         {
             navMeshSurface.BuildNavMesh();
             Debug.Log("navmesh baked!");
+            // GameObject.Find("sceneLoader").GetComponent<DerekTerrainManager>().InitializeDerekTerrain();
             if (startGameAfterTerrainGen)
             {
-                DontDestroyOnLoad(transform.parent);
                 SceneManager.LoadScene("GameScene");
             }
         }

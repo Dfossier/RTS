@@ -2672,7 +2672,7 @@ Transform:
   m_GameObject: {fileID: 200662520}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 44.297398, y: 0.1, z: 45.63347}
+  m_LocalPosition: {x: 44.297398, y: 1.8, z: 76}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -14780,7 +14780,7 @@ GameObject:
   - component: {fileID: 1739175787}
   - component: {fileID: 1739175786}
   m_Layer: 0
-  m_Name: DerekTerrainManager
+  m_Name: sceneLoader
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14798,6 +14798,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b011ee7f00a5fa54583e1bc23991b113, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rtsReEntities: {fileID: 2090506247}
+  GameManager: {fileID: 2016554392}
 --- !u!4 &1739175787
 Transform:
   m_ObjectHideFlags: 0
@@ -16791,7 +16793,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2016554393
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17447,12 +17449,14 @@ GameObject:
   m_Component:
   - component: {fileID: 2075481178}
   - component: {fileID: 2075481185}
+  - component: {fileID: 2075481186}
   - component: {fileID: 2075481184}
   - component: {fileID: 2075481183}
   - component: {fileID: 2075481182}
   - component: {fileID: 2075481181}
   - component: {fileID: 2075481180}
   - component: {fileID: 2075481179}
+  - component: {fileID: 2075481187}
   m_Layer: 0
   m_Name: 'new_unit '
   m_TagString: Untagged
@@ -17469,7 +17473,7 @@ Transform:
   m_GameObject: {fileID: 2075481177}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 40.22, y: 0.1, z: 44.42}
+  m_LocalPosition: {x: 40.22, y: 1.7999998, z: 74.78653}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -17668,14 +17672,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabID:
     x: 0
-    y: 1
+    y: 2
   maxHealth: 100
   initialHealth: 100
   canIncrease: 1
   canDecrease: 1
   hoverHealthBarData:
     enabled: 1
-    offset: {x: 0, y: -1, z: 0}
+    offset: {x: 0, y: 4, z: 0}
     size: {x: 1, y: 1, z: 1}
     parent: {fileID: 0}
   hoverHealthBarY: 4
@@ -17749,6 +17753,163 @@ MonoBehaviour:
     transparency: 0
     darkness: 0
   spawnLookAt: {fileID: 0}
+--- !u!114 &2075481186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2075481177}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b611935c044ac3479865dddaa61c62b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: new_unit_code
+  isActive: 1
+  tabID:
+    x: 1
+    y: 1
+  priority: 0
+  requireIdleEntity: 1
+  targetFinderData:
+    enabled: 1
+    reloadTime: 5
+    range: 10
+    idleOnly: 1
+    typePicker:
+      type: 0
+      options:
+        codes: []
+        categories: []
+      targetUnits: 1
+      targetBuildings: 1
+      targetResources: 1
+    center: {fileID: 0}
+  setTargetTaskUI: {fileID: 0}
+  orderAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  showTargetGizmo: 1
+  progressEnabledAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  progressOverrideController:
+    fetchType: 0
+    items: []
+  progressDuration: 1
+  progressMaxDistance: 1
+  inProgressObject: {fileID: 0}
+  sourceEffect:
+    input: {fileID: 0}
+  targetEffect:
+    input: {fileID: 0}
+  showProgressGizmo: 1
+  collectableResources:
+  - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
+    orderAudio:
+      fetchType: 0
+      items: []
+      cooldown:
+        enabled: 0
+        defaultValueRange:
+          _min: 0
+          _max: 0
+    amount: 10
+    animatorOverrideController:
+      fetchType: 0
+      items: []
+    enableObject: {fileID: 0}
+    enableAudio:
+      fetchType: 0
+      items: []
+      cooldown:
+        enabled: 0
+        defaultValueRange:
+          _min: 0
+          _max: 0
+    sourceEffect:
+      input: {fileID: 0}
+    targetEffect:
+      input: {fileID: 0}
+    progressAudio:
+      fetchType: 0
+      items: []
+      cooldown:
+        enabled: 0
+        defaultValueRange:
+          _min: 0
+          _max: 0
+    loopProgressAudio: 0
+  onTargetResourceFullSearch: 1
+  onTargetResourceDepletedSearch: 1
+--- !u!114 &2075481187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2075481177}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 160a6844ec79b1a46bd1ada800ddf31c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: new_unit_code_DropOffSource_208
+  isActive: 1
+  tabID:
+    x: 0
+    y: 0
+  priority: 0
+  requireIdleEntity: 1
+  targetFinderData:
+    enabled: 0
+    reloadTime: 5
+    range: 10
+    idleOnly: 1
+    typePicker:
+      type: 0
+      options:
+        codes: []
+        categories: []
+      targetUnits: 1
+      targetBuildings: 1
+      targetResources: 1
+    center: {fileID: 0}
+  setTargetTaskUI: {fileID: 0}
+  orderAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  showTargetGizmo: 1
+  targetPicker:
+    type: 0
+    options:
+      codes: []
+      categories: []
+    targetUnits: 1
+    targetBuildings: 1
+  maxDropOffDistanceEnabled: 0
+  maxDropOffDistance: 10
+  dropOffResources: []
+  totalMaxCapacity: 10
+  dropOffOnTargetAvailable: 1
+  showDropOffPosition: 1
+  editorFoldout: 0
 --- !u!1 &2090506247
 GameObject:
   m_ObjectHideFlags: 0

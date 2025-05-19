@@ -18,6 +18,8 @@ namespace RTSEngine.Game
 {
     public class GameManager : MonoBehaviour, IGameManager
     {
+        // public bool initiateSceneLoader = false;
+
         #region Attributes
         [SerializeField, Tooltip("Scene to load when leaving this map. This is overwritten if the map is loaded through a lobby.")]
         private string prevScene = "MainMenu";
@@ -144,6 +146,7 @@ namespace RTSEngine.Game
         #region Initializing/Terminating
         private void Awake()
         {
+            // if (initiateSceneLoader) GameObject.Find("sceneLoader").GetComponent<DerekTerrainManager>().InitializeDerekTerrain();
             IEnumerable<IGameBuilder> GameBuilders = DontDestroyOnLoadManager
                 .AllDdolObjects
                 .Select(obj => obj.GetComponent<IGameBuilder>());

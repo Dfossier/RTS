@@ -334,6 +334,8 @@ public class RiverGeneration : MonoBehaviour
         // Add a MeshCollider if needed
         riverObject.AddComponent<MeshCollider>();
 
+        riverObject.layer = LayerMask.NameToLayer("Obstacle");
+
         return riverObject;
     }
 
