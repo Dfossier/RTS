@@ -1,23 +1,29 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 
 public class DerekTerrainManager : MonoBehaviour
 {
     public GameObject rtsReEntities;
     public GameObject GameManager;
-
     private float timer;
 
     public void Start()
     {
         InitializeDerekTerrain();
-        GameManager.SetActive(true);
     }
 
     // run this on rts engine initialization before anything else to set the values, this is only related to the terrain stuff like resources, trees etc and not rts pre configs from the lobby, there will be a different manager for that
     public void InitializeDerekTerrain()
+    {
+        ReParentingObjects();
+        SetPlayerFactionPosition();
+        GameManager.SetActive(true);
+    }
+
+    private void ReParentingObjects()
     {
         // change parent of all resources from derek's ResourceEntities to RTS ResourceEntities
         Transform mapgen = GameObject.Find("Map Generator").transform;
@@ -36,5 +42,40 @@ public class DerekTerrainManager : MonoBehaviour
         {
             child.SetParent(rtsReEntities.transform, true);
         }
+    }
+
+    private void SetPlayerFactionPosition()
+    {
+        Transform playerSpawnpoint = GameObject.Find("debugRandomFactionSpawnpoint").transform;
+        GameObject playerFaction = GameObject.Find("playerFaction");
+
+        // Vector3 localPosition = playerFaction.transform.parent.InverseTransformPoint(playerSpawnpoint.position);
+
+        playerFaction.transform.position = RandomNavmeshLocation(10f, playerSpawnpoint.position);
+
+        // Loop through each child
+        foreach (Transform child in playerFaction.transform)
+        {
+            Vector3 randomNearbyPosition = RandomNavmeshLocation(5f, playerFaction.transform.position);
+            child.position = randomNearbyPosition;
+        }
+
+        // playerFaction.transform.position = playerSpawnpoint.position;
+
+        Debug.Log(playerSpawnpoint);
+        Debug.Log(playerFaction.transform.position);
+    }
+
+    public Vector3 RandomNavmeshLocation(float radius, Vector3 center)
+    {
+        Vector3 randomDirection = Random.insideUnitSphere * radius;
+        randomDirection += center;
+        NavMeshHit hit;
+        Vector3 finalPosition = Vector3.zero;
+        if (NavMesh.SamplePosition(randomDirection, out hit, radius, NavMesh.AllAreas))
+        {
+            finalPosition = hit.position;
+        }
+        return finalPosition;
     }
 }

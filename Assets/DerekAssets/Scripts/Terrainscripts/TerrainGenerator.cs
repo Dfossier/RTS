@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Collections;
 using Unity.AI.Navigation;
 using UnityEngine.SceneManagement;
+using RTSEngine.Utilities;
 
 public class TerrainGenerator : MonoBehaviour
 {
@@ -146,6 +147,8 @@ public class TerrainGenerator : MonoBehaviour
         {
             navMeshSurface.BuildNavMesh();
             Debug.Log("navmesh baked!");
+
+            GameObject.Find("debugRandomFactionSpawnpoint").GetComponent<RandomFactionSpawnpoint>().DefineFactionsStartingpoint();
             // GameObject.Find("sceneLoader").GetComponent<DerekTerrainManager>().InitializeDerekTerrain();
             if (startGameAfterTerrainGen)
             {
