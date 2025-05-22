@@ -1,5 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using RTSEngine.Game;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
@@ -9,6 +12,11 @@ public class DerekTerrainManager : MonoBehaviour
     public GameObject rtsReEntities;
     public GameObject GameManager;
     private float timer;
+
+    // public GameObject npcFactionPrefab;
+    // public GameObject[] npcFactionSpawned;
+
+    public GameObject[] npcFactionsList;
 
     public void Start()
     {
@@ -20,6 +28,7 @@ public class DerekTerrainManager : MonoBehaviour
     {
         ReParentingObjects();
         SetPlayerFactionPosition();
+        LoadNPCsAndSetPosition();
         GameManager.SetActive(true);
     }
 
@@ -64,6 +73,35 @@ public class DerekTerrainManager : MonoBehaviour
 
         Debug.Log(playerSpawnpoint);
         Debug.Log(playerFaction.transform.position);
+    }
+
+    private void LoadNPCsAndSetPosition()
+    {
+        RandomFactionSpawnpoint factionsController = GameObject.Find("debugRandomFactionSpawnpoint").GetComponent<RandomFactionSpawnpoint>();
+        // if (factionsController.NPC_Count <= 0) return;
+        /*
+        for (int i = 0; i < factionsController.NPC_Count; i++)
+        {
+            var new_npcFaction = Instantiate(npcFactionPrefab);
+            new_npcFaction.transform.position = factionsController.NPCsSpawnpoint[i];
+            new_npcFaction.transform.SetParent(GameObject.Find("FactionEntities").transform, true);
+            npcFactionSpawned[i] = new_npcFaction;
+        }
+        */
+
+        // set stuff on RTS Engine GameManager
+        // GameManager.GetComponent<GameManager>().FactionSlots[0].Enabled = false;
+
+        for (int i = 0; i < npcFactionsList.Count(); i++)
+        {
+            npcFactionsList[i].transform.position = RandomNavmeshLocation(10f, factionsController.NPCsSpawnpoint[i]);
+
+            foreach (Transform child in npcFactionsList[i].transform)
+            {
+                Vector3 randomNearbyPosition = RandomNavmeshLocation(5f, npcFactionsList[i].transform.position);
+                child.position = randomNearbyPosition;
+            }
+        }
     }
 
     public Vector3 RandomNavmeshLocation(float radius, Vector3 center)

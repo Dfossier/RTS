@@ -379,13 +379,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dcb618a15fd0bec43a0b4f6d0c67d987, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  radius: 160
+  radius: 140
   time: 15
   chunkMiddle:
   - {fileID: 1406103488}
   - {fileID: 402780493}
   - {fileID: 610690589}
   - {fileID: 2030747404}
+  NPC_Count: 1
+  NPCsSpawnpoint: []
 --- !u!1 &402780493
 GameObject:
   m_ObjectHideFlags: 0
@@ -1712,6 +1714,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rtsReEntities: {fileID: 1232127192}
   GameManager: {fileID: 0}
+  npcFactionsList: []
 --- !u!4 &2097610816
 Transform:
   m_ObjectHideFlags: 0
