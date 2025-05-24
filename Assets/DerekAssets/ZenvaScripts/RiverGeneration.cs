@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class RiverGeneration : MonoBehaviour
 {
@@ -236,6 +237,7 @@ public class RiverGeneration : MonoBehaviour
         GameObject riverObject = new GameObject("River");
         MeshFilter meshFilter = riverObject.AddComponent<MeshFilter>();
         MeshRenderer meshRenderer = riverObject.AddComponent<MeshRenderer>();
+        riverObject.AddComponent<NavMeshObstacle>();
 
         if (riverMaterial != null)
             meshRenderer.material = riverMaterial;

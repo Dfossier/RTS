@@ -1251,12 +1251,27 @@ MonoBehaviour:
     allowedUIFactionTypes:
       type: 0
       options: []
-  - type: {fileID: 11400000, guid: bc712db0d42339240b16b338029bd113, type: 2}
+  - type: {fileID: 11400000, guid: 8dbe5bab169e794498ffa79feb9eff89, type: 2}
     displayCollectorCount: 1
     allowedUIFactionTypes:
       type: 0
       options: []
   - type: {fileID: 11400000, guid: 1952143edfd13fc4b81d12933f5a7d87, type: 2}
+    displayCollectorCount: 1
+    allowedUIFactionTypes:
+      type: 0
+      options: []
+  - type: {fileID: 11400000, guid: e279bbd3b414b6b4bb8d64afd1344c38, type: 2}
+    displayCollectorCount: 1
+    allowedUIFactionTypes:
+      type: 0
+      options: []
+  - type: {fileID: 11400000, guid: 6a155955f3fb44a4c9619755a7e0c78c, type: 2}
+    displayCollectorCount: 1
+    allowedUIFactionTypes:
+      type: 0
+      options: []
+  - type: {fileID: 11400000, guid: 69fe26083e4b11f458aab558250d44c6, type: 2}
     displayCollectorCount: 1
     allowedUIFactionTypes:
       type: 0
@@ -4676,8 +4691,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 198.09998, y: -27.60992}
-  m_SizeDelta: {x: 390.5075, y: 49}
+  m_AnchoredPosition: {x: 302, y: -27.60992}
+  m_SizeDelta: {x: 600, y: 49}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &563302702
 MonoBehaviour:
@@ -9471,10 +9486,14 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 529981de806b0754da40426ffd9ebabb, type: 2}
   - {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
   - {fileID: 11400000, guid: 1952143edfd13fc4b81d12933f5a7d87, type: 2}
-  - {fileID: 11400000, guid: bc712db0d42339240b16b338029bd113, type: 2}
   - {fileID: 11400000, guid: b16294d219bf6db449279be57eae3702, type: 2}
+  - {fileID: 11400000, guid: bc712db0d42339240b16b338029bd113, type: 2}
   - {fileID: 11400000, guid: 289f2d92dd5497e4e99f9d0a656207e0, type: 2}
   - {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
+  - {fileID: 11400000, guid: 8dbe5bab169e794498ffa79feb9eff89, type: 2}
+  - {fileID: 11400000, guid: e279bbd3b414b6b4bb8d64afd1344c38, type: 2}
+  - {fileID: 11400000, guid: 6a155955f3fb44a4c9619755a7e0c78c, type: 2}
+  - {fileID: 11400000, guid: 69fe26083e4b11f458aab558250d44c6, type: 2}
 --- !u!1 &1211138941
 GameObject:
   m_ObjectHideFlags: 0

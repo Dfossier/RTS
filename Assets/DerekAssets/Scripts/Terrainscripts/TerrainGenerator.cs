@@ -32,6 +32,18 @@ public class TerrainGenerator : MonoBehaviour
     private RiverGeneration riverGeneration;
 
     [SerializeField]
+    private StoneGeneration stoneGeneration;
+
+    [SerializeField]
+    private StoneGeneration copperoreGeneration;
+
+    [SerializeField]
+    private StoneGeneration tinoreGeneration;
+
+    [SerializeField]
+    private StoneGeneration wheatGeneration;
+
+    [SerializeField]
     private FreeUnitGeneration freeunitGen;
 
     [SerializeField]
@@ -149,6 +161,12 @@ public class TerrainGenerator : MonoBehaviour
             Debug.Log("navmesh baked!");
 
             GameObject.Find("debugRandomFactionSpawnpoint").GetComponent<RandomFactionSpawnpoint>().DefineFactionsStartingpoint();
+
+            // generate resources that depends on the navmesh baked
+            stoneGeneration.GenerateStones();
+            copperoreGeneration.GenerateStones();
+            tinoreGeneration.GenerateStones();
+            wheatGeneration.GenerateStones();
             // GameObject.Find("sceneLoader").GetComponent<DerekTerrainManager>().InitializeDerekTerrain();
             if (startGameAfterTerrainGen)
             {
