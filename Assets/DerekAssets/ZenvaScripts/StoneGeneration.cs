@@ -30,7 +30,12 @@ public class StoneGeneration : MonoBehaviour
                 GameObject prefab = stonePrefabs[Random.Range(0, stonePrefabs.Length)];
                 GameObject stone = Instantiate(prefab, spawnPos, Quaternion.identity);
 
-                stone.transform.SetParent(this.transform);
+                stone.transform.SetParent(this.transform, true);
+
+                float randomScale = Random.Range(0.2f, 1f);
+                if (prefab.name != "wheat") stone.transform.localScale = new Vector3(randomScale, randomScale, randomScale); // the if is because I dont want the wheat to have random scale, wheat shares the same script and is generated as stone because whatever lol
+
+                stone.transform.Rotate(0, Random.Range(0f, 360f), 0f, Space.Self);
 
                 if (stoneParent != null)
                     stone.transform.parent = stoneParent;

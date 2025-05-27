@@ -144,6 +144,12 @@ public class TreeGeneration : MonoBehaviour
 
                         //use this to make object bigger or smaller
                         //tree.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
+
+                        float randomScale = Random.Range(0.2f, 1f);
+                        tree.transform.localScale = new Vector3(randomScale, randomScale, randomScale); // the if is because I dont want the wheat to have random scale, wheat shares the same script and is generated as stone because whatever lol
+
+                        tree.transform.Rotate(0, Random.Range(0f, 360f), 0f, Space.Self);
+
                         treeCount++;
                     }
                 }
