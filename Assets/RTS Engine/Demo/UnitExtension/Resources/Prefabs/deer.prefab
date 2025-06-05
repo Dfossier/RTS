@@ -18,7 +18,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6033127800688158366
 Transform:
   m_ObjectHideFlags: 0
@@ -677,7 +677,7 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 1
-  m_BaseOffset: 0
+  m_BaseOffset: 0.03
   m_WalkableMask: 7
   m_ObstacleAvoidanceType: 0
 --- !u!114 &6733183489487592841
@@ -709,6 +709,7 @@ MonoBehaviour:
   agent: {fileID: 7686239489646723646}
   wanderRadius: 10
   waitTime: 3
+  animalmodel: {fileID: 706310391402413944}
 --- !u!1 &7501175084258782510
 GameObject:
   m_ObjectHideFlags: 0

@@ -14,6 +14,8 @@ public class AnimalsMovementation : MonoBehaviour
     private float timer = 0f;
     private bool isWaiting = false;
 
+    public GameObject animalmodel;
+
     void Start()
     {
         SetNewDestination();
@@ -67,8 +69,12 @@ public class AnimalsMovementation : MonoBehaviour
     void FaceTarget()
     {
         Vector3 direction = agent.velocity;
-        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, direction.y, 0));
-        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5);
+        direction.y = 0; // Ignore vertical component for rotation
+        if (direction.sqrMagnitude > 0.01f) // Only rotate if there's significant movement
+        {
+            Quaternion lookRotation = Quaternion.LookRotation(direction);
+            animalmodel.transform.rotation = Quaternion.Slerp(animalmodel.transform.rotation, lookRotation, Time.deltaTime * 5f);
+        }
     }
 
 }
