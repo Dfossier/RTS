@@ -3999,7 +3999,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac254ea55db643540a47af88e02dd273, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fetchSpawnablePrefabsType: 2
+  fetchSpawnablePrefabsType: 0
   manualSpawnablePrefabs: []
   spawnablePrefabsTargetPicker:
     type: 2
@@ -5643,6 +5643,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 644528749}
+  - component: {fileID: 644528750}
   m_Layer: 0
   m_Name: FreeFactionEntities
   m_TagString: Untagged
@@ -5668,6 +5669,28 @@ Transform:
   - {fileID: 1323294147}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &644528750
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 644528748}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc297fc0a03ea0d41a40a34cb99d2c0b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cowPrefab: {fileID: 4519162506602980405, guid: 6566f92b25701004bb495848ceb608e1,
+    type: 3}
+  deerPrefab: {fileID: 7501055689196940650, guid: 2295f3a8d132934449d01664d59c31b0,
+    type: 3}
+  wolfPrefab: {fileID: 8474547388112628522, guid: 515ef1ab727881e4c8d5a901007f4589,
+    type: 3}
+  initialSpawnCount: 10
+  maxAnimalCount: 20
+  spawnInterval: 12
+  rtsController: {fileID: 2016554392}
 --- !u!1001 &651018859
 PrefabInstance:
   m_ObjectHideFlags: 0
