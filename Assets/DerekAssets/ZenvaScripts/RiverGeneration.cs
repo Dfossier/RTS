@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;
 
 public class RiverGeneration : MonoBehaviour
 {
@@ -27,125 +26,171 @@ public class RiverGeneration : MonoBehaviour
     private float waterHeight = 2f;
 
     [SerializeField]
-    private float riverWidth = 20f; // Width of the river mesh
+    private float riverWidth = 20f;
 
     [SerializeField]
-    private float riverYOffset = 10f; // Very small offset from terrain surface
+    private float riverYOffset = 10f;
 
     [SerializeField]
-    private Material riverMaterial; // Material for river mesh
+    private Material riverMaterial;
+
+    [SerializeField]
+    private bool enableDebugLogging = false;
+
+    private const int RIVER_LOD = 0;
+    private const int RIVER_SKIP_INCREMENT = 1;
 
     private float averageHeight;
-
     (Vector2, Vector2, Vector2, Vector2) updatedTuple = (Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero);
     private Vector2 skipDirection = new Vector2(0, 0);
-    private float skipDirectionx = 0;
-    private float skipDirectiony = 0;
 
     private HeightMap[,] riverchunksData;
-
     private Vector2 previousRiverPoint = Vector2.zero;
     int levelWidth;
     int levelDepth;
+    int verticesPerLine;
 
     public void GenerateRivers(int tilesWidth, int verticesWidth, TerrainData terrainData)
     {
+        if (enableDebugLogging)
+        {
+            Debug.Log($"[RIVER] Starting generation: {numberOfRivers} rivers on {tilesWidth}x{tilesWidth} tiles, {verticesWidth} vertices per tile");
+            Debug.Log($"[RIVER] Mesh boundaries: vertices 1 to {verticesWidth - 2} are in mesh, 0 and {verticesWidth - 1} are borders only");
+        }
+
         this.levelDepth = tilesWidth;
-        this.levelWidth = verticesWidth;
+        this.levelWidth = tilesWidth;
+        this.verticesPerLine = verticesWidth;
+        riverchunksData = terrainData.chunksData;
+
         for (int riverIndex = 0; riverIndex < numberOfRivers; riverIndex++)
         {
-            // populate the data to be grabbed by other methods
-            riverchunksData = terrainData.chunksData;
-            // choose a origin for the river
+            if (enableDebugLogging)
+                Debug.Log($"[RIVER] === Generating river {riverIndex + 1}/{numberOfRivers} ===");
+
             (Vector2, Vector2, Vector2, Vector2) riverOrigin = ChooseRiverOrigin(tilesWidth, verticesWidth, terrainData);
-            // build the river starting from the origin
             averageHeight = GetAverageHeight(riverOrigin, terrainData);
 
-            // Build river path and directly create the mesh from visited coordinates
+            if (enableDebugLogging)
+                Debug.Log($"[RIVER] River {riverIndex + 1} origin: center({GetQuadCenter(riverOrigin)}) height: {averageHeight:F2}");
+
             BuildRiverPathAndCreateMesh(riverOrigin, verticesWidth, terrainData);
         }
+
         riverList.transform.Translate(new Vector3(0.0f, 0.2f, 0.0f));
+
+        if (enableDebugLogging)
+            Debug.Log("[RIVER] All rivers generated successfully");
+    }
+
+    private Vector2 GetQuadCenter((Vector2, Vector2, Vector2, Vector2) quad)
+    {
+        return new Vector2(
+            (quad.Item1.x + quad.Item2.x + quad.Item3.x + quad.Item4.x) / 4,
+            (quad.Item1.y + quad.Item2.y + quad.Item3.y + quad.Item4.y) / 4
+        );
     }
 
     private (Vector2, Vector2, Vector2, Vector2) ChooseRiverOrigin(int tilesWidth, int verticesWidth, TerrainData terrainData)
     {
+        int totalLevelWidth = tilesWidth * verticesWidth;
+        int totalLevelDepth = tilesWidth * verticesWidth;
+        int attempts = 0;
+        const int maxAttempts = 1000;
         bool found = false;
-        int randomZIndex = 150;
-        int randomXIndex = 50;
-        TileCoordinate tileCoordinate = terrainData.ConvertToTileCoordinate(randomXIndex, randomZIndex);
-        // iterates until finding a good river origin
-        while (!found)
+        int randomXIndex = 50, randomZIndex = 150;
+
+        while (!found && attempts < maxAttempts)
         {
-            // pick a random coordinate inside the level
-            randomXIndex = Random.Range(0, tilesWidth * verticesWidth - 8);
-            randomZIndex = Random.Range(0, tilesWidth * verticesWidth - 8);
+            attempts++;
 
-            // convert from Level Coordinate System to Tile Coordinate System and retrieve the corresponding TileData
-            tileCoordinate = terrainData.ConvertToTileCoordinate(randomXIndex, randomZIndex);
+            // REMOVED RESTRICTION: Allow rivers to start anywhere, including tile boundaries
+            randomXIndex = Random.Range(5, totalLevelWidth - 5);
+            randomZIndex = Random.Range(5, totalLevelDepth - 5);
+
+            TileCoordinate tileCoordinate = terrainData.ConvertToTileCoordinate(randomXIndex, randomZIndex);
+
+            if (!IsValidTileCoordinate(tileCoordinate, terrainData))
+                continue;
+
             HeightMap riverheightMap = terrainData.chunksData[tileCoordinate.tileXIndex, tileCoordinate.tileZIndex];
-
-            // if the height value of this coordinate is higher than the threshold, choose it as the river origin
             float heightValue = riverheightMap.heightvalues[tileCoordinate.coordinateXIndex, tileCoordinate.coordinateZIndex];
+
             if (heightValue >= this.heightThreshold)
             {
                 found = true;
+                if (enableDebugLogging)
+                    Debug.Log($"[RIVER] Found origin after {attempts} attempts at world({randomXIndex}, {randomZIndex}) height: {heightValue:F2}");
             }
+        }
+
+        if (!found && enableDebugLogging)
+        {
+            Debug.LogWarning($"[RIVER] Could not find suitable origin after {maxAttempts} attempts. Using fallback.");
         }
 
         Vector2 firstOrigin = new Vector2(randomXIndex, randomZIndex);
         Vector2 secondOrigin = new Vector2(randomXIndex + 1, randomZIndex);
         Vector2 thirdOrigin = new Vector2(randomXIndex, randomZIndex + 1);
         Vector2 fourthOrigin = new Vector2(randomXIndex + 1, randomZIndex + 1);
+
         return (firstOrigin, secondOrigin, thirdOrigin, fourthOrigin);
     }
 
     private void BuildRiverPathAndCreateMesh((Vector2, Vector2, Vector2, Vector2) riverOrigin, int verticesWidth, TerrainData terrainData)
     {
-        List<GameObject> riverObjs = new List<GameObject>();
-
         bool foundWater = false;
         int loopcount = 0;
         HashSet<Vector2> visitedCoordinates = new HashSet<Vector2>();
-        List<Vector2> riverPathCenters = new List<Vector2>(); // Store center points for the mesh
+        List<Vector2> riverPathCenters = new List<Vector2>();
 
         List<Vector2> currentRiverList = new List<Vector2> { riverOrigin.Item1, riverOrigin.Item2, riverOrigin.Item3, riverOrigin.Item4 };
         visitedCoordinates.UnionWith(currentRiverList);
 
-        // Calculate and store the center point of the first tuple
-        Vector2 centerPoint = new Vector2(
-            (riverOrigin.Item1.x + riverOrigin.Item2.x + riverOrigin.Item3.x + riverOrigin.Item4.x) / 4,
-            (riverOrigin.Item1.y + riverOrigin.Item2.y + riverOrigin.Item3.y + riverOrigin.Item4.y) / 4
-        );
+        Vector2 centerPoint = GetQuadCenter(riverOrigin);
         riverPathCenters.Add(centerPoint);
 
         (Vector2 firstOrigin, Vector2 secondOrigin, Vector2 thirdOrigin, Vector2 fourthOrigin) currentCoordinate = riverOrigin;
 
-        while (!foundWater)
+        while (!foundWater && loopcount < looplimit)
         {
-            // Pick neighbor coordinates, if they exist, only from the grids above, below, to the left, and to the right of the currentRiverList grid
             List<(Vector2, Vector2, Vector2, Vector2)> neighboringTuples = new List<(Vector2, Vector2, Vector2, Vector2)>();
-            (Vector2, Vector2, Vector2, Vector2) aboveTuple = (currentCoordinate.thirdOrigin, currentCoordinate.fourthOrigin, currentCoordinate.thirdOrigin + Vector2.up, currentCoordinate.fourthOrigin + Vector2.up);
-            (Vector2, Vector2, Vector2, Vector2) belowTuple = (currentCoordinate.firstOrigin + Vector2.down, currentCoordinate.secondOrigin + Vector2.down, currentCoordinate.firstOrigin, currentCoordinate.secondOrigin);
-            (Vector2, Vector2, Vector2, Vector2) leftTuple = (currentCoordinate.firstOrigin + Vector2.left, currentCoordinate.firstOrigin, currentCoordinate.thirdOrigin + Vector2.left, currentCoordinate.thirdOrigin);
-            (Vector2, Vector2, Vector2, Vector2) rightTuple = (currentCoordinate.secondOrigin, currentCoordinate.secondOrigin + Vector2.right, currentCoordinate.fourthOrigin, currentCoordinate.fourthOrigin + Vector2.right);
 
-            if (!visitedCoordinates.Contains(aboveTuple.Item3) && !visitedCoordinates.Contains(aboveTuple.Item4) && IsValidCoordinate(aboveTuple.Item3, verticesWidth, terrainData) && IsValidCoordinate(aboveTuple.Item4, verticesWidth, terrainData))
-            {
-                neighboringTuples.Add(aboveTuple);
-            }
-            if (!visitedCoordinates.Contains(leftTuple.Item1) && !visitedCoordinates.Contains(leftTuple.Item3) && IsValidCoordinate(leftTuple.Item1, verticesWidth, terrainData) && IsValidCoordinate(leftTuple.Item3, verticesWidth, terrainData))
-            {
-                neighboringTuples.Add(leftTuple);
-            }
-            if (!visitedCoordinates.Contains(rightTuple.Item2) && !visitedCoordinates.Contains(rightTuple.Item4) && IsValidCoordinate(rightTuple.Item2, verticesWidth, terrainData) && IsValidCoordinate(rightTuple.Item4, verticesWidth, terrainData))
-            {
-                neighboringTuples.Add(rightTuple);
-            }
-            if (!visitedCoordinates.Contains(belowTuple.Item1) && !visitedCoordinates.Contains(belowTuple.Item2) && IsValidCoordinate(belowTuple.Item1, verticesWidth, terrainData) && IsValidCoordinate(belowTuple.Item2, verticesWidth, terrainData))
-            {
-                neighboringTuples.Add(belowTuple);
-            }
-            // Find the minimum neighbor tuple that has not been visited yet and flow to it
+            // Calculate neighboring 2x2 quads
+            (Vector2, Vector2, Vector2, Vector2) aboveTuple = (
+                currentCoordinate.firstOrigin + Vector2.up * 2,
+                currentCoordinate.secondOrigin + Vector2.up * 2,
+                currentCoordinate.thirdOrigin + Vector2.up * 2,
+                currentCoordinate.fourthOrigin + Vector2.up * 2
+            );
+
+            (Vector2, Vector2, Vector2, Vector2) belowTuple = (
+                currentCoordinate.firstOrigin + Vector2.down * 2,
+                currentCoordinate.secondOrigin + Vector2.down * 2,
+                currentCoordinate.thirdOrigin + Vector2.down * 2,
+                currentCoordinate.fourthOrigin + Vector2.down * 2
+            );
+
+            (Vector2, Vector2, Vector2, Vector2) leftTuple = (
+                currentCoordinate.firstOrigin + Vector2.left * 2,
+                currentCoordinate.secondOrigin + Vector2.left * 2,
+                currentCoordinate.thirdOrigin + Vector2.left * 2,
+                currentCoordinate.fourthOrigin + Vector2.left * 2
+            );
+
+            (Vector2, Vector2, Vector2, Vector2) rightTuple = (
+                currentCoordinate.firstOrigin + Vector2.right * 2,
+                currentCoordinate.secondOrigin + Vector2.right * 2,
+                currentCoordinate.thirdOrigin + Vector2.right * 2,
+                currentCoordinate.fourthOrigin + Vector2.right * 2
+            );
+
+            // Validate neighbors
+            if (IsValidQuadForMesh(aboveTuple, terrainData, visitedCoordinates)) neighboringTuples.Add(aboveTuple);
+            if (IsValidQuadForMesh(leftTuple, terrainData, visitedCoordinates)) neighboringTuples.Add(leftTuple);
+            if (IsValidQuadForMesh(rightTuple, terrainData, visitedCoordinates)) neighboringTuples.Add(rightTuple);
+            if (IsValidQuadForMesh(belowTuple, terrainData, visitedCoordinates)) neighboringTuples.Add(belowTuple);
+
             float minAverageHeight = float.MaxValue;
             (Vector2, Vector2, Vector2, Vector2) minNeighborTuple = (Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero);
             bool hasNeighbor = false;
@@ -160,44 +205,19 @@ public class RiverGeneration : MonoBehaviour
                     minNeighborTuple = neighborTuple;
                 }
             }
-            var (first, second, third, fourth) = currentCoordinate;
 
-            // Create a new tuple with updated values
-            updatedTuple = (
-                first + skipDirection,
-                second + skipDirection,
-                third + skipDirection,
-                fourth + skipDirection
-            );
-
-            if (IsSkippedTuple(currentCoordinate))
-            {
-                minNeighborTuple = updatedTuple;
-            }
-            skipDirection.x = minNeighborTuple.Item1.x - currentCoordinate.firstOrigin.x;
-            skipDirection.y = minNeighborTuple.Item1.y - currentCoordinate.firstOrigin.y;
-
-            // If we hit loop limit, we stop
-            if (loopcount >= looplimit)
-            {
-                hasNeighbor = false;
-            }
-            // Check if the average height is below the water threshold
             if (averageHeight <= waterHeight)
             {
-                // Stop if water is found
-                hasNeighbor = false;
+                foundWater = true;
+                if (enableDebugLogging)
+                    Debug.Log($"[RIVER] Reached water at step {loopcount}, height: {averageHeight:F2}");
             }
-            if (hasNeighbor)
+
+            if (hasNeighbor && !foundWater)
             {
-                // Calculate the center point of this tuple and add it to our river path centers
-                Vector2 nextCenterPoint = new Vector2(
-                    (minNeighborTuple.Item1.x + minNeighborTuple.Item2.x + minNeighborTuple.Item3.x + minNeighborTuple.Item4.x) / 4,
-                    (minNeighborTuple.Item1.y + minNeighborTuple.Item2.y + minNeighborTuple.Item3.y + minNeighborTuple.Item4.y) / 4
-                );
+                Vector2 nextCenterPoint = GetQuadCenter(minNeighborTuple);
                 riverPathCenters.Add(nextCenterPoint);
 
-                // Flow to the lowest neighbor tuple
                 currentCoordinate = minNeighborTuple;
                 averageHeight = minAverageHeight;
                 currentRiverList = new List<Vector2> { minNeighborTuple.Item1, minNeighborTuple.Item2, minNeighborTuple.Item3, minNeighborTuple.Item4 };
@@ -206,29 +226,344 @@ public class RiverGeneration : MonoBehaviour
             }
             else
             {
-                // Depress every point in the visitedCoordinates list
-                foreach (Vector2 visitedCoord in visitedCoordinates)
+                if (enableDebugLogging)
                 {
-                    //get coordinate information then depress the riverbed
-                    TileCoordinate visitedTileCoord = terrainData.ConvertToTileCoordinate((int)visitedCoord.x, (int)visitedCoord.y);
-                    HeightMap heightMap = riverchunksData[visitedTileCoord.tileXIndex, visitedTileCoord.tileZIndex];
-                    terrainData.chunksData[visitedTileCoord.tileXIndex, visitedTileCoord.tileZIndex].heightvalues[visitedTileCoord.coordinateXIndex, visitedTileCoord.coordinateZIndex]
-                        = heightMap.heightvalues[visitedTileCoord.coordinateXIndex, visitedTileCoord.coordinateZIndex] - depressAmount;
+                    string reason = foundWater ? "reached water" : "no valid neighbors";
+                    Debug.Log($"[RIVER] River ended at step {loopcount}: {reason}");
                 }
 
-                break; // Break out of the loop if there are no neighbors
+                // Depress terrain at all visited coordinates with proper tile boundary handling
+                int depressedCount = 0;
+                foreach (Vector2 visitedCoord in visitedCoordinates)
+                {
+                    if (DepressTerrainAtCoordinate(visitedCoord, terrainData, depressAmount))
+                        depressedCount++;
+                }
+
+                if (enableDebugLogging)
+                    Debug.Log($"[RIVER] Depressed {depressedCount} coordinates across tile boundaries");
+
+                break;
             }
         }
 
-        // Create a mesh for this river if we have enough points
+        if (enableDebugLogging)
+            Debug.Log($"[RIVER] River path complete: {riverPathCenters.Count} segments, {visitedCoordinates.Count} vertices");
+
         if (riverPathCenters.Count > 1)
         {
             GameObject riverMesh = CreateRiverMeshFromCenters(riverPathCenters, visitedCoordinates, terrainData);
-            riverMesh.transform.parent = riverList.transform;
+            if (riverMesh != null)
+            {
+                riverMesh.transform.parent = riverList.transform;
+                if (enableDebugLogging)
+                    Debug.Log($"[RIVER] Successfully created river mesh");
+            }
+        }
+        else if (enableDebugLogging)
+        {
+            Debug.LogWarning($"[RIVER] Insufficient path points for mesh: {riverPathCenters.Count}");
         }
     }
 
-    // Create a river mesh from the center points
+    private bool DepressTerrainAtCoordinate(Vector2 coordinate, TerrainData terrainData, float depressAmount)
+    {
+        int x = (int)coordinate.x;
+        int z = (int)coordinate.y;
+
+        List<TileCoordinate> affectedTiles = GetAllTilesContainingCoordinate(x, z, terrainData);
+
+        if (affectedTiles.Count == 0)
+        {
+            if (enableDebugLogging)
+                Debug.LogWarning($"[RIVER] No tiles found for coordinate ({x}, {z})");
+            return false;
+        }
+
+        TileCoordinate primaryTile = affectedTiles[0];
+        if (!IsValidTileCoordinate(primaryTile, terrainData))
+            return false;
+
+        HeightMap primaryHeightMap = riverchunksData[primaryTile.tileXIndex, primaryTile.tileZIndex];
+        float originalHeight = primaryHeightMap.heightvalues[primaryTile.coordinateXIndex, primaryTile.coordinateZIndex];
+        float newHeight = originalHeight - depressAmount;
+
+        // Enhanced boundary detection logging
+        if (enableDebugLogging)
+        {
+            int localX = primaryTile.coordinateXIndex;
+            int localZ = primaryTile.coordinateZIndex;
+            bool isAtTileBoundary = (localX == 1) || (localX == verticesPerLine - 2) || (localZ == 1) || (localZ == verticesPerLine - 2);
+
+            if (affectedTiles.Count > 1 || isAtTileBoundary)
+            {
+                Debug.Log($"[RIVER] BOUNDARY: World({x}, {z}) -> Tile({primaryTile.tileXIndex}, {primaryTile.tileZIndex}) Local({localX}, {localZ}) - {affectedTiles.Count} tiles affected");
+            }
+        }
+
+        // Update height in ALL tiles that contain this vertex
+        foreach (TileCoordinate tileCoord in affectedTiles)
+        {
+            if (IsValidTileCoordinate(tileCoord, terrainData))
+            {
+                terrainData.chunksData[tileCoord.tileXIndex, tileCoord.tileZIndex].heightvalues[tileCoord.coordinateXIndex, tileCoord.coordinateZIndex] = newHeight;
+            }
+        }
+
+        return true;
+    }
+
+    private List<TileCoordinate> GetAllTilesContainingCoordinate(int worldX, int worldZ, TerrainData terrainData)
+    {
+        List<TileCoordinate> containingTiles = new List<TileCoordinate>();
+
+        TileCoordinate primaryTile = terrainData.ConvertToTileCoordinate(worldX, worldZ);
+        if (!IsValidTileCoordinate(primaryTile, terrainData))
+            return containingTiles;
+
+        containingTiles.Add(primaryTile);
+
+        int localX = primaryTile.coordinateXIndex;
+        int localZ = primaryTile.coordinateZIndex;
+
+        // Right edge mesh boundary: when localX == 123
+        if (localX == 123)
+        {
+            TileCoordinate rightTile = terrainData.ConvertToTileCoordinate(worldX + 3, worldZ);
+            if (IsValidTileCoordinate(rightTile, terrainData) && rightTile.coordinateXIndex == 1)
+            {
+                containingTiles.Add(rightTile);
+                if (enableDebugLogging)
+                    Debug.Log($"[RIVER] OVERLAP DETECTED: World({worldX},{worldZ}) overlaps with World({worldX + 3},{worldZ})!");
+            }
+        }
+
+        // Left edge mesh boundary: when localX == 1
+        if (localX == 1)
+        {
+            TileCoordinate leftTile = terrainData.ConvertToTileCoordinate(worldX - 3, worldZ);
+            if (IsValidTileCoordinate(leftTile, terrainData) && leftTile.coordinateXIndex == 123)
+            {
+                containingTiles.Add(leftTile);
+                if (enableDebugLogging)
+                    Debug.Log($"[RIVER] OVERLAP DETECTED: World({worldX},{worldZ}) overlaps with World({worldX - 3},{worldZ})!");
+            }
+        }
+
+        // Similar patterns for Z coordinates
+        if (localZ == 123)
+        {
+            TileCoordinate topTile = terrainData.ConvertToTileCoordinate(worldX, worldZ - 3);
+            if (IsValidTileCoordinate(topTile, terrainData) && topTile.coordinateZIndex == 1)
+            {
+                containingTiles.Add(topTile);
+                if (enableDebugLogging)
+                    Debug.Log($"[RIVER] OVERLAP DETECTED: World({worldX},{worldZ}) overlaps with World({worldX},{worldZ - 3})!");
+            }
+        }
+
+        if (localZ == 1)
+        {
+            TileCoordinate bottomTile = terrainData.ConvertToTileCoordinate(worldX, worldZ + 3);
+            if (IsValidTileCoordinate(bottomTile, terrainData) && bottomTile.coordinateZIndex == 123)
+            {
+                containingTiles.Add(bottomTile);
+                if (enableDebugLogging)
+                    Debug.Log($"[RIVER] OVERLAP DETECTED: World({worldX},{worldZ}) overlaps with World({worldX},{worldZ + 3})!");
+            }
+        }
+
+        // Corner overlaps
+        if (localX == 123 && localZ == 123)
+        {
+            TileCoordinate cornerTile = terrainData.ConvertToTileCoordinate(worldX + 3, worldZ - 3);
+            if (IsValidTileCoordinate(cornerTile, terrainData) && cornerTile.coordinateXIndex == 1 && cornerTile.coordinateZIndex == 1)
+            {
+                containingTiles.Add(cornerTile);
+                if (enableDebugLogging)
+                    Debug.Log($"[RIVER] CORNER OVERLAP: World({worldX},{worldZ}) overlaps with World({worldX + 3},{worldZ - 3})!");
+            }
+        }
+
+        if (localX == 1 && localZ == 1)
+        {
+            TileCoordinate cornerTile = terrainData.ConvertToTileCoordinate(worldX - 3, worldZ + 3);
+            if (IsValidTileCoordinate(cornerTile, terrainData) && cornerTile.coordinateXIndex == 123 && cornerTile.coordinateZIndex == 123)
+            {
+                containingTiles.Add(cornerTile);
+                if (enableDebugLogging)
+                    Debug.Log($"[RIVER] CORNER OVERLAP: World({worldX},{worldZ}) overlaps with World({worldX - 3},{worldZ + 3})!");
+            }
+        }
+
+        if (localX == 1 && localZ == 123)
+        {
+            TileCoordinate cornerTile = terrainData.ConvertToTileCoordinate(worldX - 3, worldZ - 3);
+            if (IsValidTileCoordinate(cornerTile, terrainData) && cornerTile.coordinateXIndex == 123 && cornerTile.coordinateZIndex == 1)
+            {
+                containingTiles.Add(cornerTile);
+                if (enableDebugLogging)
+                    Debug.Log($"[RIVER] CORNER OVERLAP: World({worldX},{worldZ}) overlaps with World({worldX - 3},{worldZ - 3})!");
+            }
+        }
+
+        if (localX == 123 && localZ == 1)
+        {
+            TileCoordinate cornerTile = terrainData.ConvertToTileCoordinate(worldX + 3, worldZ + 3);
+            if (IsValidTileCoordinate(cornerTile, terrainData) && cornerTile.coordinateXIndex == 1 && cornerTile.coordinateZIndex == 123)
+            {
+                containingTiles.Add(cornerTile);
+                if (enableDebugLogging)
+                    Debug.Log($"[RIVER] CORNER OVERLAP: World({worldX},{worldZ}) overlaps with World({worldX + 3},{worldZ + 3})!");
+            }
+        }
+
+        return containingTiles;
+    }
+
+    private bool IsValidQuadForMesh((Vector2, Vector2, Vector2, Vector2) quad, TerrainData terrainData, HashSet<Vector2> visitedCoordinates)
+    {
+        List<Vector2> quadVertices = new List<Vector2> { quad.Item1, quad.Item2, quad.Item3, quad.Item4 };
+
+        foreach (Vector2 vertex in quadVertices)
+        {
+            if (visitedCoordinates.Contains(vertex))
+                return false;
+
+            if (!IsBasicValidCoordinate(vertex, terrainData))
+                return false;
+        }
+
+        return true;
+    }
+
+    private bool IsBasicValidCoordinate(Vector2 coordinate, TerrainData terrainData)
+    {
+        int totalLevelWidth = terrainData.levelDepthInTiles * verticesPerLine;
+        int totalLevelDepth = terrainData.levelDepthInTiles * verticesPerLine;
+
+        return coordinate.x >= 0 && coordinate.x < totalLevelWidth &&
+               coordinate.y >= 0 && coordinate.y < totalLevelDepth;
+    }
+
+    private bool IsValidTileCoordinate(TileCoordinate tileCoord, TerrainData terrainData)
+    {
+        return tileCoord.tileXIndex >= 0 && tileCoord.tileXIndex < terrainData.levelDepthInTiles &&
+               tileCoord.tileZIndex >= 0 && tileCoord.tileZIndex < terrainData.levelDepthInTiles &&
+               tileCoord.coordinateXIndex >= 0 && tileCoord.coordinateXIndex < verticesPerLine &&
+               tileCoord.coordinateZIndex >= 0 && tileCoord.coordinateZIndex < verticesPerLine;
+    }
+
+    // CRITICAL FIX: Transform world coordinates to match terrain mesh positioning
+    private Vector3 WorldToMeshPosition(Vector2 worldCoordinate, TerrainData terrainData)
+    {
+        int worldX = (int)worldCoordinate.x;
+        int worldZ = (int)worldCoordinate.y;
+
+        // Convert to tile coordinate to get the transformation info
+        TileCoordinate tileCoord = terrainData.ConvertToTileCoordinate(worldX, worldZ);
+
+        // Get the height at this position
+        float height = GetTerrainHeightAtPoint(worldCoordinate, terrainData);
+
+        // Apply the same transformation logic as in TreeGeneration.cs
+        // Based on your tree generation, the mesh position calculation is:
+        // X: worldX - 1 - (tileXIndex * 3)
+        // Z: (tileZIndex + 1) * (verticesPerLine - 3) - (coordinateZIndex - 4)
+
+        float meshX = worldX - 1 - (tileCoord.tileXIndex * 3);
+        float meshZ = (tileCoord.tileZIndex + 1) * (verticesPerLine - 3) - (tileCoord.coordinateZIndex - 4);
+
+        if (enableDebugLogging)
+        {
+            Debug.Log($"[RIVER] World({worldX}, {worldZ}) -> Tile({tileCoord.tileXIndex}, {tileCoord.tileZIndex}) " +
+                     $"Local({tileCoord.coordinateXIndex}, {tileCoord.coordinateZIndex}) -> Mesh({meshX:F2}, {meshZ:F2})");
+        }
+
+        return new Vector3(meshX, height, meshZ);
+    }
+
+    // Create a proper river spine with correctly handled turns
+    private List<Vector3> CreateRiverSpine(List<Vector2> riverPathCenters, TerrainData terrainData)
+    {
+        if (riverPathCenters.Count < 2)
+            return new List<Vector3>();
+
+        List<Vector3> spine = new List<Vector3>();
+
+        // Convert all path centers to mesh positions - keep it simple first
+        foreach (Vector2 center in riverPathCenters)
+        {
+            Vector3 meshPos = WorldToMeshPosition(center, terrainData);
+            spine.Add(meshPos);
+        }
+
+        return spine;
+    }
+
+    // Generate river cross-section points for proper mesh generation
+    private struct RiverCrossSection
+    {
+        public Vector3 center;
+        public Vector3 leftBank;
+        public Vector3 rightBank;
+        public Vector3 direction;
+        public Vector3 normal;
+    }
+
+    private List<RiverCrossSection> GenerateRiverCrossSections(List<Vector3> spine)
+    {
+        List<RiverCrossSection> sections = new List<RiverCrossSection>();
+
+        if (spine.Count < 2)
+            return sections;
+
+        for (int i = 0; i < spine.Count; i++)
+        {
+            Vector3 direction;
+
+            // Calculate direction based on position in spine
+            if (i == 0)
+            {
+                // First point: use direction to next point
+                direction = (spine[i + 1] - spine[i]).normalized;
+            }
+            else if (i == spine.Count - 1)
+            {
+                // Last point: use direction from previous point
+                direction = (spine[i] - spine[i - 1]).normalized;
+            }
+            else
+            {
+                // Middle points: average of incoming and outgoing directions for smooth turns
+                Vector3 incoming = (spine[i] - spine[i - 1]).normalized;
+                Vector3 outgoing = (spine[i + 1] - spine[i]).normalized;
+                direction = (incoming + outgoing).normalized;
+            }
+
+            // Calculate perpendicular vector (river width direction)
+            Vector3 up = Vector3.up;
+            Vector3 right = Vector3.Cross(direction, up).normalized;
+
+            // Create cross-section
+            RiverCrossSection section = new RiverCrossSection();
+            section.center = spine[i];
+            section.direction = direction;
+            section.normal = right;
+            section.leftBank = spine[i] - right * (riverWidth / 2);
+            section.rightBank = spine[i] + right * (riverWidth / 2);
+
+            // Apply Y offset
+            section.center.y += riverYOffset;
+            section.leftBank.y += riverYOffset;
+            section.rightBank.y += riverYOffset;
+
+            sections.Add(section);
+        }
+
+        return sections;
+    }
+
     private GameObject CreateRiverMeshFromCenters(List<Vector2> riverPathCenters, HashSet<Vector2> visitedCoordinates, TerrainData terrainData)
     {
         if (riverPathCenters.Count < 2)
@@ -237,205 +572,124 @@ public class RiverGeneration : MonoBehaviour
         GameObject riverObject = new GameObject("River");
         MeshFilter meshFilter = riverObject.AddComponent<MeshFilter>();
         MeshRenderer meshRenderer = riverObject.AddComponent<MeshRenderer>();
-        riverObject.AddComponent<NavMeshObstacle>();
 
         if (riverMaterial != null)
             meshRenderer.material = riverMaterial;
 
-        // Create lists for vertices and triangles
+        // Create river spine and cross-sections
+        List<Vector3> spine = CreateRiverSpine(riverPathCenters, terrainData);
+        List<RiverCrossSection> sections = GenerateRiverCrossSections(spine);
+
+        if (sections.Count < 2)
+        {
+            Debug.LogWarning("[RIVER] Insufficient river sections");
+            return null;
+        }
+
         List<Vector3> vertices = new List<Vector3>();
         List<int> triangles = new List<int>();
         List<Vector2> uvs = new List<Vector2>();
 
-        // Generate mesh data for each segment of the river path
-        for (int i = 0; i < riverPathCenters.Count - 1; i++)
+        // Generate mesh from cross-sections
+        for (int i = 0; i < sections.Count; i++)
         {
-            Vector2 current = riverPathCenters[i];
-            Vector2 next = riverPathCenters[i + 1];
+            RiverCrossSection section = sections[i];
 
-            // Get direction of river flow
-            Vector2 direction = (next - current).normalized;
-            // Get perpendicular direction for river width
-            Vector2 perpendicular = new Vector2(-direction.y, direction.x);
+            // Add vertices for this cross-section (left bank, center, right bank)
+            vertices.Add(section.leftBank);
+            vertices.Add(section.center);
+            vertices.Add(section.rightBank);
 
-            // Get tile coordinates for current and next positions
-            TileCoordinate currentTileCoord = terrainData.ConvertToTileCoordinate((int)current.x, (int)current.y);
-            TileCoordinate nextTileCoord = terrainData.ConvertToTileCoordinate((int)next.x, (int)next.y);
+            // Add UVs
+            float v = (float)i / (sections.Count - 1);
+            uvs.Add(new Vector2(0, v));    // Left bank
+            uvs.Add(new Vector2(0.5f, v)); // Center
+            uvs.Add(new Vector2(1, v));    // Right bank
 
-            // Get heights at current and next positions
-            float currentHeight = GetTerrainHeightAtPoint(current, terrainData) + riverYOffset;
-            float nextHeight = GetTerrainHeightAtPoint(next, terrainData) + riverYOffset;
+            // Generate triangles (connect to next section)
+            if (i < sections.Count - 1)
+            {
+                int baseIndex = i * 3;
+                int nextBaseIndex = (i + 1) * 3;
 
-            // Calculate X offset based on tile index to correct for rightmost tile shift
-            float currentXOffset = CalculateXOffsetForTile(currentTileCoord.tileXIndex);
-            float nextXOffset = CalculateXOffsetForTile(nextTileCoord.tileXIndex);
+                // Left triangle strip
+                triangles.Add(baseIndex);         // Current left
+                triangles.Add(baseIndex + 1);     // Current center
+                triangles.Add(nextBaseIndex);     // Next left
 
-            // Calculate the four corners of this river segment with consistent width
-            // Apply X offset to correct position in world space
-            Vector3 bottomLeft = new Vector3(
-                current.x - perpendicular.x * riverWidth / 2 - currentXOffset,
-                currentHeight,
-                current.y - perpendicular.y * riverWidth / 2
-            );
+                triangles.Add(nextBaseIndex);     // Next left
+                triangles.Add(baseIndex + 1);     // Current center
+                triangles.Add(nextBaseIndex + 1); // Next center
 
-            Vector3 bottomRight = new Vector3(
-                current.x + perpendicular.x * riverWidth / 2 - currentXOffset,
-                currentHeight,
-                current.y + perpendicular.y * riverWidth / 2
-            );
+                // Right triangle strip
+                triangles.Add(baseIndex + 1);     // Current center
+                triangles.Add(baseIndex + 2);     // Current right
+                triangles.Add(nextBaseIndex + 1); // Next center
 
-            Vector3 topLeft = new Vector3(
-                next.x - perpendicular.x * riverWidth / 2 - nextXOffset,
-                nextHeight,
-                next.y - perpendicular.y * riverWidth / 2
-            );
-
-            Vector3 topRight = new Vector3(
-                next.x + perpendicular.x * riverWidth / 2 - nextXOffset,
-                nextHeight,
-                next.y + perpendicular.y * riverWidth / 2
-            );
-
-            // Add vertices
-            int vertexIndex = vertices.Count;
-            vertices.Add(bottomLeft);
-            vertices.Add(bottomRight);
-            vertices.Add(topLeft);
-            vertices.Add(topRight);
-
-            // Add triangles with correct winding order for upward-facing normals
-            // First triangle
-            triangles.Add(vertexIndex);     // bottomLeft
-            triangles.Add(vertexIndex + 1); // bottomRight
-            triangles.Add(vertexIndex + 2); // topLeft
-
-            // Second triangle
-            triangles.Add(vertexIndex + 2); // topLeft
-            triangles.Add(vertexIndex + 1); // bottomRight
-            triangles.Add(vertexIndex + 3); // topRight
-
-            // Add UVs based on distance along the river
-            float uvY = (float)i / (riverPathCenters.Count - 1);
-            float uvYNext = (float)(i + 1) / (riverPathCenters.Count - 1);
-
-            uvs.Add(new Vector2(0, uvY));
-            uvs.Add(new Vector2(1, uvY));
-            uvs.Add(new Vector2(0, uvYNext));
-            uvs.Add(new Vector2(1, uvYNext));
+                triangles.Add(nextBaseIndex + 1); // Next center
+                triangles.Add(baseIndex + 2);     // Current right
+                triangles.Add(nextBaseIndex + 2); // Next right
+            }
         }
 
-        // Create and assign the mesh
+        // Create and assign mesh
         Mesh mesh = new Mesh();
         mesh.vertices = vertices.ToArray();
         mesh.triangles = triangles.ToArray();
         mesh.uv = uvs.ToArray();
         mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
 
         meshFilter.mesh = mesh;
-
-        // Add a MeshCollider if needed
         riverObject.AddComponent<MeshCollider>();
-
         riverObject.layer = LayerMask.NameToLayer("Obstacle");
+
+        if (enableDebugLogging)
+        {
+            Debug.Log($"[RIVER] Created river mesh with {vertices.Count} vertices, {triangles.Count / 3} triangles from {sections.Count} cross-sections");
+        }
 
         return riverObject;
     }
 
-    // Calculate X offset for vertices based on tile index
-    // This compensates for the rightward shift in tiles to the right
-    private float CalculateXOffsetForTile(int tileX)
-    {
-        // Apply a negative offset for tiles to the right to compensate for the shift
-        // You might need to adjust the exact value based on testing
-        return tileX * 3.5f;
-    }
-
-    // Get terrain height at a specific point
     private float GetTerrainHeightAtPoint(Vector2 coordinate, TerrainData terrainData)
     {
-        TileCoordinate tileCoord = terrainData.ConvertToTileCoordinate((int)coordinate.x, (int)coordinate.y);
-        HeightMap heightMap = terrainData.chunksData[tileCoord.tileXIndex, tileCoord.tileZIndex];
-        return heightMap.heightvalues[tileCoord.coordinateXIndex, tileCoord.coordinateZIndex];
+        int x = (int)coordinate.x;
+        int z = (int)coordinate.y;
+
+        List<TileCoordinate> containingTiles = GetAllTilesContainingCoordinate(x, z, terrainData);
+
+        if (containingTiles.Count == 0)
+            return 0f;
+
+        float totalHeight = 0f;
+        int validTiles = 0;
+
+        foreach (TileCoordinate tileCoord in containingTiles)
+        {
+            if (IsValidTileCoordinate(tileCoord, terrainData))
+            {
+                HeightMap heightMap = terrainData.chunksData[tileCoord.tileXIndex, tileCoord.tileZIndex];
+                totalHeight += heightMap.heightvalues[tileCoord.coordinateXIndex, tileCoord.coordinateZIndex];
+                validTiles++;
+            }
+        }
+
+        return validTiles > 0 ? totalHeight / validTiles : 0f;
     }
 
     private float GetAverageHeight((Vector2, Vector2, Vector2, Vector2) currentCoordinate, TerrainData terrainData)
     {
         float totalHeight = 0f;
         int count = 0;
+
         foreach (Vector2 coord in new List<Vector2> { currentCoordinate.Item1, currentCoordinate.Item2, currentCoordinate.Item3, currentCoordinate.Item4 })
         {
-            TileCoordinate tileCoord = terrainData.ConvertToTileCoordinate((int)coord.x, (int)coord.y);
-            {
-                HeightMap neighborheightMap = riverchunksData[tileCoord.tileXIndex, tileCoord.tileZIndex];
-                totalHeight += neighborheightMap.heightvalues[tileCoord.coordinateXIndex, tileCoord.coordinateZIndex];
-                count++;
-            }
+            float height = GetTerrainHeightAtPoint(coord, terrainData);
+            totalHeight += height;
+            count++;
         }
+
         return count > 0 ? totalHeight / count : 0f;
-    }
-
-    private bool IsSkippedTuple((Vector2, Vector2, Vector2, Vector2) coordinateTuple)
-    {
-        foreach (Vector2 coordinate in new List<Vector2> { coordinateTuple.Item1, coordinateTuple.Item2, coordinateTuple.Item3, coordinateTuple.Item4 })
-        {
-            if (IsSkippedValue(coordinate.x) || IsSkippedValue(coordinate.y))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private bool IsSkippedValue(float value)
-    {
-        return value == 121 || value == 122 || value == 123 || value == 124 || value == 125;
-    }
-
-    private bool IsValidCoordinate(Vector2 coordinate, int verticesWidth, TerrainData terrainData)
-    {
-        TileCoordinate tileCoord = terrainData.ConvertToTileCoordinate((int)coordinate.x, (int)coordinate.y);
-        return tileCoord.tileXIndex >= 0 && tileCoord.tileXIndex <= (terrainData.levelDepthInTiles - 1) &&
-               tileCoord.tileZIndex >= 0 && tileCoord.tileZIndex <= (terrainData.levelDepthInTiles - 1) &&
-               tileCoord.coordinateXIndex >= 0 && tileCoord.coordinateXIndex <= (verticesWidth) &&
-               tileCoord.coordinateZIndex >= 0 && tileCoord.coordinateZIndex <= (verticesWidth);
-    }
-
-    private void MergeMeshes(List<GameObject> rivers, GameObject root){
-
-        var meshFilters = new List<MeshFilter>();
-        foreach (var river in rivers)
-        {
-            meshFilters.Add(river.GetComponent<MeshFilter>());
-        }
-
-        CombineInstance[] combine = new CombineInstance[meshFilters.Count];
-
-        int i = 0;
-        while (i < meshFilters.Count)
-        {
-            combine[i].mesh = meshFilters[i].sharedMesh;
-            combine[i].transform = meshFilters[i].transform.localToWorldMatrix;
-            // meshFilters[i].gameObject.SetActive(false);
-            Destroy(meshFilters[i].gameObject);
-
-            i++;
-        }
-
-        GameObject obj = new GameObject("RiverRoot");
-        obj.transform.position = new Vector3(0, 0, 0);
-        obj.AddComponent<MeshFilter>();
-        obj.AddComponent<MeshRenderer>();
-
-        obj.GetComponent<MeshFilter>().mesh = new Mesh();
-        obj.GetComponent<MeshFilter>().mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-        obj.GetComponent<MeshFilter>().mesh.CombineMeshes(combine);
-
-        Material sharedMat = rivers[0].GetComponent<MeshRenderer>().sharedMaterial;
-        obj.GetComponent<MeshRenderer>().material = sharedMat;
-
-        obj.gameObject.SetActive(true);
-
-        obj.gameObject.transform.SetParent(riverList.transform, true);
     }
 }

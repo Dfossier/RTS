@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Water
-  m_Shader: {fileID: 4800000, guid: fd5e1b07a9f05194ca84bc935b1e59fd, type: 3}
+  m_Shader: {fileID: 4800000, guid: d1e5ab0945942744594e0b3030fd105f, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -51,8 +51,16 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _FlowMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FoamTexture:
+        m_Texture: {fileID: 2800000, guid: 980acadb960f8424c94307ec0e585b4e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 207a0c91ec8434cd3a6e2e6ec7262d41, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -64,7 +72,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 2800000, guid: 207a0c91ec8434cd3a6e2e6ec7262d41, type: 3}
+        m_Texture: {fileID: 2800000, guid: f805e88d3eaf0f046ac4ed03de5c7c3e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
@@ -85,34 +93,52 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _Brightness: 1.2
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _Depth: 1
-    - _DepthFactor: 1
+    - _DepthFactor: 2
     - _DetailIntensity: 1.089
     - _DetailNormalMapScale: 1
     - _DetailScrollSpeed: 0.0102
     - _DstBlend: 0
-    - _FresnelPower: 5
+    - _FlowDistortion: 0.3
+    - _FlowSpeed: 0.5
+    - _FlowStrength: 0.5
+    - _FoamCutoff: 0.3
+    - _FoamNoiseScale: 8
+    - _FoamSpeed: 0.8
+    - _FresnelPower: 2
     - _GlossAmount: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _Metallic: 0.1
+    - _Metallic: 0
     - _MinuteDetailIntensity: 1.046
     - _MinuteDetailScrollSpeed: 0.0093
     - _Mode: 0
+    - _NormalStrength: 1
     - _OcclusionStrength: 1
     - _Parallax: 0.02
+    - _ReflectionStrength: 0.3
     - _RefractionIntensity: 0.428
     - _RefractionSpeed: 0.609
+    - _RimPower: 2
     - _RippleScale: 20
     - _RippleSpeed: 1
+    - _ShadingSmooth: 0.05
+    - _ShadingSteps: 4
+    - _ShoreBlend: 1
+    - _ShoreIntensity: 1.5
+    - _ShoreWidth: 2
+    - _Smoothness: 0.8
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _Transparency: 0.8
+    - _Transparency: 0.6
     - _UVSec: 0
+    - _WaveAmplitude: 0.02
+    - _WaveFrequency: 2
     - _WaveHeight: 0.5
     - _WaveIntensity: 1
     - _WaveLength: 2
@@ -121,10 +147,16 @@ Material:
     - _WaveSpeed: 1
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 0, g: 0.18814616, b: 0.98742133, a: 1}
-    - _DeepColor: {r: 0, g: 0.2, b: 0.3, a: 0.8}
+    - _Color: {r: 0.10196079, g: 0.5019608, b: 0.8000001, a: 1}
+    - _DeepColor: {r: 0.10196079, g: 0.5019608, b: 0.8000001, a: 1}
     - _DiffuseColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _ShallowColor: {r: 0.1, g: 0.5, b: 0.5, a: 0.6}
+    - _FlowDirection: {r: 0, g: 0, b: 1, a: 0}
+    - _FoamColor: {r: 1, g: 1, b: 1, a: 1}
+    - _FoamSpeed: {r: 0.2, g: 0.15, b: 0, a: 0}
+    - _NormalSpeed: {r: 0.01, g: 0.01, b: 0, a: 0}
+    - _RimColor: {r: 0.8, g: 0.9, b: 1, a: 1}
+    - _ShadowTint: {r: 0.7, g: 0.8, b: 0.9, a: 1}
+    - _ShallowColor: {r: 0.4, g: 0.8, b: 1, a: 0.8}
     - _SpecularColor: {r: 0.216981, g: 0.85713065, b: 1, a: 1}
   m_BuildTextureStacks: []
