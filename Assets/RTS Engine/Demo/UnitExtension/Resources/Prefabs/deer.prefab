@@ -426,6 +426,7 @@ Transform:
   - {fileID: 214965347328423431}
   - {fileID: 181974824795858370}
   - {fileID: 6033127800688158366}
+  - {fileID: 7779817553340447472}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7604188923809534844
@@ -442,14 +443,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabID:
     x: 0
-    y: 0
+    y: 2
   _name: Deer
   code: deer
   category: free_entity,rtse_demo_entity
   description: Portector of the treasure chests. Attacks any human entity on sight.
   icon: {fileID: 21300000, guid: 3101e6f7b9c093749b7f90f4c9aabbf6, type: 3}
   radius: 0.3
-  model: {fileID: 706310391402413944}
+  model: {fileID: 7774045363059448350}
   isIdle: 0
   isMainEntity: 0
   isFactionLocked: 0
@@ -495,7 +496,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabID:
     x: 0
-    y: 0
+    y: 1
   maxHealth: 70
   initialHealth: 70
   canIncrease: 1
@@ -517,7 +518,7 @@ MonoBehaviour:
         _min: 1
         _max: 2
   destroyObject: 1
-  destroyObjectDelay: 0
+  destroyObjectDelay: 4
   destroyAward: []
   destructionAudio:
     fetchType: 0
@@ -539,7 +540,19 @@ MonoBehaviour:
     hideChildObjects: []
     triggerEvent:
       m_PersistentCalls:
-        m_Calls: []
+        m_Calls:
+        - m_Target: {fileID: 6735811533087160985}
+          m_TargetAssemblyTypeName: AnimalsMovementation, Assembly-CSharp
+          m_MethodName: playDeathAnimation
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
   canBeAttacked: 1
   attackTargetPosition: {fileID: 0}
   stopMovingOnDamage: 0
@@ -705,11 +718,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9aac44dc75f56f4c98111162e765c96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator: {fileID: 363727648721744774}
+  animator: {fileID: 7689034245888511538}
   agent: {fileID: 7686239489646723646}
   wanderRadius: 10
   waitTime: 3
-  animalmodel: {fileID: 706310391402413944}
+  animalmodel: {fileID: 7774045363059448350}
 --- !u!1 &7501175084258782510
 GameObject:
   m_ObjectHideFlags: 0
@@ -1332,6 +1345,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Deer_v5
       objectReference: {fileID: 0}
+    - target: {fileID: 1852192829216458104, guid: f8c5201dc1428b34f972a12c07308693,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1943772692233248762, guid: f8c5201dc1428b34f972a12c07308693,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -1773,3 +1791,112 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   animator: {fileID: 363727648721744774}
   agent: {fileID: 7686239489646723646}
+--- !u!1001 &7774938099412038520
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 7498276921385476576}
+    m_Modifications:
+    - target: {fileID: 1359080710252902, guid: e8ad581f3a696214d91fde278c6dde6d, type: 3}
+      propertyPath: m_Name
+      value: Deer_male_prefab
+      objectReference: {fileID: 0}
+    - target: {fileID: 1359080710252902, guid: e8ad581f3a696214d91fde278c6dde6d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4881670468422024, guid: e8ad581f3a696214d91fde278c6dde6d, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4881670468422024, guid: e8ad581f3a696214d91fde278c6dde6d, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4881670468422024, guid: e8ad581f3a696214d91fde278c6dde6d, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4881670468422024, guid: e8ad581f3a696214d91fde278c6dde6d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4881670468422024, guid: e8ad581f3a696214d91fde278c6dde6d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4881670468422024, guid: e8ad581f3a696214d91fde278c6dde6d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4881670468422024, guid: e8ad581f3a696214d91fde278c6dde6d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4881670468422024, guid: e8ad581f3a696214d91fde278c6dde6d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4881670468422024, guid: e8ad581f3a696214d91fde278c6dde6d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4881670468422024, guid: e8ad581f3a696214d91fde278c6dde6d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4881670468422024, guid: e8ad581f3a696214d91fde278c6dde6d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4881670468422024, guid: e8ad581f3a696214d91fde278c6dde6d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4881670468422024, guid: e8ad581f3a696214d91fde278c6dde6d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1359080710252902, guid: e8ad581f3a696214d91fde278c6dde6d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5862019490179319932}
+  m_SourcePrefab: {fileID: 100100000, guid: e8ad581f3a696214d91fde278c6dde6d, type: 3}
+--- !u!95 &7689034245888511538 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 95366048792280394, guid: e8ad581f3a696214d91fde278c6dde6d,
+    type: 3}
+  m_PrefabInstance: {fileID: 7774938099412038520}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &7774045363059448350 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1359080710252902, guid: e8ad581f3a696214d91fde278c6dde6d,
+    type: 3}
+  m_PrefabInstance: {fileID: 7774938099412038520}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5862019490179319932
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7774045363059448350}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a299b447a71acd41bb7e4a736fa781f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animator: {fileID: 7689034245888511538}
+  agent: {fileID: 7686239489646723646}
+--- !u!4 &7779817553340447472 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4881670468422024, guid: e8ad581f3a696214d91fde278c6dde6d,
+    type: 3}
+  m_PrefabInstance: {fileID: 7774938099412038520}
+  m_PrefabAsset: {fileID: 0}

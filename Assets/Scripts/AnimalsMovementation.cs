@@ -24,6 +24,8 @@ public class AnimalsMovementation : MonoBehaviour
 
     void Update()
     {
+        if (animator.GetInteger("states") == 2) return;
+        
         FaceTarget();
         // Check if agent has reached destination
         if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
@@ -33,7 +35,8 @@ public class AnimalsMovementation : MonoBehaviour
                 isWaiting = true;
                 timer = 0f;
                 agent.isStopped = true;
-                animator.speed = 0f; // stop animation
+                // animator.speed = 0f; // stop animation
+                animator.SetInteger("states", 0);
             }
 
             // Wait before moving again
@@ -48,12 +51,22 @@ public class AnimalsMovementation : MonoBehaviour
         {
             // Keep moving
             agent.isStopped = false;
-            animator.speed = 1f;
+            // animator.speed = 1f;
+            animator.SetInteger("states", 1);
         }
+    }
+
+    public void playDeathAnimation()
+    {
+        animator.SetInteger("states", 2);
+        agent.speed = 0;
+        Debug.Log("state changed");
+        Debug.Log(animator.GetInteger("states"));
     }
 
     void SetNewDestination()
     {
+        if (animator.GetInteger("states") == 2) return;
         agent.speed = 1;
         agent.angularSpeed = 1;
         agent.updateRotation = true;

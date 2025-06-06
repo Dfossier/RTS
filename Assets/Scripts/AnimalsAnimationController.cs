@@ -8,6 +8,8 @@ public class AnimalsAnimationController : MonoBehaviour
     public Animator animator;
     public NavMeshAgent agent;
 
+    
+
     void Update()
     {
         // If agent is moving, set animator speed to 1; otherwise 0
