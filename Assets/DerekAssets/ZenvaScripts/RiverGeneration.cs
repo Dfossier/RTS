@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class RiverGeneration : MonoBehaviour
 {
@@ -642,6 +643,7 @@ public class RiverGeneration : MonoBehaviour
 
         meshFilter.mesh = mesh;
         riverObject.AddComponent<MeshCollider>();
+        riverObject.AddComponent<NavMeshObstacle>();
         riverObject.layer = LayerMask.NameToLayer("Obstacle");
 
         if (enableDebugLogging)
