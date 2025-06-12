@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   data:
     code: create_building_town_center
-    enabled: 1
+    enabled: 0
     displayType: 2
     icon: {fileID: 21300000, guid: 42e13815d03e4814fab2ee1beb04d1c1, type: 3}
     panelCategory: 0
@@ -26,4 +26,6 @@ MonoBehaviour:
     reloadTime: 0
     cursor:
       icon: {fileID: 0}
+      texture: {fileID: 0}
       hotspot: {x: 0, y: 0}
+    controlType: {fileID: 0}
