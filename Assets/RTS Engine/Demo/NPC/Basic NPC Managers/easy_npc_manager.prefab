@@ -26,12 +26,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1047530764963462}
+  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4775314185703692}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &114554933014107736
 MonoBehaviour:
@@ -45,10 +46,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7aaffe6141982934da07bcc8cb950448, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 0
+  isActive: 0
   logEvents: 0
   eventLogs: []
-  isActive: 0
-  debugEnabled: 0
+  showActiveLogs: 0
+  defaultRegulatorData: {fileID: 0}
   independentUnits: []
   populationResource:
     allTypes: {fileID: 11400000, guid: b16294d219bf6db449279be57eae3702, type: 2}
@@ -66,10 +71,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0bfcb53fc967edc49a98df43a86a9515, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 0
+  isActive: 1
   logEvents: 0
   eventLogs: []
-  isActive: 1
-  debugEnabled: 0
+  showActiveLogs: 0
   prefabs:
   - {fileID: 1241045417843294, guid: e745e3ea211bdf24992e7e9963d084ff, type: 3}
   - {fileID: 1851370141575674, guid: d939995db516ba24b8448db79aefcc67, type: 3}
@@ -114,10 +122,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0bfcb53fc967edc49a98df43a86a9515, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 0
+  isActive: 1
   logEvents: 0
   eventLogs: []
-  isActive: 1
-  debugEnabled: 0
+  showActiveLogs: 0
   prefabs:
   - {fileID: 1034443902313416, guid: 0f0769060c3e5894bb49f81a58cf4e0a, type: 3}
   - {fileID: 1089284315477716, guid: a3faa277c932c6b43b66c16650257147, type: 3}
@@ -175,12 +186,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1144111816470452}
+  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4775314185703692}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &114281139925956266
 MonoBehaviour:
@@ -194,10 +206,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 603b3aa3cd6ac524ca74c7e2b3064aa3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 0
+  isActive: 0
   logEvents: 0
   eventLogs: []
-  isActive: 0
-  debugEnabled: 0
+  showActiveLogs: 0
+  defaultRegulatorData: {fileID: 0}
   independentBuildings:
   - {fileID: 1757281130161208, guid: 60bc8234d51b0664ca320a55465554cf, type: 3}
   - {fileID: 2349096675118822525, guid: 245a47f86e9ef224ba67fb7d7eb7ffe3, type: 3}
@@ -218,28 +234,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ece6181f3e942a41976ee9390b14919, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 0
+  isActive: 0
   logEvents: 0
   eventLogs: []
-  isActive: 0
-  debugEnabled: 0
-  placableTerrainAreas: []
-  placementDelayRange:
-    _min: 4
-    _max: 11
-  rotationSpeed: 50
-  placementMoveReload:
-    _min: 4
-    _max: 6
-  moveDistance:
-    _min: 0.5
-    _max: 1.5
-  placementMoveReloadInc:
-    _min: 1.5
-    _max: 2
-  heightCheckReload: 0.2
-  placementHandler:
+  showActiveLogs: 0
+  defaultPlacementHandler:
     reservePlacementResources: 1
-    placableTerrainAreas: []
     placementDelayRange:
       _min: 4
       _max: 11
@@ -267,12 +270,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf13410eaafc545438fc5fefcd593a4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 0
+  isActive: 0
   logEvents: 0
   eventLogs: []
-  isActive: 0
-  debugEnabled: 0
+  showActiveLogs: 0
   builders:
   - {fileID: 1913004789782250, guid: 8d0703b2c0bc30d44b3553a37c906203, type: 3}
+  buildingCreators: []
   constructionTimerRange:
     _min: 1
     _max: 3
@@ -306,9 +313,11 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1206597408391560}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4105845964789090}
   - {fileID: 4296607668922050}
@@ -318,7 +327,6 @@ Transform:
   - {fileID: 4459485346864724}
   - {fileID: 3687155588686661795}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &114475972782975292
 MonoBehaviour:
@@ -356,12 +364,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1407517355816956}
+  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4775314185703692}
-  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8346497635308305721
 MonoBehaviour:
@@ -375,10 +384,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec0c10e95dae30145a0479c209135c78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 0
+  isActive: 0
   logEvents: 0
   eventLogs: []
-  isActive: 0
-  debugEnabled: 0
+  showActiveLogs: 0
   autoUpgrade: 1
   upgradeReloadRange:
     _min: 5
@@ -387,6 +399,7 @@ MonoBehaviour:
     _min: 0.5
     _max: 0.8
   upgradeOnDemand: 1
+  upgradeLogs: []
 --- !u!1 &1501851890831738
 GameObject:
   m_ObjectHideFlags: 0
@@ -412,12 +425,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1501851890831738}
+  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4775314185703692}
-  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &114649354040959904
 MonoBehaviour:
@@ -431,10 +445,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83e1c08373aefa1499b214462f81f4b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 0
+  isActive: 0
   logEvents: 0
   eventLogs: []
-  isActive: 0
-  debugEnabled: 0
+  showActiveLogs: 0
   canAttack: 1
   attackResources:
   - {fileID: 11400000, guid: 529981de806b0754da40426ffd9ebabb, type: 2}
@@ -463,8 +480,8 @@ MonoBehaviour:
     options:
       codes: []
       categories: []
-    engageUnits: 1
-    engageBuildings: 1
+    targetUnits: 1
+    targetBuildings: 1
   targetPickerOnly: 0
   targetPreference: 0
   cancelAttackResources:
@@ -496,10 +513,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec018011b6d3b2241a359548f5111af9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 0
+  isActive: 0
   logEvents: 0
   eventLogs: []
-  isActive: 0
-  debugEnabled: 0
+  showActiveLogs: 0
   canDefendTerritory: 1
   cancelAttackOnTerritoryDefense: 1
   cancelTerritoryDefenseReloadRange:
@@ -539,12 +559,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1899539345844500}
+  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4775314185703692}
-  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &114934388877576286
 MonoBehaviour:
@@ -558,18 +579,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68dc184bdc562d44fb9e65da50e57807, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 0
+  isActive: 0
   logEvents: 0
   eventLogs: []
-  isActive: 0
-  debugEnabled: 0
+  showActiveLogs: 0
   resourceNeedRatioRange:
     _min: 1
     _max: 1.3
   resourceDefaultExploitRatioRange:
     _min: 0.8
     _max: 1
-  targetResourcesLog: []
-  factionResources: []
+  targetResourcesLogs: []
+  factionResourcesLogs: []
 --- !u!114 &114628723829182432
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -582,10 +606,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 329fca817f8cc1643b84d9fdbed41aca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 0
+  isActive: 0
   logEvents: 0
   eventLogs: []
-  isActive: 0
-  debugEnabled: 0
+  showActiveLogs: 0
   collectors:
   - {fileID: 1913004789782250, guid: 8d0703b2c0bc30d44b3553a37c906203, type: 3}
   collectionData:
@@ -621,6 +648,38 @@ MonoBehaviour:
       _min: 1
       _max: 1
     minCollectorsAmount: 0
+  - type: {fileID: 11400000, guid: 6a155955f3fb44a4c9619755a7e0c78c, type: 2}
+    instanceCollectorsRatio:
+      _min: 1
+      _max: 1
+    maxCollectorsRatioRange:
+      _min: 1
+      _max: 1
+    minCollectorsAmount: 0
+  - type: {fileID: 11400000, guid: 8dbe5bab169e794498ffa79feb9eff89, type: 2}
+    instanceCollectorsRatio:
+      _min: 1
+      _max: 1
+    maxCollectorsRatioRange:
+      _min: 1
+      _max: 1
+    minCollectorsAmount: 0
+  - type: {fileID: 11400000, guid: 69fe26083e4b11f458aab558250d44c6, type: 2}
+    instanceCollectorsRatio:
+      _min: 1
+      _max: 1
+    maxCollectorsRatioRange:
+      _min: 1
+      _max: 1
+    minCollectorsAmount: 0
+  - type: {fileID: 11400000, guid: e279bbd3b414b6b4bb8d64afd1344c38, type: 2}
+    instanceCollectorsRatio:
+      _min: 1
+      _max: 1
+    maxCollectorsRatioRange:
+      _min: 1
+      _max: 1
+    minCollectorsAmount: 0
   collectionTimerRange:
     _min: 5
     _max: 9
@@ -639,10 +698,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c024551d8796c6478cdc7ec16962217, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 0
+  isActive: 0
   logEvents: 0
   eventLogs: []
-  isActive: 0
-  debugEnabled: 0
+  showActiveLogs: 0
   buildingCenters:
   - {fileID: 1536897726572502, guid: 13f9d44ccafc2424295533f2d2f4db93, type: 3}
   expandOnDemand: 1
@@ -655,6 +717,8 @@ MonoBehaviour:
   expandReloadRange:
     _min: 10
     _max: 15
+  territoryLogs:
+    currTerritoryRatio: 0
 --- !u!114 &3320200119138821005
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -667,10 +731,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16f52e38b5e073f45bf45723835e8da5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 0
+  isActive: 0
   logEvents: 0
   eventLogs: []
-  isActive: 0
-  debugEnabled: 0
+  showActiveLogs: 0
   capacityResource:
     allTypes: {fileID: 11400000, guid: b16294d219bf6db449279be57eae3702, type: 2}
     typeSpecific: []
@@ -679,12 +746,18 @@ MonoBehaviour:
   targetCapacityRange:
     _min: 70
     _max: 100
-  pendingCapacity: 0
   reloadRange:
     _min: 10
     _max: 15
   autoCreate: 1
+  pendingCapacity: 0
   minFreeAmount: 10
+  capacityResourceLogs:
+    currAmount: 0
+    pendingCapacity: 0
+    currCapacity: 0
+    unitCodes: []
+    buildingCodes: []
 --- !u!1 &7439909003555324926
 GameObject:
   m_ObjectHideFlags: 0
@@ -709,12 +782,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7439909003555324926}
+  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4775314185703692}
-  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &657796705631306201
 MonoBehaviour:
@@ -728,10 +802,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dab04c3a8df48be418a9ed5937502152, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 0
+  isActive: 0
   logEvents: 0
   eventLogs: []
-  isActive: 0
-  debugEnabled: 0
+  showActiveLogs: 0
 --- !u!1 &8255754375216054317
 GameObject:
   m_ObjectHideFlags: 0
@@ -756,12 +833,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8255754375216054317}
+  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4775314185703692}
-  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6666952515467926286
 MonoBehaviour:
@@ -775,7 +853,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7620cdf592d26e24a8123d05454ce8c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 0
+  isActive: 0
   logEvents: 0
   eventLogs: []
-  isActive: 0
-  debugEnabled: 0
+  showActiveLogs: 0

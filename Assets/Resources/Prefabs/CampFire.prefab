@@ -2257,7 +2257,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabID:
     x: 0
-    y: 1
+    y: 2
   maxHealth: 2500
   initialHealth: 1
   canIncrease: 1
@@ -2301,72 +2301,7 @@ MonoBehaviour:
         _max: 2
   destructionEffect:
     input: {fileID: 5317332858298397151, guid: 7838da974b7740c43aa84e1e25b47865, type: 3}
-  states:
-  - usePercentage: 0
-    healthRange:
-      _min: 0
-      _max: 500
-    showChildObjects:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    hideChildObjects: []
-    triggerEvent:
-      m_PersistentCalls:
-        m_Calls: []
-  - usePercentage: 0
-    healthRange:
-      _min: 500
-      _max: 1000
-    showChildObjects:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    hideChildObjects:
-    - {fileID: 0}
-    triggerEvent:
-      m_PersistentCalls:
-        m_Calls: []
-  - usePercentage: 0
-    healthRange:
-      _min: 1000
-      _max: 1500
-    showChildObjects:
-    - {fileID: 0}
-    - {fileID: 0}
-    hideChildObjects:
-    - {fileID: 0}
-    - {fileID: 0}
-    triggerEvent:
-      m_PersistentCalls:
-        m_Calls: []
-  - usePercentage: 0
-    healthRange:
-      _min: 1500
-      _max: 2300
-    showChildObjects:
-    - {fileID: 0}
-    hideChildObjects:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    triggerEvent:
-      m_PersistentCalls:
-        m_Calls: []
-  - usePercentage: 0
-    healthRange:
-      _min: 2300
-      _max: 2500
-    showChildObjects: []
-    hideChildObjects:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    triggerEvent:
-      m_PersistentCalls:
-        m_Calls: []
+  states: []
   destroyState:
     usePercentage: 0
     healthRange:
@@ -2386,7 +2321,6 @@ MonoBehaviour:
       _min: 0
       _max: 2500
     showChildObjects:
-    - {fileID: 0}
     - {fileID: 8160346222985385914}
     hideChildObjects: []
     triggerEvent:
@@ -2398,7 +2332,7 @@ MonoBehaviour:
       _min: 0
       _max: 0
     showChildObjects:
-    - {fileID: 0}
+    - {fileID: 4688604385419310137}
     hideChildObjects:
     - {fileID: 8160346222985385914}
     triggerEvent:
@@ -2557,112 +2491,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bab46bb0053502243877f36416be80ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  coloredRenderers:
-  - renderer: {fileID: 0}
-    materialID: 2
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0.3
-  - renderer: {fileID: 0}
-    materialID: 3
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0
-  - renderer: {fileID: 0}
-    materialID: 2
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0.3
-  - renderer: {fileID: 0}
-    materialID: 3
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0
-  - renderer: {fileID: 0}
-    materialID: 0
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0.3
-  - renderer: {fileID: 0}
-    materialID: 3
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0
-  - renderer: {fileID: 0}
-    materialID: 0
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0.3
-  - renderer: {fileID: 0}
-    materialID: 3
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0
-  - renderer: {fileID: 0}
-    materialID: 0
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0.3
-  - renderer: {fileID: 0}
-    materialID: 3
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0
-  - renderer: {fileID: 0}
-    materialID: 0
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0.3
-  - renderer: {fileID: 0}
-    materialID: 3
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0
-  - renderer: {fileID: 0}
-    materialID: 0
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0.3
-  - renderer: {fileID: 0}
-    materialID: 1
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0.3
-  - renderer: {fileID: 0}
-    materialID: 0
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0.3
-  - renderer: {fileID: 0}
-    materialID: 1
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0.3
-  - renderer: {fileID: 8171867312655744302}
-    materialID: 1
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0.3
-  - renderer: {fileID: 8173939772761943058}
-    materialID: 0
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0.3
-  - renderer: {fileID: 0}
-    materialID: 1
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0.3
-  - renderer: {fileID: 0}
-    materialID: 0
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0.3
-  - renderer: {fileID: 0}
-    materialID: 3
-    colorPropertyName: _Color
-    transparency: 0
-    darkness: 0
+  coloredRenderers: []
 --- !u!1 &8160035167586413140
 GameObject:
   m_ObjectHideFlags: 0
@@ -3936,7 +3765,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44a2d482a17f7eb4d8d66d37663a6728, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  model: {fileID: 0}
+  model: {fileID: 3847116867285824761}
   constructionModifier:
     initialHeight: -2.5
     targetHeight: 0.85

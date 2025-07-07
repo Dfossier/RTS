@@ -75,6 +75,7 @@ public class AnimalsMovementation : MonoBehaviour
 
         if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, wanderRadius, NavMesh.AllAreas))
         {
+            if (!agent.isOnNavMesh) return;
             agent.SetDestination(hit.position);
         }
     }
