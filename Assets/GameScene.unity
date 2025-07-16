@@ -11183,7 +11183,7 @@ MonoBehaviour:
   tabID:
     x: 0
     y: 2
-  buildingPositionYOffset: 0.1
+  buildingPositionYOffset: 0.2
   terrainMaxDistance: 1
   placableTerrainAreas:
   - {fileID: 11400000, guid: 37d2dffab9a31a84c81d764228531ba7, type: 2}
