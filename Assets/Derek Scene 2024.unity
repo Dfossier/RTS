@@ -2199,6 +2199,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1446221887179702864, guid: 24afef5a143e52844a18d4e29070f11f,
         type: 3}
+      propertyPath: maxTrees
+      value: 4000
+      objectReference: {fileID: 0}
+    - target: {fileID: 1446221887179702864, guid: 24afef5a143e52844a18d4e29070f11f,
+        type: 3}
       propertyPath: minTreeSpacing
       value: 0.5
       objectReference: {fileID: 0}

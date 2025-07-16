@@ -14,6 +14,8 @@ public class RandomFactionSpawnpoint : MonoBehaviour
     public int NPC_Count = 1;
     public Vector3[] NPCsSpawnpoint;
 
+    [SerializeField] private float minDistanceBetweenFactions = 50f;
+
     public void Start()
     {
         Random.InitState((int)System.DateTime.Now.Ticks);
@@ -43,37 +45,67 @@ public class RandomFactionSpawnpoint : MonoBehaviour
     }
 
     private void DefineNPCsFaction()
-{
-    if (NPC_Count > 0)
     {
-        // Ensure the array is correctly sized
-        NPCsSpawnpoint = new Vector3[NPC_Count];
-
-        for (int i = 0; i < NPC_Count; i++)
+        if (NPC_Count > 0)
         {
-            Vector3 center;
+            NPCsSpawnpoint = new Vector3[NPC_Count];
 
-            // Choose a random chunkMiddle if available
-            if (chunkMiddle != null && chunkMiddle.Length > 0)
+            int maxAttemptsPerNPC = 30;
+
+            for (int i = 0; i < NPC_Count; i++)
             {
-                GameObject randomChunk = chunkMiddle[Random.Range(0, chunkMiddle.Length)];
-                center = randomChunk.transform.position;
-                Debug.Log(randomChunk.name);
-                Debug.Log(center);
-            }
-            else
-            {
-                // Fallback to this object's position
-                center = transform.position;
+                bool found = false;
+
+                for (int attempt = 0; attempt < maxAttemptsPerNPC; attempt++)
+                {
+                    Vector3 center;
+
+                    if (chunkMiddle != null && chunkMiddle.Length > 0)
+                    {
+                        GameObject randomChunk = chunkMiddle[Random.Range(0, chunkMiddle.Length)];
+                        center = randomChunk.transform.position;
+                    }
+                    else
+                    {
+                        center = transform.position;
+                    }
+
+                    Vector3 potentialPos = RandomNavmeshLocation(radius, center);
+
+                    // Check distance from player faction
+                    if (Vector3.Distance(potentialPos, transform.position) < minDistanceBetweenFactions)
+                        continue;
+
+                    // Check distance from other NPCs
+                    bool tooCloseToOtherNPC = false;
+                    for (int j = 0; j < i; j++)
+                    {
+                        if (Vector3.Distance(potentialPos, NPCsSpawnpoint[j]) < minDistanceBetweenFactions)
+                        {
+                            tooCloseToOtherNPC = true;
+                            break;
+                        }
+                    }
+
+                    if (tooCloseToOtherNPC)
+                        continue;
+
+                    // Accept this position
+                    NPCsSpawnpoint[i] = potentialPos;
+                    found = true;
+                    break;
+                }
+
+                if (!found)
+                {
+                    Debug.LogWarning($"[FactionSpawn] Could not find valid position for NPC #{i} after {maxAttemptsPerNPC} tries.");
+                    NPCsSpawnpoint[i] = transform.position; // fallback
+                }
             }
 
-            // Generate random NavMesh position
-            NPCsSpawnpoint[i] = RandomNavmeshLocation(radius, center);
+            Debug.Log("NPC spawnpoints defined: " + NPCsSpawnpoint.Length);
         }
-
-        Debug.Log("NPC spawnpoints defined: " + NPCsSpawnpoint.Length);
     }
-}
 
 
     // Modified to accept center position as parameter

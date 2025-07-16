@@ -134,6 +134,8 @@ namespace RTSEngine.Animation
 
         public void SetState(AnimatorState newState)
         {
+            if (animator == null) return;
+
             if (LockState == true)
                 return;
 

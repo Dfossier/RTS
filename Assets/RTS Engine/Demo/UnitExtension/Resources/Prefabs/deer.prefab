@@ -570,7 +570,8 @@ MonoBehaviour:
   animator: {fileID: 0}
   animatorOverrideController:
     fetchType: 0
-    items: []
+    items:
+    - {fileID: 22100000, guid: 676dc2b6d6504a04cb4e1845d7a2d03b, type: 2}
   damageAnimationEnabled: 0
   damageAnimationDuration: 0.2
 --- !u!114 &6735811533087160985
@@ -590,6 +591,7 @@ MonoBehaviour:
   wanderRadius: 10
   waitTime: 3
   animalmodel: {fileID: 7774045363059448350}
+  timer_tolerance: 0
 --- !u!82 &7582849089770859910
 AudioSource:
   m_ObjectHideFlags: 0
