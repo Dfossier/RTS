@@ -2082,6 +2082,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8117892919367708357}
   - component: {fileID: 5456658014542847887}
+  - component: {fileID: 2421325549406015694}
   m_Layer: 0
   m_Name: building_components
   m_TagString: Untagged
@@ -2131,6 +2132,62 @@ MonoBehaviour:
   showWorkerPositionsGizmos: 1
   showWorkersGizmos: 1
   showWorkersFoldout: 0
+--- !u!114 &2421325549406015694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5846719678467952900}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edddac3108d6221418e8a42fc680a8e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: quarry_ResourceGenerator_243
+  isActive: 1
+  tabID:
+    x: 0
+    y: 1
+  period: 1
+  resources:
+  - type: {fileID: 11400000, guid: 4d4e87d30dcf4234a9bb2512fd824432, type: 2}
+    value:
+      amount: 1
+      capacity: 0
+    nonConsumable: 0
+  requiredResources:
+  - type: {fileID: 11400000, guid: 8dbe5bab169e794498ffa79feb9eff89, type: 2}
+    value:
+      amount: 4
+      capacity: 0
+    nonConsumable: 0
+  collectionThreshold:
+  - type: {fileID: 11400000, guid: 4d4e87d30dcf4234a9bb2512fd824432, type: 2}
+    value:
+      amount: 10
+      capacity: 0
+    nonConsumable: 0
+  stopGeneratingOnThresholdMet: 0
+  autoCollect: 1
+  collectionAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  collectionTaskUI: {fileID: 0}
+  onThresholdMet:
+    m_PersistentCalls:
+      m_Calls: []
+  onCollected:
+    m_PersistentCalls:
+      m_Calls: []
+  onRequirementMissing:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &6121304414860674215
 GameObject:
   m_ObjectHideFlags: 0

@@ -1276,6 +1276,31 @@ MonoBehaviour:
     allowedUIFactionTypes:
       type: 0
       options: []
+  - type: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
+    displayCollectorCount: 1
+    allowedUIFactionTypes:
+      type: 0
+      options: []
+  - type: {fileID: 11400000, guid: 416634a5450e1ad48a9693a0f9debded, type: 2}
+    displayCollectorCount: 1
+    allowedUIFactionTypes:
+      type: 0
+      options: []
+  - type: {fileID: 11400000, guid: 64034668ccc0909478a1829bc32d9cb1, type: 2}
+    displayCollectorCount: 1
+    allowedUIFactionTypes:
+      type: 0
+      options: []
+  - type: {fileID: 11400000, guid: a388932a9a066e642a1796e10d1a4da4, type: 2}
+    displayCollectorCount: 1
+    allowedUIFactionTypes:
+      type: 0
+      options: []
+  - type: {fileID: 11400000, guid: 4d4e87d30dcf4234a9bb2512fd824432, type: 2}
+    displayCollectorCount: 1
+    allowedUIFactionTypes:
+      type: 0
+      options: []
   panel: {fileID: 563302701}
   resourceDescriptionAsTooltip: 1
   maxCapacityColor: {r: 1, g: 0, b: 0, a: 1}
@@ -4691,8 +4716,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 302, y: -27.60992}
-  m_SizeDelta: {x: 600, y: 49}
+  m_AnchoredPosition: {x: 491.1767, y: -27.609924}
+  m_SizeDelta: {x: 978.3535, y: 49}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &563302702
 MonoBehaviour:
@@ -9878,6 +9903,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e279bbd3b414b6b4bb8d64afd1344c38, type: 2}
   - {fileID: 11400000, guid: 6a155955f3fb44a4c9619755a7e0c78c, type: 2}
   - {fileID: 11400000, guid: 69fe26083e4b11f458aab558250d44c6, type: 2}
+  - {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
+  - {fileID: 11400000, guid: 416634a5450e1ad48a9693a0f9debded, type: 2}
+  - {fileID: 11400000, guid: 64034668ccc0909478a1829bc32d9cb1, type: 2}
+  - {fileID: 11400000, guid: a388932a9a066e642a1796e10d1a4da4, type: 2}
+  - {fileID: 11400000, guid: 4d4e87d30dcf4234a9bb2512fd824432, type: 2}
 --- !u!1 &1211138941
 GameObject:
   m_ObjectHideFlags: 0

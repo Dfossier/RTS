@@ -3791,6 +3791,9 @@ GameObject:
   - component: {fileID: 7581332939575309758}
   - component: {fileID: 1250429246301624781}
   - component: {fileID: 5667644468311262206}
+  - component: {fileID: 3023355478360241933}
+  - component: {fileID: 7818843757043050682}
+  - component: {fileID: 3700016227557264784}
   m_Layer: 0
   m_Name: building_components
   m_TagString: Untagged
@@ -4105,6 +4108,174 @@ MonoBehaviour:
     canBeAttackedOnValidFaction: 1
   showStoredUnitsGizmos: 1
   storedUnitsFoldout: 0
+--- !u!114 &3023355478360241933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8813891554683606450}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edddac3108d6221418e8a42fc680a8e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: camp_fire_ResourceGenerator_200
+  isActive: 1
+  tabID:
+    x: 0
+    y: 1
+  period: 1
+  resources:
+  - type: {fileID: 11400000, guid: 6a155955f3fb44a4c9619755a7e0c78c, type: 2}
+    value:
+      amount: 1
+      capacity: 0
+    nonConsumable: 0
+  requiredResources:
+  - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
+    value:
+      amount: 4
+      capacity: 0
+    nonConsumable: 0
+  collectionThreshold:
+  - type: {fileID: 11400000, guid: 6a155955f3fb44a4c9619755a7e0c78c, type: 2}
+    value:
+      amount: 10
+      capacity: 0
+    nonConsumable: 0
+  stopGeneratingOnThresholdMet: 1
+  autoCollect: 0
+  collectionAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  collectionTaskUI: {fileID: 11400000, guid: 6602ffe52f2918d4184e0c2894199e09, type: 2}
+  onThresholdMet:
+    m_PersistentCalls:
+      m_Calls: []
+  onCollected:
+    m_PersistentCalls:
+      m_Calls: []
+  onRequirementMissing:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &7818843757043050682
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8813891554683606450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edddac3108d6221418e8a42fc680a8e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: camp_fire_ResourceGenerator_132
+  isActive: 1
+  tabID:
+    x: 0
+    y: 1
+  period: 1
+  resources:
+  - type: {fileID: 11400000, guid: 64034668ccc0909478a1829bc32d9cb1, type: 2}
+    value:
+      amount: 1
+      capacity: 0
+    nonConsumable: 0
+  requiredResources:
+  - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
+    value:
+      amount: 4
+      capacity: 0
+    nonConsumable: 0
+  collectionThreshold:
+  - type: {fileID: 11400000, guid: 64034668ccc0909478a1829bc32d9cb1, type: 2}
+    value:
+      amount: 10
+      capacity: 0
+    nonConsumable: 0
+  stopGeneratingOnThresholdMet: 0
+  autoCollect: 1
+  collectionAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  collectionTaskUI: {fileID: 0}
+  onThresholdMet:
+    m_PersistentCalls:
+      m_Calls: []
+  onCollected:
+    m_PersistentCalls:
+      m_Calls: []
+  onRequirementMissing:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &3700016227557264784
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8813891554683606450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edddac3108d6221418e8a42fc680a8e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: camp_fire_ResourceGenerator_216
+  isActive: 1
+  tabID:
+    x: 0
+    y: 1
+  period: 1
+  resources:
+  - type: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
+    value:
+      amount: 1
+      capacity: 0
+    nonConsumable: 0
+  requiredResources:
+  - type: {fileID: 11400000, guid: e279bbd3b414b6b4bb8d64afd1344c38, type: 2}
+    value:
+      amount: 4
+      capacity: 0
+    nonConsumable: 0
+  collectionThreshold:
+  - type: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
+    value:
+      amount: 10
+      capacity: 0
+    nonConsumable: 0
+  stopGeneratingOnThresholdMet: 0
+  autoCollect: 1
+  collectionAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  collectionTaskUI: {fileID: 0}
+  onThresholdMet:
+    m_PersistentCalls:
+      m_Calls: []
+  onCollected:
+    m_PersistentCalls:
+      m_Calls: []
+  onRequirementMissing:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &309275244948236681
 PrefabInstance:
   m_ObjectHideFlags: 0

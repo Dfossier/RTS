@@ -16,6 +16,8 @@ public class AnimalsMovementation : MonoBehaviour
 
     public GameObject animalmodel;
 
+    public float timer_tolerance = 0f;
+
     void Start()
     {
         SetNewDestination();
@@ -53,6 +55,18 @@ public class AnimalsMovementation : MonoBehaviour
             agent.isStopped = false;
             // animator.speed = 1f;
             animator.SetInteger("states", 1);
+
+            // check if it's trying to go to a place that is not really reachable, if it is stucked then change destination after 6 seconds
+            if (agent.velocity.magnitude < 0.5f)
+            {
+                timer_tolerance += Time.deltaTime;
+                if (timer_tolerance >= 6f)
+                {
+                    isWaiting = false;
+                    SetNewDestination(true);
+                    timer_tolerance = 0f;
+                }
+            }
         }
     }
 
@@ -64,9 +78,9 @@ public class AnimalsMovementation : MonoBehaviour
         Debug.Log(animator.GetInteger("states"));
     }
 
-    void SetNewDestination()
+    void SetNewDestination(bool overwrite = false)
     {
-        if (animator.GetInteger("states") == 2) return;
+        if (animator.GetInteger("states") == 2 && overwrite == false) return;
         agent.speed = 1;
         agent.angularSpeed = 1;
         agent.updateRotation = true;

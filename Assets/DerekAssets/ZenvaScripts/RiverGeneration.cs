@@ -607,7 +607,7 @@ public class RiverGeneration : MonoBehaviour
             uvs.Add(new Vector2(0.5f, v)); // Center
             uvs.Add(new Vector2(1, v));    // Right bank
 
-            // Generate triangles (connect to next section)
+            // Generate triangles and segment obstacles
             if (i < sections.Count - 1)
             {
                 int baseIndex = i * 3;
@@ -630,6 +630,9 @@ public class RiverGeneration : MonoBehaviour
                 triangles.Add(nextBaseIndex + 1); // Next center
                 triangles.Add(baseIndex + 2);     // Current right
                 triangles.Add(nextBaseIndex + 2); // Next right
+
+                // Create NavMeshObstacle for this segment
+                CreateObstacleForSegment(riverObject.transform, section, sections[i + 1]);
             }
         }
 
@@ -643,7 +646,6 @@ public class RiverGeneration : MonoBehaviour
 
         meshFilter.mesh = mesh;
         riverObject.AddComponent<MeshCollider>();
-        riverObject.AddComponent<NavMeshObstacle>();
         riverObject.layer = LayerMask.NameToLayer("Obstacle");
 
         if (enableDebugLogging)
@@ -652,6 +654,36 @@ public class RiverGeneration : MonoBehaviour
         }
 
         return riverObject;
+    }
+
+    private void CreateObstacleForSegment(Transform parent, RiverCrossSection a, RiverCrossSection b)
+    {
+        Vector3 centerA = a.center;
+        Vector3 centerB = b.center;
+
+        Vector3 segmentDirection = (centerB - centerA).normalized;
+        float segmentLength = Vector3.Distance(centerA, centerB);
+        float segmentWidth = Vector3.Distance(a.leftBank, a.rightBank);
+
+        Vector3 segmentCenter = (centerA + centerB) / 2f;
+
+        GameObject obstacleObj = new GameObject("RiverObstacleSegment");
+        obstacleObj.transform.parent = parent;
+        obstacleObj.transform.position = segmentCenter;
+
+        // Orient the box along the river
+        obstacleObj.transform.rotation = Quaternion.LookRotation(segmentDirection, Vector3.up);
+
+        // Add obstacle
+        NavMeshObstacle obstacle = obstacleObj.AddComponent<NavMeshObstacle>();
+        obstacle.shape = NavMeshObstacleShape.Box;
+        obstacle.carving = true;
+
+        // Set size: width (X), height (Y), length (Z)
+        obstacle.size = new Vector3(segmentWidth, 2f, segmentLength);
+
+        // Optional: match river layer
+        obstacleObj.layer = LayerMask.NameToLayer("Obstacle");
     }
 
     private float GetTerrainHeightAtPoint(Vector2 coordinate, TerrainData terrainData)

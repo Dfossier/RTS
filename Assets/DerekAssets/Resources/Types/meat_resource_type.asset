@@ -10,15 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 992e646db1208fc46bbbe5ddc17aa7f5, type: 3}
-  m_Name: tinOre_resource_type
+  m_Name: meat_resource_type
   m_EditorClassIdentifier: 
-  key: tinOre_resource_type
-  displayName: Tin Ore
-  description: Rare but crucial for bronze alloy. Creates trade dependencies between
-    regions. High strategic value.
+  key: meat_resource_type
+  displayName: Meat
+  description: Meat, use to create food.
   hasCapacity: 0
   capacityType: 1
   startingAmount:
     amount: 200
     capacity: 0
-  icon: {fileID: 21300000, guid: 9bde9dbc2f8397e41a6e721c62253c61, type: 3}
+  icon: {fileID: 21300000, guid: 1d459104671d49448b28fbf0b50a9377, type: 3}

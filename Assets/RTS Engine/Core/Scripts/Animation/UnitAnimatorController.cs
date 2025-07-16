@@ -74,7 +74,7 @@ namespace RTSEngine.Animation
 
             if (!animator.IsValid())
             {
-                logger.LogError($"[{GetType().Name}] The 'Animator' field must be assigned!");
+                // logger.LogError($"[{GetType().Name}] The 'Animator' field must be assigned!");
                 return;
             }
 

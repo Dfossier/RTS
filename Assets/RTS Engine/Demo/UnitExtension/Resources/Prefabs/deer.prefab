@@ -394,7 +394,6 @@ GameObject:
   - component: {fileID: 7604188923809534844}
   - component: {fileID: 7604300869440853534}
   - component: {fileID: 8638383079245431130}
-  - component: {fileID: 1400166652732856942}
   - component: {fileID: 6735811533087160985}
   - component: {fileID: 7582849089770859910}
   - component: {fileID: 7686239489646723646}
@@ -568,33 +567,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb986734d7c0b9c4b9288720ed50ab74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator: {fileID: 1400166652732856942}
+  animator: {fileID: 0}
   animatorOverrideController:
     fetchType: 0
     items: []
   damageAnimationEnabled: 0
   damageAnimationDuration: 0.2
---- !u!95 &1400166652732856942
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7501055689196940650}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 22100000, guid: 676dc2b6d6504a04cb4e1845d7a2d03b, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &6735811533087160985
 MonoBehaviour:
   m_ObjectHideFlags: 0
