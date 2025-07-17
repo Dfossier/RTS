@@ -675,6 +675,7 @@ MonoBehaviour:
   wanderRadius: 10
   waitTime: 3
   animalmodel: {fileID: 6555108727041330098}
+  timer_tolerance: 0
 --- !u!1 &4519316922819765361
 GameObject:
   m_ObjectHideFlags: 0

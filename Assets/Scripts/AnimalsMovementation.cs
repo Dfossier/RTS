@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using RTSEngine;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -27,7 +28,7 @@ public class AnimalsMovementation : MonoBehaviour
     void Update()
     {
         if (animator.GetInteger("states") == 2) return;
-        
+        if (agent.isOnNavMesh == false) return;
         FaceTarget();
         // Check if agent has reached destination
         if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)

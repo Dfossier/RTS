@@ -7180,6 +7180,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: deer
       objectReference: {fileID: 0}
+    - target: {fileID: 7501055689196940650, guid: 2295f3a8d132934449d01664d59c31b0,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11389,6 +11394,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: cow
+      objectReference: {fileID: 0}
+    - target: {fileID: 4519162506602980405, guid: 6566f92b25701004bb495848ceb608e1,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16187,6 +16197,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: wolf
       objectReference: {fileID: 0}
+    - target: {fileID: 8474547388112628522, guid: 515ef1ab727881e4c8d5a901007f4589,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -16487,7 +16502,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2016554393
 MonoBehaviour:
   m_ObjectHideFlags: 0

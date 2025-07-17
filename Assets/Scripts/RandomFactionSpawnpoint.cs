@@ -15,6 +15,7 @@ public class RandomFactionSpawnpoint : MonoBehaviour
     public Vector3[] NPCsSpawnpoint;
 
     [SerializeField] private float minDistanceBetweenFactions = 50f;
+    public Vector3 PlayerSpawnpoint;
 
     public void Start()
     {
@@ -36,6 +37,7 @@ public class RandomFactionSpawnpoint : MonoBehaviour
 
             // Use randomChunk position as center for navmesh location sampling
             transform.position = RandomNavmeshLocation(radius, randomChunk.transform.position);
+            PlayerSpawnpoint = transform.position;
         }
         else
         {
