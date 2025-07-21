@@ -97,7 +97,7 @@ MonoBehaviour:
   isMovementPending: 0
   startPosition: {x: 0, y: 0, z: 0}
   speed:
-    value: 13
+    value: 1
   acceleration:
     value: 999
   movementRotationEnabled: 1
@@ -520,11 +520,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb986734d7c0b9c4b9288720ed50ab74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator: {fileID: 0}
+  animator: {fileID: 6606749025718181370}
   animatorOverrideController:
     fetchType: 0
     items:
-    - {fileID: 22100000, guid: 676dc2b6d6504a04cb4e1845d7a2d03b, type: 2}
+    - {fileID: 22100000, guid: fe40d11b60879584ba96ecc101d8f702, type: 2}
   damageAnimationEnabled: 0
   damageAnimationDuration: 0.2
 --- !u!82 &4581815729086244057
@@ -825,7 +825,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   code: light_infantry_basic_attack
-  isActive: 1
+  isActive: 0
   tabID:
     x: 0
     y: 0
