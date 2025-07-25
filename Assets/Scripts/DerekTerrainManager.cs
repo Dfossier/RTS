@@ -66,6 +66,10 @@ public class DerekTerrainManager : MonoBehaviour
         foreach (Transform child in playerFaction.transform)
         {
             Vector3 randomNearbyPosition = RandomNavmeshLocation(5f, playerFaction.transform.position);
+            if (!IsNavMeshRegionBigEnough(randomNearbyPosition, 4, 5))
+            {
+                randomNearbyPosition = RandomNavmeshLocation(5f, playerFaction.transform.position);
+            }
             child.position = randomNearbyPosition;
         }
 
@@ -99,6 +103,10 @@ public class DerekTerrainManager : MonoBehaviour
             foreach (Transform child in npcFactionsList[i].transform)
             {
                 Vector3 randomNearbyPosition = RandomNavmeshLocation(5f, npcFactionsList[i].transform.position);
+                if (!IsNavMeshRegionBigEnough(randomNearbyPosition, 4, 5))
+                {
+                    randomNearbyPosition = RandomNavmeshLocation(5f, npcFactionsList[i].transform.position);
+                }
                 child.position = randomNearbyPosition;
             }
         }
@@ -115,5 +123,45 @@ public class DerekTerrainManager : MonoBehaviour
             finalPosition = hit.position;
         }
         return finalPosition;
+    }
+    
+    bool IsNavMeshRegionBigEnough(Vector3 startPoint, float step = 4f, int minSize = 20, int maxVisited = 500)
+    {
+        if (!NavMesh.SamplePosition(startPoint, out NavMeshHit startHit, 2f, NavMesh.AllAreas))
+            return false;
+
+        HashSet<Vector3> visited = new();
+        Queue<Vector3> queue = new();
+        queue.Enqueue(startHit.position);
+        visited.Add(startHit.position);
+
+        Vector3[] directions = {
+            Vector3.forward, Vector3.back, Vector3.left, Vector3.right
+        };
+
+        while (queue.Count > 0 && visited.Count < minSize && visited.Count < maxVisited)
+        {
+            Vector3 current = queue.Dequeue();
+
+            foreach (var dir in directions)
+            {
+                Vector3 neighbor = current + dir * step;
+                if (visited.Contains(neighbor)) continue;
+
+                if (!NavMesh.SamplePosition(neighbor, out NavMeshHit neighborHit, step * 0.5f, NavMesh.AllAreas))
+                    continue;
+
+                if (NavMesh.Raycast(current, neighborHit.position, out _, NavMesh.AllAreas))
+                    continue;
+
+                visited.Add(neighborHit.position);
+                queue.Enqueue(neighborHit.position);
+
+                if (visited.Count >= maxVisited)
+                    break;
+            }
+        }
+
+        return visited.Count >= minSize;
     }
 }

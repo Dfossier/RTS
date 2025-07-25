@@ -663,7 +663,8 @@ public class RiverGeneration : MonoBehaviour
 
         Vector3 segmentDirection = (centerB - centerA).normalized;
         float segmentLength = Vector3.Distance(centerA, centerB);
-        float segmentWidth = Vector3.Distance(a.leftBank, a.rightBank);
+
+        float segmentWidth = Vector3.Distance(a.leftBank, a.rightBank) * 1.5f;
 
         Vector3 segmentCenter = (centerA + centerB) / 2f;
 

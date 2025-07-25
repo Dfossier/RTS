@@ -33,16 +33,29 @@ public class RandomFactionSpawnpoint : MonoBehaviour
         // Pick a random chunk from chunkMiddle array
         if (chunkMiddle != null && chunkMiddle.Length > 0)
         {
-            GameObject randomChunk = chunkMiddle[Random.Range(0, chunkMiddle.Length)];
+            for (int i = 0; i < 30; i++)
+            {
+                GameObject randomChunk = chunkMiddle[Random.Range(0, chunkMiddle.Length)];
+                Vector3 potentialPos = RandomNavmeshLocation(radius, randomChunk.transform.position);
 
-            // Use randomChunk position as center for navmesh location sampling
-            transform.position = RandomNavmeshLocation(radius, randomChunk.transform.position);
-            PlayerSpawnpoint = transform.position;
+                if (IsNavMeshRegionBigEnough(potentialPos, 4f, 40))
+                {
+                    transform.position = potentialPos;
+                    PlayerSpawnpoint = potentialPos;
+                    return;
+                }
+                Debug.Log("this area is too small, trying again");
+            }
+
+            Debug.LogWarning("[FactionSpawn] Could not find a valid NavMesh region for the player. Using fallback.");
+            transform.position = RandomNavmeshLocation(radius, transform.position);
         }
         else
         {
             // Fallback to using this object's position if no chunks available
-            transform.position = RandomNavmeshLocation(radius, transform.position);
+            Vector3 fallback = RandomNavmeshLocation(radius, transform.position);
+            transform.position = fallback;
+            PlayerSpawnpoint = fallback;
         }
     }
 
@@ -73,6 +86,10 @@ public class RandomFactionSpawnpoint : MonoBehaviour
                     }
 
                     Vector3 potentialPos = RandomNavmeshLocation(radius, center);
+
+                    // Check region size
+                    if (!IsNavMeshRegionBigEnough(potentialPos, 4f, 20))
+                        continue;
 
                     // Check distance from player faction
                     if (Vector3.Distance(potentialPos, transform.position) < minDistanceBetweenFactions)
@@ -123,5 +140,46 @@ public class RandomFactionSpawnpoint : MonoBehaviour
         }
         return finalPosition;
     }
+
+    bool IsNavMeshRegionBigEnough(Vector3 startPoint, float step = 4f, int minSize = 20, int maxVisited = 500)
+    {
+        if (!NavMesh.SamplePosition(startPoint, out NavMeshHit startHit, 2f, NavMesh.AllAreas))
+            return false;
+
+        HashSet<Vector3> visited = new();
+        Queue<Vector3> queue = new();
+        queue.Enqueue(startHit.position);
+        visited.Add(startHit.position);
+
+        Vector3[] directions = {
+            Vector3.forward, Vector3.back, Vector3.left, Vector3.right
+        };
+
+        while (queue.Count > 0 && visited.Count < minSize && visited.Count < maxVisited)
+        {
+            Vector3 current = queue.Dequeue();
+
+            foreach (var dir in directions)
+            {
+                Vector3 neighbor = current + dir * step;
+                if (visited.Contains(neighbor)) continue;
+
+                if (!NavMesh.SamplePosition(neighbor, out NavMeshHit neighborHit, step * 0.5f, NavMesh.AllAreas))
+                    continue;
+
+                if (NavMesh.Raycast(current, neighborHit.position, out _, NavMesh.AllAreas))
+                    continue;
+
+                visited.Add(neighborHit.position);
+                queue.Enqueue(neighborHit.position);
+
+                if (visited.Count >= maxVisited)
+                    break;
+            }
+        }
+
+        return visited.Count >= minSize;
+    }
+
 
 }

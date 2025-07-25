@@ -158,6 +158,7 @@ public class TerrainGenerator : MonoBehaviour
         if (navMeshSurface != null)
         {
             navMeshSurface.BuildNavMesh();
+            // BuildFilteredNavMesh(transform, 10f);
             Debug.Log("navmesh baked!");
 
             GameObject.Find("debugRandomFactionSpawnpoint").GetComponent<RandomFactionSpawnpoint>().DefineFactionsStartingpoint();
@@ -178,11 +179,49 @@ public class TerrainGenerator : MonoBehaviour
             Debug.Log("navmesh surface is empty");
         }
         
-        yield return new WaitForSeconds(20f); // Adjust the wait time as needed
+        yield return new WaitForSeconds(200f); // Adjust the wait time as needed
         
 
     //    Instantiate(rtsEngine, sceneTransform);
     }
+
+    /* I will keep this here for future reference
+    void BuildFilteredNavMesh(Transform parent, float minRegionArea, int agentTypeID = 0, LayerMask includedLayers = default, NavMeshCollectGeometry geometry = NavMeshCollectGeometry.RenderMeshes)
+    {
+        var sources = new List<NavMeshBuildSource>();
+        NavMeshBuilder.CollectSources(
+            parent,
+            includedLayers == default ? ~0 : includedLayers,
+            geometry,
+            0,
+            new List<NavMeshBuildMarkup>(),
+            sources
+        );
+
+        var settings = NavMesh.CreateSettings();
+        settings.agentTypeID = agentTypeID;
+        settings.minRegionArea = minRegionArea;
+
+        Vector3 specificCenter = new Vector3(0f, 2.596704f, 0f);  // Use exact center from NavMeshSurface inspector
+        var bounds = new Bounds(specificCenter, new Vector3(1600.05f, 2.596704f, 1600.05f));
+
+        var data = NavMeshBuilder.BuildNavMeshData(
+            settings,
+            sources,
+            bounds,
+            Vector3.zero,
+            Quaternion.identity
+        );
+
+
+        if (data != null)
+        {
+            NavMesh.RemoveAllNavMeshData();
+            NavMesh.AddNavMeshData(data);
+        }
+    }
+    */
+
     void UpdateVisibleChunks()
     {
         HashSet<Vector2> alreadyUpdatedChunkCoords = new HashSet<Vector2>();
