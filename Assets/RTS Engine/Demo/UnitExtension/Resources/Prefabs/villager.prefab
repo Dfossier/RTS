@@ -1058,6 +1058,7 @@ GameObject:
   - component: {fileID: 1679206194469665684}
   - component: {fileID: 3091394460165979334}
   - component: {fileID: 4021130262081670003}
+  - component: {fileID: 4074481829658430919}
   m_Layer: 0
   m_Name: unit_components
   m_TagString: Untagged
@@ -2159,7 +2160,7 @@ MonoBehaviour:
   isActive: 1
   tabID:
     x: 0
-    y: 1
+    y: 2
   priority: 2
   requireIdleEntity: 0
   targetFinderData:
@@ -2308,6 +2309,51 @@ MonoBehaviour:
   dropOffOnTargetAvailable: 1
   showDropOffPosition: 1
   editorFoldout: 0
+--- !u!114 &4074481829658430919
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1619382219826126837}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5d271755461aa543a78e10b93c7bac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: villager_CarriableUnit_131
+  isActive: 1
+  tabID:
+    x: 0
+    y: 2
+  priority: 0
+  requireIdleEntity: 0
+  targetFinderData:
+    enabled: 0
+    reloadTime: 5
+    range: 10
+    idleOnly: 1
+    typePicker:
+      type: 0
+      options:
+        codes: []
+        categories: []
+      targetUnits: 1
+      targetBuildings: 1
+      targetResources: 1
+    center: {fileID: 0}
+  setTargetTaskUI: {fileID: 0}
+  orderAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  showTargetGizmo: 1
+  ejectionTaskUI: {fileID: 11400000, guid: a845524f06d96d441b27ee40198cefe8, type: 2}
+  allowDifferentFactions: 1
 --- !u!1 &1944724953110614668
 GameObject:
   m_ObjectHideFlags: 0

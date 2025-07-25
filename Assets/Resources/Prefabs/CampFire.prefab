@@ -4038,9 +4038,9 @@ MonoBehaviour:
   isActive: 1
   tabID:
     x: 0
-    y: 1
+    y: 0
   targetPicker:
-    type: 1
+    type: 0
     options:
       codes: []
       categories:
@@ -4086,7 +4086,7 @@ MonoBehaviour:
   ejectToRallypoint: 0
   ejectOnDestroy: 1
   allowMovementToExitCarrier: 0
-  callUnitsRange: 20
+  callUnitsRange: 100
   callIdleOnly: 0
   callAttackUnits: 1
   callUnitsTaskUI: {fileID: 11400000, guid: 8ab956c1ea59f1642a88bb7d4cb6ffa4, type: 2}
@@ -4180,8 +4180,8 @@ MonoBehaviour:
   isActive: 1
   tabID:
     x: 0
-    y: 1
-  period: 1
+    y: 0
+  period: 10
   resources:
   - type: {fileID: 11400000, guid: 64034668ccc0909478a1829bc32d9cb1, type: 2}
     value:
@@ -4236,8 +4236,8 @@ MonoBehaviour:
   isActive: 1
   tabID:
     x: 0
-    y: 1
-  period: 1
+    y: 0
+  period: 10
   resources:
   - type: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
     value:

@@ -38,7 +38,7 @@ public class RandomFactionSpawnpoint : MonoBehaviour
                 GameObject randomChunk = chunkMiddle[Random.Range(0, chunkMiddle.Length)];
                 Vector3 potentialPos = RandomNavmeshLocation(radius, randomChunk.transform.position);
 
-                if (IsNavMeshRegionBigEnough(potentialPos, 4f, 40))
+                if (IsNavMeshRegionBigEnough(potentialPos, 4f, 80))
                 {
                     transform.position = potentialPos;
                     PlayerSpawnpoint = potentialPos;
