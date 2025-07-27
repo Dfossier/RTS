@@ -150,7 +150,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   code: light_infantry_basic_attack
-  isActive: 0
+  isActive: 1
   tabID:
     x: 0
     y: 0
@@ -207,7 +207,7 @@ MonoBehaviour:
     engageOnAssign: 1
     engageWhenAttacked: 1
     engageOnce: 0
-    engageFriendly: 0
+    engageFriendly: 1
     autoIgnoreAngleLOS: 1
     autoIgnoreObstacleLOS: 0
   isAttackReady: 1
@@ -239,8 +239,8 @@ MonoBehaviour:
   damage:
     enabled: 1
     data:
-      unit: 13
-      building: 13
+      unit: 4
+      building: 4
       custom: []
     areaAttackEnabled: 0
     areaAttackData: []

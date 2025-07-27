@@ -534,6 +534,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3074231837501383659}
   - component: {fileID: 6641690084342178455}
+  - component: {fileID: 3212503600420508388}
   m_Layer: 0
   m_Name: building_components
   m_TagString: Untagged
@@ -583,6 +584,92 @@ MonoBehaviour:
   showWorkerPositionsGizmos: 1
   showWorkersGizmos: 1
   showWorkersFoldout: 0
+--- !u!114 &3212503600420508388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1204564384232132229}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c6ba43bf9895db4fae646c44ad26ae3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: unit_carrier
+  isActive: 1
+  tabID:
+    x: 0
+    y: 0
+  targetPicker:
+    type: 0
+    options:
+      codes: []
+      categories:
+      - military_foot_unit
+    targetUnits: 1
+    targetBuildings: 1
+  capacity: 3
+  customUnitSlots:
+    defaultAmount: 1
+    amounts: []
+  addablePositions:
+  - {fileID: 0}
+  forcedTerrainAreas:
+  - {fileID: 11400000, guid: 37d2dffab9a31a84c81d764228531ba7, type: 2}
+  addUnitAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  carrierPositions:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  freeCarrierPositionIndexes: 
+  ejectablePositions:
+  - {fileID: 0}
+  canEjectSingleUnit: 0
+  ejectSingleUnitTaskUI: {fileID: 0}
+  canEjectAllUnits: 1
+  ejectAllUnitsTaskUI: {fileID: 11400000, guid: c7557c4dbb929d74eb659d79342d0a4c,
+    type: 2}
+  ejectUnitAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  ejectToRallypoint: 0
+  ejectOnDestroy: 1
+  allowMovementToExitCarrier: 0
+  callUnitsRange: 100
+  callIdleOnly: 0
+  callAttackUnits: 1
+  callUnitsTaskUI: {fileID: 11400000, guid: 8ab956c1ea59f1642a88bb7d4cb6ffa4, type: 2}
+  callUnitsAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  freeFactionBehaviour:
+    allowFreeFaction: 0
+    allowLocalPlayer: 1
+    allowRest: 1
+    updateFactionOnOccupy: 1
+    freeOnEjection: 1
+    canBeAttackedOnFreeFaction: 0
+    canBeAttackedOnValidFaction: 1
+  showStoredUnitsGizmos: 1
+  storedUnitsFoldout: 0
 --- !u!1 &1299195525347601956
 GameObject:
   m_ObjectHideFlags: 0
