@@ -629,7 +629,6 @@ Transform:
   - {fileID: 8836340271497484934}
   - {fileID: 8555748740504474472}
   - {fileID: 4994837282625384218}
-  - {fileID: 1867800814972555585}
   - {fileID: 4446994659092255425}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -647,7 +646,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabID:
     x: 0
-    y: 1
+    y: 0
   _name: Villager
   code: villager
   category: civilian_unit,walking_unit,rtse_demo_entity
@@ -692,7 +691,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabID:
     x: 0
-    y: 3
+    y: 0
   maxHealth: 40
   initialHealth: 40
   canIncrease: 1
@@ -824,7 +823,7 @@ AudioSource:
       outWeight: 0.33333334
     m_PreInfinity: 2
     m_PostInfinity: 2
-    m_RotationOrder: 4
+    m_RotationOrder: 0
   spreadCustomCurve:
     serializedVersion: 2
     m_Curve:
@@ -839,7 +838,7 @@ AudioSource:
       outWeight: 0.33333334
     m_PreInfinity: 2
     m_PostInfinity: 2
-    m_RotationOrder: 4
+    m_RotationOrder: 0
   reverbZoneMixCustomCurve:
     serializedVersion: 2
     m_Curve:
@@ -854,7 +853,7 @@ AudioSource:
       outWeight: 0.33333334
     m_PreInfinity: 2
     m_PostInfinity: 2
-    m_RotationOrder: 4
+    m_RotationOrder: 0
 --- !u!195 &2334223070607730513
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -1058,7 +1057,6 @@ GameObject:
   - component: {fileID: 1679206194469665684}
   - component: {fileID: 3091394460165979334}
   - component: {fileID: 4021130262081670003}
-  - component: {fileID: 4074481829658430919}
   m_Layer: 0
   m_Name: unit_components
   m_TagString: Untagged
@@ -1096,7 +1094,7 @@ MonoBehaviour:
   code: builder_component
   isActive: 1
   tabID:
-    x: 0
+    x: 1
     y: 0
   priority: 0
   requireIdleEntity: 1
@@ -1371,156 +1369,6 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
     prefabObject: {fileID: 7708895771794036253, guid: 763ab939493f03c46b113374e1a166f7,
-      type: 3}
-  - taskTitle: 'Place Building: campfire'
-    taskUI: {fileID: 11400000, guid: addbebb734582a44aafdbf3cdb73197d, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 60
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 40
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 8160032789067560374, guid: cd648c6efb4fae940be84df2374ebfea,
-      type: 3}
-  - taskTitle: 'Place Building: watchtower'
-    taskUI: {fileID: 11400000, guid: 6602ffe52f2918d4184e0c2894199e09, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 60
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 40
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 8990506748476383512, guid: 86b136cdb6a5b0849b048b2cc5b5945f,
-      type: 3}
-  - taskTitle: 'Place Building: quarry'
-    taskUI: {fileID: 11400000, guid: ec84b0a7193e6a94081a7d1648e02759, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 60
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 40
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 678971575791265007, guid: 1de0c8c03799f2e479873ee938085f26,
-      type: 3}
-  - taskTitle: 'Place Building: hunting camp'
-    taskUI: {fileID: 11400000, guid: de5d5c3c7aa1dcc4795b05a8a4c57f1b, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 60
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 40
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 831296138674022046, guid: a6f102a6dc5160b4c80799fafbbad95d,
-      type: 3}
-  - taskTitle: 'Place Building: horticultural plot'
-    taskUI: {fileID: 11400000, guid: fff8de6bbe472524c9bef33f292052fd, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 60
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 40
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 7495770028921170910, guid: ede7f468241102841ab129476d47f1bb,
-      type: 3}
-  - taskTitle: 'Place Building: grain storage facility'
-    taskUI: {fileID: 11400000, guid: 95ef9877c1c0da64c9f4a2c2b9243f8d, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 60
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 40
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 1768643121196649675, guid: e8df9bb83b6e6a24f9ede18490f96bb7,
       type: 3}
   upgradeTargetCreationTasks:
   - taskTitle: 'Task 0: barracks_level2'
@@ -1825,8 +1673,7 @@ MonoBehaviour:
           _min: 1
           _max: 2
     sourceEffect:
-      input: {fileID: 1772328715493589406, guid: c03ef73df651f6e47bdb5f430efeeb1e,
-        type: 3}
+      input: {fileID: 0}
     targetEffect:
       input: {fileID: 8675553018011355173, guid: 261adf212916c144bbb6cbc9dd40fb51,
         type: 3}
@@ -1863,8 +1710,7 @@ MonoBehaviour:
           _min: 1
           _max: 2
     sourceEffect:
-      input: {fileID: 1772328715493589406, guid: 22d4332ccd8867a498d919ca036f6346,
-        type: 3}
+      input: {fileID: 0}
     targetEffect:
       input: {fileID: 8675553018011355173, guid: 261adf212916c144bbb6cbc9dd40fb51,
         type: 3}
@@ -1938,198 +1784,7 @@ MonoBehaviour:
           _min: 1
           _max: 2
     sourceEffect:
-      input: {fileID: 1772328715493589406, guid: c03ef73df651f6e47bdb5f430efeeb1e,
-        type: 3}
-    targetEffect:
-      input: {fileID: 8675553018011355173, guid: 261adf212916c144bbb6cbc9dd40fb51,
-        type: 3}
-    progressAudio:
-      fetchType: 0
-      items: []
-      cooldown:
-        enabled: 1
-        defaultValueRange:
-          _min: 1
-          _max: 2
-    loopProgressAudio: 0
-  - type: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
-    orderAudio:
-      fetchType: 0
-      items: []
-      cooldown:
-        enabled: 1
-        defaultValueRange:
-          _min: 1
-          _max: 2
-    amount: 1
-    animatorOverrideController:
-      fetchType: 0
-      items:
-      - {fileID: 22100000, guid: c80701de95efabe44b42a6f406ce4107, type: 2}
-    enableObject: {fileID: 0}
-    enableAudio:
-      fetchType: 0
-      items: []
-      cooldown:
-        enabled: 1
-        defaultValueRange:
-          _min: 1
-          _max: 2
-    sourceEffect:
-      input: {fileID: 1772328715493589406, guid: c03ef73df651f6e47bdb5f430efeeb1e,
-        type: 3}
-    targetEffect:
-      input: {fileID: 8675553018011355173, guid: 261adf212916c144bbb6cbc9dd40fb51,
-        type: 3}
-    progressAudio:
-      fetchType: 0
-      items: []
-      cooldown:
-        enabled: 1
-        defaultValueRange:
-          _min: 1
-          _max: 2
-    loopProgressAudio: 0
-  - type: {fileID: 11400000, guid: 416634a5450e1ad48a9693a0f9debded, type: 2}
-    orderAudio:
-      fetchType: 0
-      items: []
-      cooldown:
-        enabled: 1
-        defaultValueRange:
-          _min: 1
-          _max: 2
-    amount: 1
-    animatorOverrideController:
-      fetchType: 0
-      items:
-      - {fileID: 22100000, guid: c80701de95efabe44b42a6f406ce4107, type: 2}
-    enableObject: {fileID: 0}
-    enableAudio:
-      fetchType: 0
-      items: []
-      cooldown:
-        enabled: 1
-        defaultValueRange:
-          _min: 1
-          _max: 2
-    sourceEffect:
-      input: {fileID: 1772328715493589406, guid: c03ef73df651f6e47bdb5f430efeeb1e,
-        type: 3}
-    targetEffect:
-      input: {fileID: 8675553018011355173, guid: 261adf212916c144bbb6cbc9dd40fb51,
-        type: 3}
-    progressAudio:
-      fetchType: 0
-      items: []
-      cooldown:
-        enabled: 1
-        defaultValueRange:
-          _min: 1
-          _max: 2
-    loopProgressAudio: 0
-  - type: {fileID: 11400000, guid: 64034668ccc0909478a1829bc32d9cb1, type: 2}
-    orderAudio:
-      fetchType: 0
-      items: []
-      cooldown:
-        enabled: 1
-        defaultValueRange:
-          _min: 1
-          _max: 2
-    amount: 1
-    animatorOverrideController:
-      fetchType: 0
-      items:
-      - {fileID: 22100000, guid: c80701de95efabe44b42a6f406ce4107, type: 2}
-    enableObject: {fileID: 0}
-    enableAudio:
-      fetchType: 0
-      items: []
-      cooldown:
-        enabled: 1
-        defaultValueRange:
-          _min: 1
-          _max: 2
-    sourceEffect:
-      input: {fileID: 1772328715493589406, guid: c03ef73df651f6e47bdb5f430efeeb1e,
-        type: 3}
-    targetEffect:
-      input: {fileID: 8675553018011355173, guid: 261adf212916c144bbb6cbc9dd40fb51,
-        type: 3}
-    progressAudio:
-      fetchType: 0
-      items: []
-      cooldown:
-        enabled: 1
-        defaultValueRange:
-          _min: 1
-          _max: 2
-    loopProgressAudio: 0
-  - type: {fileID: 11400000, guid: a388932a9a066e642a1796e10d1a4da4, type: 2}
-    orderAudio:
-      fetchType: 0
-      items: []
-      cooldown:
-        enabled: 1
-        defaultValueRange:
-          _min: 1
-          _max: 2
-    amount: 1
-    animatorOverrideController:
-      fetchType: 0
-      items:
-      - {fileID: 22100000, guid: c80701de95efabe44b42a6f406ce4107, type: 2}
-    enableObject: {fileID: 0}
-    enableAudio:
-      fetchType: 0
-      items: []
-      cooldown:
-        enabled: 1
-        defaultValueRange:
-          _min: 1
-          _max: 2
-    sourceEffect:
-      input: {fileID: 1772328715493589406, guid: c03ef73df651f6e47bdb5f430efeeb1e,
-        type: 3}
-    targetEffect:
-      input: {fileID: 8675553018011355173, guid: 261adf212916c144bbb6cbc9dd40fb51,
-        type: 3}
-    progressAudio:
-      fetchType: 0
-      items: []
-      cooldown:
-        enabled: 1
-        defaultValueRange:
-          _min: 1
-          _max: 2
-    loopProgressAudio: 0
-  - type: {fileID: 11400000, guid: 4d4e87d30dcf4234a9bb2512fd824432, type: 2}
-    orderAudio:
-      fetchType: 0
-      items: []
-      cooldown:
-        enabled: 1
-        defaultValueRange:
-          _min: 1
-          _max: 2
-    amount: 1
-    animatorOverrideController:
-      fetchType: 0
-      items:
-      - {fileID: 22100000, guid: c80701de95efabe44b42a6f406ce4107, type: 2}
-    enableObject: {fileID: 0}
-    enableAudio:
-      fetchType: 0
-      items: []
-      cooldown:
-        enabled: 1
-        defaultValueRange:
-          _min: 1
-          _max: 2
-    sourceEffect:
-      input: {fileID: 1772328715493589406, guid: c03ef73df651f6e47bdb5f430efeeb1e,
-        type: 3}
+      input: {fileID: 0}
     targetEffect:
       input: {fileID: 8675553018011355173, guid: 261adf212916c144bbb6cbc9dd40fb51,
         type: 3}
@@ -2160,7 +1815,7 @@ MonoBehaviour:
   isActive: 1
   tabID:
     x: 0
-    y: 2
+    y: 1
   priority: 2
   requireIdleEntity: 0
   targetFinderData:
@@ -2309,51 +1964,6 @@ MonoBehaviour:
   dropOffOnTargetAvailable: 1
   showDropOffPosition: 1
   editorFoldout: 0
---- !u!114 &4074481829658430919
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1619382219826126837}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5d271755461aa543a78e10b93c7bac1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  code: villager_CarriableUnit_131
-  isActive: 1
-  tabID:
-    x: 0
-    y: 2
-  priority: 0
-  requireIdleEntity: 0
-  targetFinderData:
-    enabled: 0
-    reloadTime: 5
-    range: 10
-    idleOnly: 1
-    typePicker:
-      type: 0
-      options:
-        codes: []
-        categories: []
-      targetUnits: 1
-      targetBuildings: 1
-      targetResources: 1
-    center: {fileID: 0}
-  setTargetTaskUI: {fileID: 0}
-  orderAudio:
-    fetchType: 0
-    items: []
-    cooldown:
-      enabled: 1
-      defaultValueRange:
-        _min: 1
-        _max: 2
-  showTargetGizmo: 1
-  ejectionTaskUI: {fileID: 11400000, guid: a845524f06d96d441b27ee40198cefe8, type: 2}
-  allowDifferentFactions: 1
 --- !u!1 &1944724953110614668
 GameObject:
   m_ObjectHideFlags: 0
@@ -2485,7 +2095,7 @@ MonoBehaviour:
   code: movement_component
   isActive: 1
   tabID:
-    x: 0
+    x: 1
     y: 0
   priority: -1
   requireIdleEntity: 1
@@ -2918,252 +2528,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &6688842701066575767
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1867800814972555585}
-  - component: {fileID: 5872536595840781221}
-  m_Layer: 0
-  m_Name: unit_attack
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1867800814972555585
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6688842701066575767}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 4476943404885354}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5872536595840781221
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6688842701066575767}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d50f81b2617c564f8e5ed1cdaa4cb4f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  code: heavy_infantry_basic_attack
-  isActive: 1
-  tabID:
-    x: 0
-    y: 0
-  priority: 0
-  requireIdleEntity: 1
-  targetFinderData:
-    enabled: 1
-    reloadTime: 1
-    range: 8
-    idleOnly: 1
-    typePicker:
-      type: 0
-      options:
-        codes: []
-        categories: []
-      targetUnits: 1
-      targetBuildings: 1
-      targetResources: 1
-    center: {fileID: 0}
-  setTargetTaskUI: {fileID: 11400000, guid: 1acf9aaa95010f543a53822d6a4be155, type: 2}
-  orderAudio:
-    fetchType: 0
-    items:
-    - {fileID: 8300000, guid: 275896620fcd4c34d9d07af50a5179ed, type: 3}
-    cooldown:
-      enabled: 1
-      defaultValueRange:
-        _min: 1
-        _max: 2
-  showTargetGizmo: 1
-  progressEnabledAudio:
-    fetchType: 0
-    items: []
-    cooldown:
-      enabled: 0
-      defaultValueRange:
-        _min: 1
-        _max: 2
-  progressOverrideController:
-    fetchType: 0
-    items:
-    - {fileID: 22100000, guid: 4ceb82b131b388842b245992e31b4f62, type: 2}
-  progressDuration: 0.2
-  progressMaxDistance: 1
-  inProgressObject: {fileID: 0}
-  sourceEffect:
-    input: {fileID: 0}
-  targetEffect:
-    input: {fileID: 0}
-  showProgressGizmo: 1
-  isLocked: 0
-  revert: 1
-  engageOptions:
-    engageOnAssign: 1
-    engageWhenAttacked: 1
-    engageOnce: 0
-    engageFriendly: 0
-    autoIgnoreAngleLOS: 1
-    autoIgnoreObstacleLOS: 0
-  isAttackReady: 1
-  targetPicker:
-    type: 0
-    options:
-      codes: []
-      categories: []
-    targetUnits: 1
-    targetBuildings: 1
-  requireTarget: 1
-  allowMultipleTerrainAttacks: 0
-  terrainAttackActive: 0
-  reloadDuration: 0.5
-  delayTriggerEnabled: 0
-  attackIterationTriggered: 0
-  cooldown:
-    enabled: 0
-    defaultValueRange:
-      _min: 1
-      _max: 2
-  launcher:
-    useAttackObjects: 0
-    launchType: 1
-    sources: []
-    attackIterationLaunchEvent:
-      m_PersistentCalls:
-        m_Calls: []
-  damage:
-    enabled: 1
-    data:
-      unit: 17
-      building: 17
-      custom: []
-    areaAttackEnabled: 0
-    areaAttackData: []
-    dotEnabled: 0
-    dotData:
-      infinite: 0
-      cycleDuration: 0
-      cycles: 0
-    hitEffects:
-    - picker:
-        type: 1
-        options:
-          codes: []
-          categories:
-          - walking_unit
-        targetUnits: 1
-        targetBuildings: 1
-      effect:
-        input: {fileID: 95265350099109528, guid: 684350d9a94d0a04fb8981d62efa5ab9,
-          type: 3}
-      faceSource: 0
-      audio:
-        fetchType: 0
-        items: []
-        cooldown:
-          enabled: 0
-          defaultValueRange:
-            _min: 1
-            _max: 2
-    resetDamageDealt: 0
-    damageDealtEvent:
-      m_PersistentCalls:
-        m_Calls: []
-  weapon:
-    toggableObjects: []
-    toggleType: 0
-    updateRotation: 1
-    rotateInRangeOnly: 0
-    freezeRotationX: 0
-    freezeRotationY: 0
-    freezeRotationZ: 0
-    smoothRotation: 1
-    rotationDamping: 2
-    forceIdleRotation: 1
-    idleAngles: {x: 0, y: 0, z: 0}
-  lineOfSight:
-    enabled: 1
-    useWeaponObject: 0
-    angle: 40
-    obstacleLayerMask:
-      serializedVersion: 2
-      m_Bits: 512
-    ignoreRotationX: 0
-    ignoreRotationY: 1
-    ignoreRotationZ: 0
-  nextLaunchLogEnabled: 0
-  setTargetCooldownUIData:
-    icon: {fileID: 0}
-    color: {r: 1, g: 0, b: 0, a: 1}
-  switchTaskUI: {fileID: 0}
-  switchAttackCooldownUIData:
-    icon: {fileID: 0}
-    color: {r: 1, g: 0, b: 0, a: 1}
-  cancelTaskUI: {fileID: 0}
-  attackCompleteAudio:
-    fetchType: 0
-    items:
-    - {fileID: 8300000, guid: 06530f5ea6060b0458bc0dab819cde7c, type: 3}
-    cooldown:
-      enabled: 0
-      defaultValueRange:
-        _min: 1
-        _max: 2
-  attackRangeEnterEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  targetLockedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  completeEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  showAttackIterationGizmos: 1
-  formation:
-    unitStoppingDistance:
-      _min: 0
-      _max: 1
-    unitEnableDistance: 0.5
-    buildingStoppingDistance:
-      _min: 0
-      _max: 1.5
-    noTargetStoppingDistance:
-      _min: 5
-      _max: 10
-    enforceMinStoppingDistance: 0
-    minStoppingDistance: 0.5
-    stopMovementOnTargetInRange: 0
-    updateMvtDistance: 2
-    movementFormation:
-      lastType: {fileID: 11400000, guid: 5abc4719d7c003f4ab588b6e8649f63e, type: 2}
-      type: {fileID: 11400000, guid: 5abc4719d7c003f4ab588b6e8649f63e, type: 2}
-      properties:
-        floatProperties:
-        - name: spacing
-          value: 0.2
-        intProperties: []
-  moveOnAttack: 0
-  followDistance: 9
-  attackMoveEnabled: 1
-  attackMoveTaskUI: {fileID: 0}
 --- !u!1 &7886617400432174112
 GameObject:
   m_ObjectHideFlags: 0
