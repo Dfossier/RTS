@@ -5712,6 +5712,8 @@ MonoBehaviour:
     type: 3}
   wolfPrefab: {fileID: 8474547388112628522, guid: 515ef1ab727881e4c8d5a901007f4589,
     type: 3}
+  horsePrefab: {fileID: 7501055689196940650, guid: 06f18348ef0f4114ea9da78b636a999a,
+    type: 3}
   initialSpawnCount: 10
   maxAnimalCount: 20
   spawnInterval: 12

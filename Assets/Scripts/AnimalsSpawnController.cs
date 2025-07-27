@@ -12,6 +12,7 @@ public class AnimalsSpawnController : MonoBehaviour
     public GameObject cowPrefab;
     public GameObject deerPrefab;
     public GameObject wolfPrefab;
+    public GameObject horsePrefab;
 
     [Header("Spawn Settings")]
     public int initialSpawnCount = 10;
@@ -21,6 +22,7 @@ public class AnimalsSpawnController : MonoBehaviour
     private List<GameObject> cows = new List<GameObject>();
     private List<GameObject> deers = new List<GameObject>();
     private List<GameObject> wolves = new List<GameObject>();
+    private List<GameObject> horses = new List<GameObject>();
 
     private float spawnTimer = 0f;
 
@@ -45,6 +47,7 @@ public class AnimalsSpawnController : MonoBehaviour
             TrySpawnAnimal(cowPrefab, cows);
             TrySpawnAnimal(deerPrefab, deers);
             TrySpawnAnimal(wolfPrefab, wolves);
+            TrySpawnAnimal(horsePrefab, horses);
             spawnTimer = 0f;
         }
 
@@ -60,6 +63,7 @@ public class AnimalsSpawnController : MonoBehaviour
                 cows.Add(SpawnAnimal(cowPrefab));
                 deers.Add(SpawnAnimal(deerPrefab));
                 wolves.Add(SpawnAnimal(wolfPrefab));
+                horses.Add(SpawnAnimal(horsePrefab));
             }
         }
     }
@@ -119,5 +123,6 @@ public class AnimalsSpawnController : MonoBehaviour
         cows.RemoveAll(item => item == null);
         deers.RemoveAll(item => item == null);
         wolves.RemoveAll(item => item == null);
+        horses.RemoveAll(item => item == null);
     }
 }
