@@ -168,6 +168,7 @@ public class TerrainGenerator : MonoBehaviour
             copperoreGeneration.GenerateStones();
             tinoreGeneration.GenerateStones();
             wheatGeneration.GenerateStones();
+            gameObject.GetComponent<GrassGeneration>().GenerateGrassOnNavMesh();
             // GameObject.Find("sceneLoader").GetComponent<DerekTerrainManager>().InitializeDerekTerrain();
             if (startGameAfterTerrainGen)
             {
