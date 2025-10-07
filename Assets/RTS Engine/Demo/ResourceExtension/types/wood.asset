@@ -17,7 +17,8 @@ MonoBehaviour:
   description: Required to construct buildings and build certain units. Can be collected
     through cutting tree resources.
   hasCapacity: 0
+  capacityType: 1
   startingAmount:
-    amount: 400
+    amount: 0
     capacity: 0
   icon: {fileID: 21300000, guid: 9584cda30faa5d943889d2f6fef1b596, type: 3}

@@ -19,6 +19,6 @@ MonoBehaviour:
   hasCapacity: 0
   capacityType: 1
   startingAmount:
-    amount: 200
+    amount: 0
     capacity: 0
   icon: {fileID: 21300000, guid: ed37ba41e7d80344189dbad210498e23, type: 3}
