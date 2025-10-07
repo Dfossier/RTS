@@ -430,7 +430,7 @@ MonoBehaviour:
   code: movement_component
   isActive: 1
   tabID:
-    x: 0
+    x: 1
     y: 0
   priority: 0
   requireIdleEntity: 1
@@ -935,7 +935,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabID:
     x: 0
-    y: 0
+    y: 2
   maxHealth: 70
   initialHealth: 70
   canIncrease: 1
@@ -958,7 +958,12 @@ MonoBehaviour:
         _max: 2
   destroyObject: 1
   destroyObjectDelay: 0
-  destroyAward: []
+  destroyAward:
+  - type: {fileID: 11400000, guid: a388932a9a066e642a1796e10d1a4da4, type: 2}
+    value:
+      amount: 3
+      capacity: 3
+    nonConsumable: 0
   destructionAudio:
     fetchType: 0
     items: []
@@ -969,7 +974,16 @@ MonoBehaviour:
         _max: 2
   destructionEffect:
     input: {fileID: 3108631485874978096, guid: 96481e0c8da96a54ea2ca46e13acbd32, type: 3}
-  states: []
+  states:
+  - usePercentage: 0
+    healthRange:
+      _min: 0
+      _max: 0
+    showChildObjects: []
+    hideChildObjects: []
+    triggerEvent:
+      m_PersistentCalls:
+        m_Calls: []
   destroyState:
     usePercentage: 0
     healthRange:

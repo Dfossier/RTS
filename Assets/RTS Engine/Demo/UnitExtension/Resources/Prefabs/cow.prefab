@@ -471,7 +471,12 @@ MonoBehaviour:
         _max: 2
   destroyObject: 1
   destroyObjectDelay: 4
-  destroyAward: []
+  destroyAward:
+  - type: {fileID: 11400000, guid: a388932a9a066e642a1796e10d1a4da4, type: 2}
+    value:
+      amount: 3
+      capacity: 3
+    nonConsumable: 0
   destructionAudio:
     fetchType: 0
     items: []
@@ -880,7 +885,7 @@ MonoBehaviour:
   revert: 1
   engageOptions:
     engageOnAssign: 1
-    engageWhenAttacked: 1
+    engageWhenAttacked: 0
     engageOnce: 0
     engageFriendly: 0
     autoIgnoreAngleLOS: 1
