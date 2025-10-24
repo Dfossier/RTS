@@ -19,7 +19,7 @@ public class RandomFactionSpawnpoint : MonoBehaviour
 
     public void Start()
     {
-        Random.InitState((int)System.DateTime.Now.Ticks);
+        // Random.InitState((int)System.DateTime.Now.Ticks);
     }
 
     public void DefineFactionsStartingpoint()
