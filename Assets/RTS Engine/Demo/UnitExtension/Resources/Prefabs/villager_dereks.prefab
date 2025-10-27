@@ -1600,7 +1600,7 @@ MonoBehaviour:
   tabID:
     x: 1
     y: 1
-  priority: 5
+  priority: 2
   requireIdleEntity: 1
   targetFinderData:
     enabled: 1
@@ -1696,7 +1696,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 50
     animatorOverrideController:
       fetchType: 0
       items:
@@ -1735,7 +1735,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 50
     animatorOverrideController:
       fetchType: 0
       items:
@@ -1810,7 +1810,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 50
     animatorOverrideController:
       fetchType: 0
       items:
@@ -1848,7 +1848,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 50
     animatorOverrideController:
       fetchType: 0
       items:
@@ -1886,7 +1886,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 50
     animatorOverrideController:
       fetchType: 0
       items:
@@ -1923,7 +1923,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 50
     animatorOverrideController:
       fetchType: 0
       items:
@@ -2160,8 +2160,8 @@ MonoBehaviour:
   isActive: 1
   tabID:
     x: 0
-    y: 2
-  priority: 2
+    y: 0
+  priority: 3
   requireIdleEntity: 0
   targetFinderData:
     enabled: 0

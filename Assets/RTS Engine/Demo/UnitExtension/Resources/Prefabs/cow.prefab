@@ -872,7 +872,7 @@ MonoBehaviour:
   progressOverrideController:
     fetchType: 0
     items:
-    - {fileID: 22100000, guid: eb1404e2c46fe65459b1dd715592fb51, type: 2}
+    - {fileID: 22100000, guid: fe40d11b60879584ba96ecc101d8f702, type: 2}
   progressDuration: 0.4
   progressMaxDistance: 1
   inProgressObject: {fileID: 0}
