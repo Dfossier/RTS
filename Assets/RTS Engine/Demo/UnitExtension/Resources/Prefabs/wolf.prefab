@@ -1165,6 +1165,7 @@ MonoBehaviour:
   waitTime: 3
   animalmodel: {fileID: 5776281660018318925}
   timer_tolerance: 0
+  unitAttack: {fileID: 983017295978237737}
 --- !u!1001 &5777851576688817451
 PrefabInstance:
   m_ObjectHideFlags: 0

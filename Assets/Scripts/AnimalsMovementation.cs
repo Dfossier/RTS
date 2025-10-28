@@ -24,6 +24,7 @@ public class AnimalsMovementation : MonoBehaviour
     private UnitMovement unitMovement;
     private Unit animalEntity;
     private MovementManager movementManager;
+    public UnitAttack unitAttack;
 
     void Start()
     {
@@ -55,7 +56,13 @@ public class AnimalsMovementation : MonoBehaviour
 
     void Update()
     {
-        
+        // return if animal is attacking, rts engine will handle it and move it around
+        if (unitAttack != null)
+        {
+            if (unitAttack.HasTarget)
+                return;
+        }
+
         if (timer > 8)
         {
             RandomPosRTSIntegration();
