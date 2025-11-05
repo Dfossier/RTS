@@ -29,4 +29,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GameScene.unity
     guid: 4846d85ee94254b468bd99f802709a71
+  - enabled: 1
+    path: Assets/Derek Scene 2024.unity
+    guid: f63d2c0a636cb934c892e613adf747be
   m_configObjects: {}
