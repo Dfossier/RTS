@@ -1097,7 +1097,7 @@ MonoBehaviour:
   isActive: 1
   tabID:
     x: 0
-    y: 0
+    y: 2
   priority: 0
   requireIdleEntity: 1
   targetFinderData:
@@ -1598,9 +1598,9 @@ MonoBehaviour:
   code: collector_component
   isActive: 1
   tabID:
-    x: 1
-    y: 1
-  priority: 2
+    x: 0
+    y: 0
+  priority: 5
   requireIdleEntity: 1
   targetFinderData:
     enabled: 1
@@ -1773,7 +1773,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 0
     animatorOverrideController:
       fetchType: 0
       items:
@@ -2161,8 +2161,8 @@ MonoBehaviour:
   isActive: 1
   tabID:
     x: 0
-    y: 0
-  priority: 3
+    y: 1
+  priority: 2
   requireIdleEntity: 0
   targetFinderData:
     enabled: 0
@@ -2326,7 +2326,7 @@ MonoBehaviour:
   isActive: 1
   tabID:
     x: 0
-    y: 2
+    y: 0
   priority: 0
   requireIdleEntity: 0
   targetFinderData:

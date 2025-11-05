@@ -2134,7 +2134,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabID:
     x: 0
-    y: 0
+    y: 1
   _name: Camp Fire
   code: camp_fire
   category: civilian_building,rtse_demo_entity
@@ -3965,7 +3965,7 @@ MonoBehaviour:
   allowedResourceTypes:
     type: 0
     options: []
-  requireDropOffPosition: 1
+  requireDropOffPosition: 0
   dropOffPosition: {fileID: 8157320888526325184}
   forcedTerrainAreas:
   - {fileID: 11400000, guid: 37d2dffab9a31a84c81d764228531ba7, type: 2}
