@@ -552,7 +552,7 @@ MonoBehaviour:
   treeMask:
     serializedVersion: 2
     m_Bits: 0
-  stoneParent: {fileID: 0}
+  stoneParent: {fileID: 414421799}
 --- !u!1 &469703659
 GameObject:
   m_ObjectHideFlags: 0
@@ -702,7 +702,7 @@ MonoBehaviour:
   treeMask:
     serializedVersion: 2
     m_Bits: 0
-  stoneParent: {fileID: 0}
+  stoneParent: {fileID: 526905637}
 --- !u!1 &610690589
 GameObject:
   m_ObjectHideFlags: 0
@@ -1830,7 +1830,7 @@ MonoBehaviour:
   treeMask:
     serializedVersion: 2
     m_Bits: 0
-  stoneParent: {fileID: 0}
+  stoneParent: {fileID: 1548876733}
 --- !u!1 &1555498443
 GameObject:
   m_ObjectHideFlags: 0
@@ -1887,7 +1887,7 @@ MonoBehaviour:
   treeMask:
     serializedVersion: 2
     m_Bits: 0
-  stoneParent: {fileID: 0}
+  stoneParent: {fileID: 1555498444}
 --- !u!1 &1781284852
 GameObject:
   m_ObjectHideFlags: 0
