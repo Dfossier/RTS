@@ -25,6 +25,8 @@ public class TreeGeneration : MonoBehaviour
     private float neighborRadius;
     private List<Vector3> placedTreePositions = new List<Vector3>(); // Track tree positions
 
+    [SerializeField] private LayerMask terrainMask;
+
     public void GenerateTrees(int tilesWidth, int verticesWidth, TerrainData terrainData)
     {
         HeightMap[,] heightMaps = new HeightMap[tilesWidth, tilesWidth];
@@ -78,7 +80,7 @@ public class TreeGeneration : MonoBehaviour
                     float height = treeHeightMap.heightvalues[tileCoordinate.coordinateXIndex, tileCoordinate.coordinateZIndex];
                     float heat = treeHeightMap.heat[tileCoordinate.coordinateXIndex, tileCoordinate.coordinateZIndex];
 
-                    if (height >= waterHeight && heat <= treeHeat)
+                    if (height >= waterHeight && heat >= treeHeat)
                     {
                         // Original intended tree position
                         Vector3 originalPosition = new Vector3(
