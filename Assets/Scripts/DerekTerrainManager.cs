@@ -50,13 +50,19 @@ public class DerekTerrainManager : MonoBehaviour
         // reparent all children
         foreach (Transform child in children)
         {
-            // Debug.Log("Reparenting " + child.name);
-            // child.SetParent(rtsReEntities.transform, true);
+            Debug.Log("Reparenting " + child.name);
+            child.SetParent(rtsReEntities.transform, true);
+            Destroy(DerekReEntities);
+            /*
+            var childIndex = 0;
             foreach (Transform child2 in child)
             {
+                childIndex++;
                 Debug.Log("Reparenting " + child2.name);
                 child2.SetParent(rtsReEntities.transform, true);
+                child2.name = child2.name + childIndex.ToString();
             }
+            */
         }
     }
 
