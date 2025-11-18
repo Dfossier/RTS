@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: abf428716af4f8f438cb34c5c761450b, type: 3}
-  m_Name: create_building_horticulturalplot
+  m_Name: create_building_horticulturalplot_harvestable
   m_EditorClassIdentifier: 
   data:
-    code: create_building_horticulturalplot
-    enabled: 0
+    code: create_building_horticulturalplot_harvestable
+    enabled: 1
     displayType: 2
     icon: {fileID: 21300000, guid: 3bdab9633cf502044bfe0f31278f5105, type: 3}
     panelCategory: 0

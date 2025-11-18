@@ -1096,8 +1096,8 @@ MonoBehaviour:
   code: builder_component
   isActive: 1
   tabID:
-    x: 0
-    y: 0
+    x: 1
+    y: 1
   priority: 0
   requireIdleEntity: 1
   targetFinderData:
@@ -1165,7 +1165,7 @@ MonoBehaviour:
     requiredResources:
     - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
       value:
-        amount: 50
+        amount: 0
         capacity: 0
       nonConsumable: 0
     factionEntityRequirements: []
@@ -1480,12 +1480,12 @@ MonoBehaviour:
     requiredResources:
     - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
       value:
-        amount: 60
+        amount: 0
         capacity: 0
       nonConsumable: 0
     - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
       value:
-        amount: 40
+        amount: 0
         capacity: 0
       nonConsumable: 0
     factionEntityRequirements: []
@@ -1521,6 +1521,31 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
     prefabObject: {fileID: 1768643121196649675, guid: e8df9bb83b6e6a24f9ede18490f96bb7,
+      type: 3}
+  - taskTitle: 'Place Building: grain storage facility'
+    taskUI: {fileID: 11400000, guid: fa42fa7bd09c7d7489028809d01ab0e9, type: 2}
+    allowedFactionTypes:
+      type: 0
+      options: []
+    requiredResources:
+    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
+      value:
+        amount: 0
+        capacity: 0
+      nonConsumable: 0
+    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
+      value:
+        amount: 0
+        capacity: 0
+      nonConsumable: 0
+    factionEntityRequirements: []
+    missingRequirementData:
+      icon: {fileID: 0}
+      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
+    onComplete:
+      m_PersistentCalls:
+        m_Calls: []
+    prefabObject: {fileID: 1450904872675106399, guid: 7cf08bd38d163fb4689896ba83271d71,
       type: 3}
   upgradeTargetCreationTasks:
   - taskTitle: 'Task 0: barracks_level2'
