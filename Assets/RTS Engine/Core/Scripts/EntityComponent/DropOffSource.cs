@@ -354,25 +354,6 @@ namespace RTSEngine.EntityComponent
                 (resourceType.IsValid()
                     && dropOffResourcesDic.ContainsKey(resourceType)
                     && collectedResources[resourceType] >= dropOffResourcesDic[resourceType].amount);
-            bool isTotalFull = collectedResources.Values.Sum() >= totalMaxCapacity;
-            bool isSpecificFull = resourceType.IsValid()
-                && dropOffResourcesDic.ContainsKey(resourceType)
-                && collectedResources[resourceType] >= dropOffResourcesDic[resourceType].amount;
-
-            if (isTotalFull || isSpecificFull)
-            {
-                // LOGGING BLOCK: This will tell you exactly what triggered the 'full' status!
-                logger.LogWarning($"[{Unit.Code} - DropOffSource] MAX CAPACITY REACHED CHECK FAILED!", this);
-                logger.LogWarning($"Total Full: {isTotalFull} (Current: {collectedResources.Values.Sum()} vs Max: {totalMaxCapacity})", this);
-
-                if (resourceType.IsValid())
-                {
-                    logger.LogWarning($"Specific Full: {isSpecificFull} (Resource: {resourceType.DisplayName}, Current: {collectedResources[resourceType]} vs Max: {dropOffResourcesDic[resourceType].amount})", this);
-                }
-                // END LOGGING BLOCK
-            }
-
-            return isTotalFull || isSpecificFull;
         }
 
         // Forcing drop off means that if the collector has at least one resource unit of any type, it will be dropped off.

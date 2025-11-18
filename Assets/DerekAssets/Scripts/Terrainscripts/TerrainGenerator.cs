@@ -180,7 +180,7 @@ public class TerrainGenerator : MonoBehaviour
             Debug.Log("navmesh surface is empty");
         }
         
-        yield return new WaitForSeconds(800f); // Adjust the wait time as needed
+        yield return new WaitForSeconds(200f); // Adjust the wait time as needed
         
 
     //    Instantiate(rtsEngine, sceneTransform);
