@@ -3638,9 +3638,17 @@ MonoBehaviour:
         value:
           amount: 200
           capacity: 0
+      - type: {fileID: 11400000, guid: 6a155955f3fb44a4c9619755a7e0c78c, type: 2}
+        value:
+          amount: 0
+          capacity: 0
     - name: More
       resources:
       - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
+        value:
+          amount: 400
+          capacity: 0
+      - type: {fileID: 11400000, guid: 6a155955f3fb44a4c9619755a7e0c78c, type: 2}
         value:
           amount: 400
           capacity: 0

@@ -1059,6 +1059,7 @@ GameObject:
   - component: {fileID: 3091394460165979334}
   - component: {fileID: 4021130262081670003}
   - component: {fileID: 4074481829658430919}
+  - component: {fileID: 2258046672643151985}
   m_Layer: 0
   m_Name: unit_components
   m_TagString: Untagged
@@ -1096,8 +1097,8 @@ MonoBehaviour:
   code: builder_component
   isActive: 1
   tabID:
-    x: 1
-    y: 1
+    x: 0
+    y: 0
   priority: 0
   requireIdleEntity: 1
   targetFinderData:
@@ -2380,6 +2381,80 @@ MonoBehaviour:
   showTargetGizmo: 1
   ejectionTaskUI: {fileID: 11400000, guid: a845524f06d96d441b27ee40198cefe8, type: 2}
   allowDifferentFactions: 1
+--- !u!114 &2258046672643151985
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1619382219826126837}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ccfabfc78b515ef42acffb5a7c9fce67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: villagerdereks_Converter_227
+  isActive: 1
+  tabID:
+    x: 0
+    y: 0
+  priority: 0
+  requireIdleEntity: 1
+  targetFinderData:
+    enabled: 0
+    reloadTime: 5
+    range: 50
+    idleOnly: 0
+    typePicker:
+      type: 0
+      options:
+        codes: []
+        categories: []
+      targetUnits: 1
+      targetBuildings: 0
+      targetResources: 0
+    center: {fileID: 0}
+  setTargetTaskUI: {fileID: 11400000, guid: 85a6dc1310807364c99757ec09533759, type: 2}
+  orderAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  showTargetGizmo: 1
+  progressEnabledAudio:
+    fetchType: 0
+    items:
+    - {fileID: 0}
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  progressOverrideController:
+    fetchType: 0
+    items:
+    - {fileID: 22100000, guid: 0616708b7620cda478098106e43105d1, type: 2}
+  progressDuration: 4
+  progressMaxDistance: 10
+  inProgressObject: {fileID: 0}
+  sourceEffect:
+    input: {fileID: 0}
+  targetEffect:
+    input: {fileID: 0}
+  showProgressGizmo: 1
+  stoppingDistance: 5
+  targetPicker:
+    type: 0
+    options:
+      codes: []
+      categories: []
+    targetUnits: 1
+    targetBuildings: 0
+    targetExternal: 1
+    targetStored: 1
 --- !u!1 &1944724953110614668
 GameObject:
   m_ObjectHideFlags: 0

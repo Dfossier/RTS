@@ -52,7 +52,7 @@ public class DerekTerrainManager : MonoBehaviour
         {
             Debug.Log("Reparenting " + child.name);
             child.SetParent(rtsReEntities.transform, true);
-            Destroy(DerekReEntities);
+            // Destroy(DerekReEntities.gameObject);
             /*
             var childIndex = 0;
             foreach (Transform child2 in child)
