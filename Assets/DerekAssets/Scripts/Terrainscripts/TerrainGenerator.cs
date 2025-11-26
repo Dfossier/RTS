@@ -1,16 +1,18 @@
-﻿using UnityEngine.AI;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using System.Collections;
 using Unity.AI.Navigation;
 using UnityEngine.SceneManagement;
 using RTSEngine.Utilities;
+using RTSEngine.Entities;
+using RTSEngine.ResourceExtension;
 
 public class TerrainGenerator : MonoBehaviour
 {
     public bool startGameAfterTerrainGen = true;
     [SerializeField]
     public GameObject rtsEngine;
+    public GameObject RtsEngineInstance = null;
     [SerializeField]
     public Transform sceneTransform;
 
@@ -77,14 +79,34 @@ public class TerrainGenerator : MonoBehaviour
     Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
     List<TerrainChunk> visibleTerrainChunks = new List<TerrainChunk>();
 
-    public Unity.AI.Navigation.NavMeshSurface navMeshSurface;
+    public NavMeshSurface navMeshSurface;
+
+    public Transform ResourcesParent = null;
+
+    /// <summary>
+    /// Presorting Resources based on distance from player start positions
+    /// </summary>
+    /// 
+
+    public List<GameObject> GeneratedTrees = new();
+    public List<GameObject> GeneratedStone = new();
+    public List<GameObject> GeneratedCopper = new();
+    public List<GameObject> GeneratedTin = new();
+    public List<GameObject> GeneratedWheat = new();
+
+    public List<Resource> PreLoadResources = new();
+    public List<Resource> PostLoadResources = new();
+
+    public bool ResourcesSorted = false;
+
+    public RandomFactionSpawnpoint RandomFactionSpawnpoint = null;
 
     private void Awake()
     {
         Static_HeightMapSettings = heightMapSettings;
-        
-        if(navMeshSurface == null)
-            navMeshSurface = gameObject.GetComponent<Unity.AI.Navigation.NavMeshSurface>();
+
+        if (navMeshSurface == null && gameObject.TryGetComponent(out NavMeshSurface nav))
+            navMeshSurface = nav;
     }
 
     void Start()
@@ -96,7 +118,9 @@ public class TerrainGenerator : MonoBehaviour
         float maxViewDst = detailLevels[detailLevels.Length - 1].visibleDstThreshold;
         meshWorldSize = meshSettings.meshWorldSize;
         chunksVisibleInViewDst = Mathf.RoundToInt(maxViewDst / meshWorldSize);
-        
+
+        if (RandomFactionSpawnpoint == null && GameObject.Find("debugRandomFactionSpawnpoint").TryGetComponent(out RandomFactionSpawnpoint factionSpawnpoints))
+            RandomFactionSpawnpoint = factionSpawnpoints;
 
         // calculate the number of vertices of the tile in each axis using its mesh
         //Vector3[] tileMeshVertices = tileSize;
@@ -135,7 +159,11 @@ public class TerrainGenerator : MonoBehaviour
             //this is where the chunks are all finally loaded so we will now populate the biome mesh with rivers, resources, and starting positions
             riverGeneration.GenerateRivers(this.levelWidthInTiles, tileWidthInVertices, this.terrainData);
             UpdateVisibleChunks();
-            treeGeneration.GenerateTrees(this.levelWidthInTiles, this.tileWidthInVertices, this.terrainData);
+            if(treeGeneration != null)
+            {
+                treeGeneration.SetTerrainGenerator(this);
+                treeGeneration.GenerateTrees(this.levelWidthInTiles, this.tileWidthInVertices, this.terrainData);
+            }
             chunkCount = 0;
             Vector3 seaPlane2Position = new Vector3(123, (float)1.4, 123);
             var seaPlaneInst = Instantiate(seaPlane2, seaPlane2Position, Quaternion.identity);
@@ -157,17 +185,201 @@ public class TerrainGenerator : MonoBehaviour
         // Wait for the NavMesh to be built or a specific delay
         if (navMeshSurface != null)
         {
+
+            if(stoneGeneration != null)
+                stoneGeneration.SetGenerator(this);
+            if(copperoreGeneration != null)
+                copperoreGeneration.SetGenerator(this);
+            if(tinoreGeneration != null)
+                tinoreGeneration.SetGenerator(this);
+            if(wheatGeneration != null)
+                wheatGeneration.SetGenerator(this);
+
             navMeshSurface.BuildNavMesh();
             // BuildFilteredNavMesh(transform, 10f);
-            Debug.Log("navmesh baked!");
+            Debug.Log($"navmesh baked!");
 
-            GameObject.Find("debugRandomFactionSpawnpoint").GetComponent<RandomFactionSpawnpoint>().DefineFactionsStartingpoint();
+            RandomFactionSpawnpoint.DefineFactionsStartingpoint();
 
             // generate resources that depends on the navmesh baked
             stoneGeneration.GenerateStones();
             copperoreGeneration.GenerateStones();
             tinoreGeneration.GenerateStones();
             wheatGeneration.GenerateStones();
+
+            List<Vector3> spawns = new();
+            if(RandomFactionSpawnpoint.PlayerSpawnpoint != Vector3.zero)
+            {
+                spawns.Add(RandomFactionSpawnpoint.PlayerSpawnpoint);
+            }
+            if(RandomFactionSpawnpoint.NPCsSpawnpoint.Length > 0)
+            {
+                foreach(var npc in RandomFactionSpawnpoint.NPCsSpawnpoint)
+                {
+                    spawns.Add(npc);
+                }
+            }
+            if(spawns.Count > 0)
+            {
+                Debug.Log($"Counted {spawns.Count} total start positions");
+            }
+
+            if(GeneratedTrees.Count > 0)
+            {
+                foreach( var tree in GeneratedTrees)
+                {
+                    if (tree != null && spawns.Count > 0)
+                    {
+                        for(int i = 0; i < spawns.Count; i++)
+                        {
+                            float distanceFromSpawn = Vector3.Distance(spawns[i],tree.transform.position);
+                            if(distanceFromSpawn < 55)
+                            {
+                                Debug.Log($"Tree pre loading: {tree.name}");
+                                if(tree.TryGetComponent(out Resource rss))
+                                {
+                                    if(!PreLoadResources.Contains(rss))
+                                        PreLoadResources.Add(rss);
+                                }
+                            }
+                            else
+                            {
+                                Debug.Log($"Tree post loading: {tree.name}");
+                                if (tree.TryGetComponent(out Resource rss))
+                                {
+                                    if (!PostLoadResources.Contains(rss))
+                                        PostLoadResources.Add(rss);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (GeneratedStone.Count > 0)
+            {
+                foreach (var stone in GeneratedStone)
+                {
+                    if(stone != null && spawns.Count > 0)
+                    {
+                        for (int i = 0; i < spawns.Count; i++)
+                        {
+                            float distanceFromSpawn = Vector3.Distance(spawns[i], stone.transform.position);
+                            if (distanceFromSpawn < 55)
+                            {
+                                Debug.Log($"Stone pre loading: {stone.name}");
+                                if (stone.TryGetComponent(out Resource rss))
+                                {
+                                    PreLoadResources.Add(rss);
+                                }
+                            }
+                            else
+                            {
+                                Debug.Log($"Stone post loading: {stone.name}");
+                                if (stone.TryGetComponent(out Resource rss))
+                                {
+                                    PostLoadResources.Add(rss);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (GeneratedCopper.Count > 0)
+            {
+                foreach (var copper in GeneratedCopper)
+                {
+                    if (copper != null && spawns.Count > 0)
+                    {
+                        for (int i = 0; i < spawns.Count; i++)
+                        {
+                            float distanceFromSpawn = Vector3.Distance(spawns[i], copper.transform.position);
+                            if (distanceFromSpawn < 55)
+                            {
+                                Debug.Log($"Copper pre loading: {copper.name}");
+                                if (copper.TryGetComponent(out Resource rss))
+                                {
+                                    PreLoadResources.Add(rss);
+                                }
+                            }
+                            else
+                            {
+                                Debug.Log($"Copper post loading: {copper.name}");
+                                if (copper.TryGetComponent(out Resource rss))
+                                {
+                                    PostLoadResources.Add(rss);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (GeneratedWheat.Count > 0)
+            {
+                foreach (var wheat in GeneratedWheat)
+                {
+                    if (wheat != null && spawns.Count > 0)
+                    {
+                        for (int i = 0; i < spawns.Count; i++)
+                        {
+                            float distanceFromSpawn = Vector3.Distance(spawns[i], wheat.transform.position);
+                            if (distanceFromSpawn < 55)
+                            {
+                                Debug.Log($"Wheat pre loading: {wheat.name}");
+                                if (wheat.TryGetComponent(out Resource rss))
+                                {
+                                    PreLoadResources.Add(rss);
+                                }
+                            }
+                            else
+                            {
+                                Debug.Log($"Wheat post loading: {wheat.name}");
+                                if (wheat.TryGetComponent(out Resource rss))
+                                {
+                                    PostLoadResources.Add(rss);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (GeneratedTin.Count > 0)
+            {
+                foreach (var tin in GeneratedTin)
+                {
+                    if (tin != null && spawns.Count > 0)
+                    {
+                        for (int i = 0; i < spawns.Count; i++)
+                        {
+                            float distanceFromSpawn = Vector3.Distance(spawns[i], tin.transform.position);
+                            if (distanceFromSpawn < 55)
+                            {
+                                Debug.Log($"Tin pre loading: {tin.name}");
+                                if (tin.TryGetComponent(out Resource rss))
+                                {
+                                    PreLoadResources.Add(rss);
+                                }
+                            }
+                            else
+                            {
+                                Debug.Log($"Tin post loading: {tin.name}");
+                                if (tin.TryGetComponent(out Resource rss))
+                                {
+                                    PostLoadResources.Add(rss);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (PreLoadResources.Count > 0)
+            {
+                foreach (var resource in PreLoadResources)
+                {
+                    if (resource != null)
+                        resource.transform.SetParent(ResourcesParent);
+                }
+            }
             gameObject.GetComponent<GrassGeneration>().GenerateGrassOnNavMesh();
             // GameObject.Find("sceneLoader").GetComponent<DerekTerrainManager>().InitializeDerekTerrain();
             if (startGameAfterTerrainGen)
@@ -183,7 +395,11 @@ public class TerrainGenerator : MonoBehaviour
         yield return new WaitForSeconds(200f); // Adjust the wait time as needed
         
 
-    //    Instantiate(rtsEngine, sceneTransform);
+        RtsEngineInstance = Instantiate(rtsEngine, sceneTransform);
+        if(RtsEngineInstance != null)
+        {
+            RtsEngineInstance.GetComponentInChildren<ResourceManager>().TGenerator = this;
+        }
     }
 
     /* I will keep this here for future reference

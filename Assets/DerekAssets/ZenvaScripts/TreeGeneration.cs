@@ -8,6 +8,8 @@ public class TreeGeneration : MonoBehaviour
     //[SerializeField]
     //private Object trackingSphere;
 
+    public TerrainGenerator TerrainGenerator { get; private set; }
+
     [SerializeField] public GameObject[] treeList;
     public int treeCount = 0;
 
@@ -26,6 +28,11 @@ public class TreeGeneration : MonoBehaviour
     private List<Vector3> placedTreePositions = new List<Vector3>(); // Track tree positions
 
     [SerializeField] private LayerMask terrainMask;
+
+    public void SetTerrainGenerator(TerrainGenerator terrainGenerator)
+    {
+        TerrainGenerator = terrainGenerator;
+    }
 
     public void GenerateTrees(int tilesWidth, int verticesWidth, TerrainData terrainData)
     {
@@ -116,6 +123,9 @@ public class TreeGeneration : MonoBehaviour
 
                         GameObject tree = Instantiate(treePrefab[biomeIndex], finalPosition, Quaternion.identity);
                         tree.transform.parent = treeList[biomeIndex].transform;
+
+                        if(!TerrainGenerator.GeneratedTrees.Contains(tree))
+                            TerrainGenerator.GeneratedTrees.Add(tree);
 
                         float randomScale = Random.Range(0.2f, 1f);
                         tree.transform.localScale = new Vector3(randomScale, randomScale, randomScale);

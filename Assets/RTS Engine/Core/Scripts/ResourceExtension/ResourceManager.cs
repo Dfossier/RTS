@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System;
-
+using System.Threading;
 using UnityEngine;
 
 using RTSEngine.Entities;
@@ -9,12 +9,15 @@ using RTSEngine.Event;
 using RTSEngine.Game;
 using RTSEngine.Determinism;
 using RTSEngine.Logging;
+using System.Collections;
+using System.Threading.Tasks;
 
 namespace RTSEngine.ResourceExtension
 {
     public class ResourceManager : MonoBehaviour, IResourceManager
     {
         #region Attributes
+        public TerrainGenerator TGenerator = null;
         [SerializeField, EnforceType(sameScene: true), Tooltip("All pre-placed resources must be placed as a children of this transform so that they are fetched when the game starts.")]
         private Transform resourcesParent = null;
 
@@ -28,6 +31,19 @@ namespace RTSEngine.ResourceExtension
 
         private List<IResource> allResources = new List<IResource>();
         public IEnumerable<IResource> AllResources => allResources.ToArray();
+
+        public int TotalResourcesCount = 0;
+        public int ResourcesCounter = 0;
+        public int BatchedDevisor = 0;
+
+        public List<List<IResource>> BatchedResources = new();
+
+        public float DelayLoadTimer = 6f;
+        public bool StartDelayTimer = false;
+        public bool PostLoadingComplete = false;
+        private float _timer = 0.0f;
+
+        CancellationTokenSource CancellationToken = null;
 
         // Game services
         protected IGameManager gameMgr { private set; get; }
@@ -45,12 +61,16 @@ namespace RTSEngine.ResourceExtension
             this.globalEvent = gameMgr.GetService<IGlobalEventPublisher>();
             this.logger = gameMgr.GetService<IGameLoggingService>();
 
+            if(TGenerator == null)
+                TGenerator = FindFirstObjectByType<TerrainGenerator>();
+
             if(!mapResourceTypes.IsValid())
             {
                 logger.LogWarning($"[{GetType().Name}] Some of the defined entries in the 'Map Resources' field are not valid! The invalid ones will not be used in this game!");
             }
 
             allResources = new List<IResource>();
+
 
             this.gameMgr.GameBuilt += HandleGameBuilt;
             this.gameMgr.GameStartRunning += HandleGameStartRunning;
@@ -66,6 +86,100 @@ namespace RTSEngine.ResourceExtension
 
             globalEvent.ResourceInitiatedGlobal -= HandleResourceInitiatedGlobal;
             globalEvent.ResourceDeadGlobal -= HandleResourceDeadGlobal;
+        }
+
+        async void LoadResourcesTask()
+        {
+            CancellationToken = new CancellationTokenSource();
+            // 
+            try
+            {
+                if(TGenerator.PostLoadResources.Count > 0)
+                {
+                    List<Resource> temp = TGenerator.PostLoadResources.GetRange(0, 20);
+                    TGenerator.PostLoadResources.RemoveRange(0, 20);
+
+                    if(temp.Count > 0)
+                    {
+                        foreach(Resource resource in temp)
+                        {
+                            resource.gameObject.transform.parent = null;
+                            resource.Init(
+                            gameMgr,
+                            new InitResourceParameters
+                            {
+                                free = true,
+                                factionID = -1,
+                                setInitialHealth = false,
+                            });
+                        }
+                    }
+
+                }
+                Debug.Log($"left: {TGenerator.PostLoadResources.Count}");
+                await System.Threading.Tasks.Task.Delay(500, CancellationToken.Token);
+            }
+            catch
+            {
+                // task cancelled tas
+                return;
+            }
+            finally
+            {
+                CancellationToken.Dispose();
+                CancellationToken = null;
+            }
+            // tas ended
+        }
+        
+
+        public IEnumerator PostLoadingResources(List<Resource> remainingRSS, float delay)
+        {
+            int current = 0;
+            int breaker = 100;
+            while (remainingRSS.Count > 0)
+            {
+                current++;
+                breaker++;
+                if(breaker < 100 && breaker <= remainingRSS.Count)
+                {
+                    Debug.Log($"{breaker}");
+                    Resource resource = remainingRSS[breaker];
+                    remainingRSS.RemoveAt(breaker);
+                    resource.gameObject.transform.parent = null;
+                    resource.Init(
+                    gameMgr,
+                    new InitResourceParameters
+                    {
+                        free = true,
+                        factionID = -1,
+                        setInitialHealth = false,
+                    });
+                }
+                else if (breaker == 100)
+                {
+                    yield return new WaitForSeconds(delay);
+                    breaker = 0;
+                }
+            }
+        }
+
+        public void Update()
+        {
+            if(StartDelayTimer && !PostLoadingComplete)
+            {
+                _timer += Time.deltaTime;
+                if(_timer > DelayLoadTimer)
+                {
+                    if (TGenerator.PostLoadResources.Count > 0)
+                    {
+                        Debug.Log($"{TGenerator.PostLoadResources.Count}");
+                        //StartCoroutine(PostLoadingResources(TGenerator.PostLoadResources, 5f));
+                    }
+                    PostLoadingComplete = true;
+                    _timer = 0;
+                }
+            }
         }
 
         private void HandleGameBuilt(IGameManager source, EventArgs args)
@@ -90,13 +204,26 @@ namespace RTSEngine.ResourceExtension
 
         private void HandleGameStartRunning(IGameManager source, EventArgs args)
         {
+            if(resourcesParent.childCount > 0)
+            {
+                foreach(Transform child in resourcesParent)
+                {
+                    if(child.childCount > 0)
+                    {
+                        TotalResourcesCount += child.childCount;
+
+                    }
+                }
+            }
+
             foreach (IResource resource in resourcesParent.GetComponentsInChildren<IResource>(true))
             {
-                if(gameMgr.ClearDefaultEntities)
+                if (gameMgr.ClearDefaultEntities)
                 {
-                    UnityEngine.Object.DestroyImmediate(resource.gameObject);
+                    DestroyImmediate(resource.gameObject);
                     continue;
                 }
+                ResourcesCounter++;
 
                 // When a resource is successfully initiated, it will trigger an event that will add it to the allResources list.
                 resource.Init(
@@ -105,12 +232,25 @@ namespace RTSEngine.ResourceExtension
                     {
                         free = true,
                         factionID = -1,
-
                         setInitialHealth = false,
                     });
             }
+
+            if(ResourcesCounter > 0)
+                Debug.Log($"Counted Resources: {ResourcesCounter}");
+
+            StartDelayTimer = true;
+
         }
         #endregion
+
+        public void LoadRemainingResources()
+        {
+            if(TGenerator != null && TGenerator.PostLoadResources.Count > 0)
+            {
+
+            }
+        }
 
         #region Handling Events: Monitoring Resources
         private void HandleResourceInitiatedGlobal(IResource resource, EventArgs e)

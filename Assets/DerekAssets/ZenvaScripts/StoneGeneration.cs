@@ -5,6 +5,7 @@ using UnityEngine.AI;
 
 public class StoneGeneration : MonoBehaviour
 {
+    public TerrainGenerator TerrainGenerator {  get; private set; }
     [SerializeField] private GameObject[] stonePrefabs;
     [SerializeField] private int maxStones = 100;
     [SerializeField] private Vector3 spawnAreaCenter;
@@ -15,6 +16,13 @@ public class StoneGeneration : MonoBehaviour
     [SerializeField] private Transform stoneParent;
 
     private int stoneCount = 0;
+
+    public GeneratedType GenerationType = GeneratedType.None;
+
+    public void SetGenerator(TerrainGenerator generator)
+    {
+        TerrainGenerator = generator;
+    }
 
     public void GenerateStones()
     {
@@ -71,24 +79,28 @@ public class StoneGeneration : MonoBehaviour
                                 // Example biome filtering
                                 if (name.Contains("stone"))
                                 {
+                                    GenerationType = GeneratedType.Stone;
                                     // Stones: spawn mostly in hot places
                                     if (heat < 0.1f) //&& moisture < 0.7f)
                                         canSpawn = true;
                                 }
                                 else if (name.Contains("wheat"))
                                 {
+                                    GenerationType = GeneratedType.Wheat;
                                     // Wheat: likes moderate heat and higher moisture
                                     if (heat > 0.3f && moisture > 0.35f)
                                         canSpawn = true;
                                 }
                                 else if (name.Contains("copperore"))
                                 {
+                                    GenerationType = GeneratedType.Copper;
                                     // Copper ore: prefers hotter, drier areas
                                     if (heat < 0.2f && moisture < 0.4f)
                                         canSpawn = true;
                                 }
                                 else if (name.Contains("tinore"))
                                 {
+                                    GenerationType = GeneratedType.Tin;
                                     // Tin ore: prefers cooler, damp regions
                                     if (heat > 0.5f)
                                         canSpawn = true;
@@ -106,7 +118,27 @@ public class StoneGeneration : MonoBehaviour
                     GameObject prefab = stonePrefabs[Random.Range(0, stonePrefabs.Length)];
                     GameObject stone = Instantiate(prefab, spawnPos, Quaternion.identity);
 
-                    stone.transform.SetParent(this.transform, true);
+                    //stone.transform.SetParent(this.transform, true);
+
+                    switch (GenerationType)
+                    {
+                        case GeneratedType.Stone:
+                            if(!TerrainGenerator.GeneratedStone.Contains(stone))
+                                TerrainGenerator.GeneratedStone.Add(stone);
+                            break;
+                        case GeneratedType.Copper:
+                            if (!TerrainGenerator.GeneratedCopper.Contains(stone))
+                                TerrainGenerator.GeneratedCopper.Add(stone);
+                            break;
+                        case GeneratedType.Tin:
+                            if (!TerrainGenerator.GeneratedTin.Contains(stone))
+                                TerrainGenerator.GeneratedTin.Add(stone);
+                            break;
+                        case GeneratedType.Wheat:
+                            if (!TerrainGenerator.GeneratedWheat.Contains(stone))
+                                TerrainGenerator.GeneratedWheat.Add(stone);
+                            break;
+                    }
 
                     float randomScale = Random.Range(0.2f, 1f);
                     if (prefab.name != "wheat")
@@ -114,8 +146,8 @@ public class StoneGeneration : MonoBehaviour
 
                     stone.transform.Rotate(0, Random.Range(0f, 360f), 0f, Space.Self);
 
-                    if (stoneParent != null)
-                        stone.transform.parent = stoneParent;
+                    //if (stoneParent != null)
+                        //stone.transform.parent = stoneParent;
 
                     stoneCount++;
                 }
@@ -155,4 +187,13 @@ public class StoneGeneration : MonoBehaviour
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireCube(spawnAreaCenter, spawnAreaSize);
     }
+}
+public enum GeneratedType
+{
+    None,
+    Tree,
+    Stone,
+    Tin,
+    Copper,
+    Wheat
 }

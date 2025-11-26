@@ -168,13 +168,16 @@ namespace RTSEngine.Movement
         // The logic below allows to launch a coroutine that keeps resetting the marker position until the velocity hits 0 and the unit fully stops
         private void HandleMovementStart(IMovementComponent sender, MovementEventArgs args)
         {
-            if (markerResetPositionCoroutine != null)
+            if (markerResetPositionCoroutine != null && sender.Entity.IsValid())
                 StopCoroutine(markerResetPositionCoroutine);
         }
 
         private void HandleMovementStop(IMovementComponent sender, EventArgs args)
         {
-            markerResetPositionCoroutine = StartCoroutine(MarkerResetPositionCoroutine());
+            if (sender.Entity.IsValid())
+            {
+                markerResetPositionCoroutine = StartCoroutine(MarkerResetPositionCoroutine());
+            }
         }
 
         private Coroutine markerResetPositionCoroutine;

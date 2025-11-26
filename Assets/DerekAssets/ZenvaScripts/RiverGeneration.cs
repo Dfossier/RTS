@@ -5,6 +5,7 @@ using UnityEngine.AI;
 
 public class RiverGeneration : MonoBehaviour
 {
+    public TerrainGenerator TerrainGenerator { get; private set; }
     [SerializeField]
     public GameObject riverList;
 
@@ -50,6 +51,11 @@ public class RiverGeneration : MonoBehaviour
     int levelWidth;
     int levelDepth;
     int verticesPerLine;
+
+    public void SetTerrainGenerator(TerrainGenerator generator)
+    {
+        TerrainGenerator = generator;
+    }
 
     public void GenerateRivers(int tilesWidth, int verticesWidth, TerrainData terrainData)
     {
