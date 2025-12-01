@@ -48,7 +48,7 @@ MonoBehaviour:
   code: movement_component
   isActive: 1
   tabID:
-    x: 1
+    x: 0
     y: 0
   priority: 0
   requireIdleEntity: 1
@@ -325,7 +325,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   selectionColliders:
   - {fileID: 5943371113120393191}
-  isActive: 1
+  isActive: 0
   selectOwnerOnly: 0
   selectionAudio:
     fetchType: 0
@@ -351,6 +351,7 @@ GameObject:
   - component: {fileID: 4324953334511111009}
   - component: {fileID: 855475600490157270}
   - component: {fileID: 852368720263623622}
+  - component: {fileID: 1352784428781047891}
   m_Layer: 0
   m_Name: cow
   m_TagString: Untagged
@@ -395,7 +396,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabID:
     x: 0
-    y: 0
+    y: 1
   _name: Cow
   code: cow
   category: free_entity,rtse_demo_entity
@@ -681,6 +682,22 @@ MonoBehaviour:
   waitTime: 3
   animalmodel: {fileID: 6555108727041330098}
   timer_tolerance: 0
+  unitAttack: {fileID: 0}
+  ownerTarget: {fileID: 0}
+  followDistance: 3
+--- !u!114 &1352784428781047891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4519162506602980405}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6ff6a16d4b94c9438fc6be6c9a54158, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Owner: {fileID: 0}
 --- !u!1 &4519316922819765361
 GameObject:
   m_ObjectHideFlags: 0

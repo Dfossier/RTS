@@ -25,6 +25,11 @@ public class AnimalsMovementation : MonoBehaviour
     private Unit animalEntity;
     private MovementManager movementManager;
     public UnitAttack unitAttack;
+    
+    // owner/tammed stuff
+    public Transform ownerTarget;
+    public float followDistance = 3f; // how close it stays to owner
+
 
     void Start()
     {
@@ -63,6 +68,13 @@ public class AnimalsMovementation : MonoBehaviour
                 return;
         }
 
+        // if owner exists, follow around owner
+        if (ownerTarget != null)
+        {
+            FollowOwner();
+            return;
+        }
+
         if (timer > 8)
         {
             RandomPosRTSIntegration();
@@ -78,4 +90,31 @@ public class AnimalsMovementation : MonoBehaviour
         Debug.Log("state changed");
         Debug.Log(animator.GetInteger("states"));
     }
+
+    void FollowOwner()
+    {
+        float distance = Vector3.Distance(transform.position, ownerTarget.position);
+
+        // Don't follow too close (prevents jitter)
+        if (distance < followDistance)
+            return;
+
+        Vector3 targetPos;
+        
+        // Ask RTS Engine for a valid movable position near the owner
+        if (movementManager.GetRandomMovablePosition(animalEntity, ownerTarget.position, 1f, out targetPos, playerCommand: false))
+        {
+            var moveData = new SetPathDestinationData<IEntity>
+            {
+                source = animalEntity,
+                destination = targetPos,
+                offsetRadius = 0f,
+                target = null,
+                mvtSource = new MovementSource { playerCommand = false }
+            };
+
+            movementManager.SetPathDestinationLocal(moveData);
+        }
+    }
+
 }

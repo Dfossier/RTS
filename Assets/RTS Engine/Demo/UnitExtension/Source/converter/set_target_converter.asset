@@ -21,9 +21,9 @@ MonoBehaviour:
     forceSlot: 0
     slotIndex: 0
     tooltipEnabled: 1
-    description: convert a target
+    description: tame an animal, requires 50 of food resource
     hideTooltipOnClick: 1
-    reloadTime: 0.1
+    reloadTime: 1
     cursor:
       icon: {fileID: 21300000, guid: 93f32e06c57754a42a58c77f39468c0d, type: 3}
       texture: {fileID: 2800000, guid: 93f32e06c57754a42a58c77f39468c0d, type: 3}

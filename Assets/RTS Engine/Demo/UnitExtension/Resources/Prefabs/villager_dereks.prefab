@@ -2396,8 +2396,8 @@ MonoBehaviour:
   code: villagerdereks_Converter_227
   isActive: 1
   tabID:
-    x: 0
-    y: 0
+    x: 1
+    y: 1
   priority: 0
   requireIdleEntity: 1
   targetFinderData:
