@@ -75,7 +75,7 @@ public class AnimalsMovementation : MonoBehaviour
     {
         animator.SetInteger("states", 2);
         agent.speed = 0;
-        Debug.Log("state changed");
-        Debug.Log(animator.GetInteger("states"));
+        //Debug.Log("state changed");
+        //Debug.Log(animator.GetInteger("states"));
     }
 }

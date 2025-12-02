@@ -2,7 +2,9 @@
 using System.Linq;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
+
 
 using RTSEngine.Entities;
 using RTSEngine.Event;
@@ -10,7 +12,6 @@ using RTSEngine.Game;
 using RTSEngine.Determinism;
 using RTSEngine.Logging;
 using System.Collections;
-using System.Threading.Tasks;
 
 namespace RTSEngine.ResourceExtension
 {
@@ -96,28 +97,39 @@ namespace RTSEngine.ResourceExtension
             {
                 if(TGenerator.PostLoadResources.Count > 0)
                 {
-                    List<Resource> temp = TGenerator.PostLoadResources.GetRange(0, 20);
-                    TGenerator.PostLoadResources.RemoveRange(0, 20);
+                    int split = TGenerator.PostLoadResources.Count / 20;
 
-                    if(temp.Count > 0)
+                    int counter = 0;
+
+                    while(counter < split)
                     {
-                        foreach(Resource resource in temp)
+                        counter++;
+                        List<Resource> temp = TGenerator.PostLoadResources.GetRange(0, 19);
+                        TGenerator.PostLoadResources.RemoveRange(0, 19);
+
+                        if(temp.Count > 0)
                         {
-                            resource.gameObject.transform.parent = null;
-                            resource.Init(
-                            gameMgr,
-                            new InitResourceParameters
+                            foreach (Resource resource in temp)
                             {
-                                free = true,
-                                factionID = -1,
-                                setInitialHealth = false,
-                            });
+                                if (resource != null && !resource.IsInitialized)
+                                {
+                                    resource.gameObject.transform.parent = null;
+                                    resource.Init(
+                                    gameMgr,
+                                    new InitResourceParameters
+                                    {
+                                        free = true,
+                                        factionID = -1,
+                                        setInitialHealth = false,
+                                    });
+                                }
+                            }
                         }
+                        Debug.Log($"Spawned Groups: {counter} _ left: {TGenerator.PostLoadResources.Count}");
+                        await System.Threading.Tasks.Task.Delay(5);
                     }
 
                 }
-                Debug.Log($"left: {TGenerator.PostLoadResources.Count}");
-                await System.Threading.Tasks.Task.Delay(500, CancellationToken.Token);
             }
             catch
             {
@@ -133,17 +145,18 @@ namespace RTSEngine.ResourceExtension
         }
         
 
-        public IEnumerator PostLoadingResources(List<Resource> remainingRSS, float delay)
+        async System.Threading.Tasks.Task PostLoadingResources(List<Resource> remainingRSS, float delay)
         {
             int current = 0;
-            int breaker = 100;
+            int breaker = 20;
             while (remainingRSS.Count > 0)
             {
                 current++;
                 breaker++;
-                if(breaker < 100 && breaker <= remainingRSS.Count)
+                Debug.Log($"{breaker}");
+
+                if (breaker < 20 && breaker <= remainingRSS.Count)
                 {
-                    Debug.Log($"{breaker}");
                     Resource resource = remainingRSS[breaker];
                     remainingRSS.RemoveAt(breaker);
                     resource.gameObject.transform.parent = null;
@@ -156,9 +169,9 @@ namespace RTSEngine.ResourceExtension
                         setInitialHealth = false,
                     });
                 }
-                else if (breaker == 100)
+                else if (breaker == 20)
                 {
-                    yield return new WaitForSeconds(delay);
+                    await System.Threading.Tasks.Task.Yield();
                     breaker = 0;
                 }
             }
@@ -171,14 +184,23 @@ namespace RTSEngine.ResourceExtension
                 _timer += Time.deltaTime;
                 if(_timer > DelayLoadTimer)
                 {
-                    if (TGenerator.PostLoadResources.Count > 0)
-                    {
-                        Debug.Log($"{TGenerator.PostLoadResources.Count}");
-                        //StartCoroutine(PostLoadingResources(TGenerator.PostLoadResources, 5f));
-                    }
+                    Debug.Log($"starting resources post load");
+                    //StartPostLoad();
+                    LoadResourcesTask();
                     PostLoadingComplete = true;
                     _timer = 0;
                 }
+            }
+        }
+
+        public async void StartPostLoad()
+        {
+            if (TGenerator.PostLoadResources.Count > 0)
+            {
+                
+                Debug.Log($"Total Resources for Post Load {TGenerator.PostLoadResources.Count}");
+                //StartCoroutine(PostLoadingResources(TGenerator.PostLoadResources, 5f));
+                await PostLoadingResources(TGenerator.PostLoadResources, 5f);
             }
         }
 
@@ -244,13 +266,6 @@ namespace RTSEngine.ResourceExtension
         }
         #endregion
 
-        public void LoadRemainingResources()
-        {
-            if(TGenerator != null && TGenerator.PostLoadResources.Count > 0)
-            {
-
-            }
-        }
 
         #region Handling Events: Monitoring Resources
         private void HandleResourceInitiatedGlobal(IResource resource, EventArgs e)

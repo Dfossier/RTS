@@ -9,6 +9,11 @@ using RTSEngine.ResourceExtension;
 
 public class TerrainGenerator : MonoBehaviour
 {
+    public bool IsDebug = false;
+    public bool PreDebug = false;
+    public bool PostDebug = false;
+
+
     public bool startGameAfterTerrainGen = true;
     [SerializeField]
     public GameObject rtsEngine;
@@ -142,7 +147,8 @@ public class TerrainGenerator : MonoBehaviour
             {
                 chunk.UpdateCollisionMesh();
                 //this shouldn't run on fixed frame of reference
-                Debug.Log("We are updating the collision Mesh");
+                if(IsDebug)
+                    Debug.Log("We are updating the collision Mesh");
             }
 
         }
@@ -197,7 +203,8 @@ public class TerrainGenerator : MonoBehaviour
 
             navMeshSurface.BuildNavMesh();
             // BuildFilteredNavMesh(transform, 10f);
-            Debug.Log($"navmesh baked!");
+            if (IsDebug)
+                Debug.Log($"navmesh baked!");
 
             RandomFactionSpawnpoint.DefineFactionsStartingpoint();
 
@@ -221,7 +228,8 @@ public class TerrainGenerator : MonoBehaviour
             }
             if(spawns.Count > 0)
             {
-                Debug.Log($"Counted {spawns.Count} total start positions");
+                if (IsDebug)
+                    Debug.Log($"Counted {spawns.Count} total start positions");
             }
 
             if(GeneratedTrees.Count > 0)
@@ -235,8 +243,9 @@ public class TerrainGenerator : MonoBehaviour
                             float distanceFromSpawn = Vector3.Distance(spawns[i],tree.transform.position);
                             if(distanceFromSpawn < 55)
                             {
-                                Debug.Log($"Tree pre loading: {tree.name}");
-                                if(tree.TryGetComponent(out Resource rss))
+                                if (IsDebug && PreDebug)
+                                    Debug.Log($"Tree pre loading: {tree.name}");
+                                if (tree.TryGetComponent(out Resource rss))
                                 {
                                     if(!PreLoadResources.Contains(rss))
                                         PreLoadResources.Add(rss);
@@ -244,7 +253,8 @@ public class TerrainGenerator : MonoBehaviour
                             }
                             else
                             {
-                                Debug.Log($"Tree post loading: {tree.name}");
+                                if (IsDebug && PostDebug)
+                                    Debug.Log($"Tree post loading: {tree.name}");
                                 if (tree.TryGetComponent(out Resource rss))
                                 {
                                     if (!PostLoadResources.Contains(rss))
@@ -266,7 +276,8 @@ public class TerrainGenerator : MonoBehaviour
                             float distanceFromSpawn = Vector3.Distance(spawns[i], stone.transform.position);
                             if (distanceFromSpawn < 55)
                             {
-                                Debug.Log($"Stone pre loading: {stone.name}");
+                                if (IsDebug && PreDebug)
+                                    Debug.Log($"Stone pre loading: {stone.name}");
                                 if (stone.TryGetComponent(out Resource rss))
                                 {
                                     PreLoadResources.Add(rss);
@@ -274,7 +285,8 @@ public class TerrainGenerator : MonoBehaviour
                             }
                             else
                             {
-                                Debug.Log($"Stone post loading: {stone.name}");
+                                if (IsDebug && PostDebug)
+                                    Debug.Log($"Stone post loading: {stone.name}");
                                 if (stone.TryGetComponent(out Resource rss))
                                 {
                                     PostLoadResources.Add(rss);
@@ -295,7 +307,8 @@ public class TerrainGenerator : MonoBehaviour
                             float distanceFromSpawn = Vector3.Distance(spawns[i], copper.transform.position);
                             if (distanceFromSpawn < 55)
                             {
-                                Debug.Log($"Copper pre loading: {copper.name}");
+                                if (IsDebug && PreDebug)
+                                    Debug.Log($"Copper pre loading: {copper.name}");
                                 if (copper.TryGetComponent(out Resource rss))
                                 {
                                     PreLoadResources.Add(rss);
@@ -303,7 +316,8 @@ public class TerrainGenerator : MonoBehaviour
                             }
                             else
                             {
-                                Debug.Log($"Copper post loading: {copper.name}");
+                                if (IsDebug && PostDebug)
+                                    Debug.Log($"Copper post loading: {copper.name}");
                                 if (copper.TryGetComponent(out Resource rss))
                                 {
                                     PostLoadResources.Add(rss);
@@ -324,7 +338,8 @@ public class TerrainGenerator : MonoBehaviour
                             float distanceFromSpawn = Vector3.Distance(spawns[i], wheat.transform.position);
                             if (distanceFromSpawn < 55)
                             {
-                                Debug.Log($"Wheat pre loading: {wheat.name}");
+                                if (IsDebug && PreDebug)
+                                    Debug.Log($"Wheat pre loading: {wheat.name}");
                                 if (wheat.TryGetComponent(out Resource rss))
                                 {
                                     PreLoadResources.Add(rss);
@@ -332,7 +347,8 @@ public class TerrainGenerator : MonoBehaviour
                             }
                             else
                             {
-                                Debug.Log($"Wheat post loading: {wheat.name}");
+                                if (IsDebug && PostDebug)
+                                    Debug.Log($"Wheat post loading: {wheat.name}");
                                 if (wheat.TryGetComponent(out Resource rss))
                                 {
                                     PostLoadResources.Add(rss);
@@ -353,7 +369,8 @@ public class TerrainGenerator : MonoBehaviour
                             float distanceFromSpawn = Vector3.Distance(spawns[i], tin.transform.position);
                             if (distanceFromSpawn < 55)
                             {
-                                Debug.Log($"Tin pre loading: {tin.name}");
+                                if (IsDebug && PreDebug)
+                                    Debug.Log($"Tin pre loading: {tin.name}");
                                 if (tin.TryGetComponent(out Resource rss))
                                 {
                                     PreLoadResources.Add(rss);
@@ -361,7 +378,8 @@ public class TerrainGenerator : MonoBehaviour
                             }
                             else
                             {
-                                Debug.Log($"Tin post loading: {tin.name}");
+                                if (IsDebug && PostDebug)
+                                    Debug.Log($"Tin post loading: {tin.name}");
                                 if (tin.TryGetComponent(out Resource rss))
                                 {
                                     PostLoadResources.Add(rss);
@@ -398,7 +416,10 @@ public class TerrainGenerator : MonoBehaviour
         RtsEngineInstance = Instantiate(rtsEngine, sceneTransform);
         if(RtsEngineInstance != null)
         {
-            RtsEngineInstance.GetComponentInChildren<ResourceManager>().TGenerator = this;
+            ResourceManager resourceManager = RtsEngineInstance.GetComponent<ResourceManager>();
+            resourceManager.TGenerator = this;
+            //resourceManager.StartPostLoad();
+                 
         }
     }
 
