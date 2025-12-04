@@ -204,24 +204,28 @@ namespace RTSEngine.EntityComponent
 
             AnimalsOwnerController[] allAnimals = FindObjectsOfType<AnimalsOwnerController>();
 
-            foreach (var animal in allAnimals)
+            if(allAnimals.Length > 0)
             {
-                // Was this animal owned by this converter?
-                if (animal.Owner == factionEntity.gameObject)
+                foreach (var animal in allAnimals)
                 {
-                    // Remove the ownership reference
-                    animal.Owner = null;
-
-                    // Reset the faction back to neutral (0 or NeutralFactionID)
-                    FactionEntity entity = animal.GetComponent<FactionEntity>();
-                    if (entity != null)
+                    // Was this animal owned by this converter?
+                    if (animal.Owner == factionEntity.gameObject)
                     {
-                        entity.SetFaction(entity, -1); // set back to no faction
+                        // Remove the ownership reference
+                        animal.Owner = null;
+
+                        // Reset the faction back to neutral (0 or NeutralFactionID)
+                        FactionEntity entity = animal.GetComponent<FactionEntity>();
+                        if (entity != null)
+                        {
+                            entity.SetFaction(entity, -1); // set back to no faction
+                        }
                     }
                 }
+
             }
 
-            Debug.Log("Converter destroyed. All converted animals returned to neutral.");
+            //Debug.Log("Converter destroyed. All converted animals returned to neutral.");
         }
 
     }

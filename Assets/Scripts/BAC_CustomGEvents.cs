@@ -5,49 +5,61 @@ using RTSEngine.Event;
 using RTSEngine.Game;
 using RTSEngine.Service;
 using RTSEngine.Entities;
+using RTSEngine.Selection;
 using RTSEngine.EntityComponent;
 using System;
 using RTSEngine.Upgrades;
+using RTSEngine.Task;
 
 public class BAC_CustomGEvents : MonoBehaviour, IPreRunGameService
 {
     protected IGameManager GameMgr { get; private set; }
     protected IGlobalEventPublisher GEvents { get; private set; }
+    protected ISelectionManager SelectionMgr { get; private set; }
 
     public void Init(IGameManager gameMgr)
     {
         GameMgr = gameMgr;
         GEvents = gameMgr.GetService<IGlobalEventPublisher>();
-        GEvents.EntityUpgradedGlobal += EntityUpgraded;
-    }
+        SelectionMgr = gameMgr.GetService<ISelectionManager>();
 
-    private void EntityUpgraded(IEntity target, UpgradeEventArgs<IEntity> EventArgs)
+        GEvents.EntityInstanceUpgradedGlobal += CheckingUpgrades;
+
+    }
+    public void CheckingUpgrades(IEntity Upgraded, UpgradeEventArgs<IEntity> EventArgs)
     {
-        if(EventArgs.UpgradedInstance.Type == EntityType.unit && EventArgs.UpgradedInstance.Code == "villagerdereks")
+        if(EventArgs.UpgradedInstance.Code == "villagerderekshunter")
         {
-            Debug.Log("trying to upgrade villagers!");
-            if (EventArgs.UpgradeElement.sourceCode == "")
+            IBuilding selected = SelectionMgr.GetSingleSelectedEntity(EntityType.building, true) as IBuilding;
+            if(selected.Code == "hunting_camp")
             {
-                IBuilding upgrader = EventArgs.UpgradeElement.target as IBuilding;
-                if (upgrader != null)
+                if(selected.UnitCarrier.CurrAmount > 0)
                 {
-                    IUnitCarrier carrier = upgrader.UnitCarrier;
-                    if (carrier != null && carrier.CurrAmount > 0)
+                    foreach(IUnit occupier in selected.UnitCarrier.CarrierSlots)
                     {
-                        foreach (IUnit unit in carrier.CarrierSlots)
+                        if(occupier.Code == "villagerdereks")
                         {
-                            // fetch the upgrade component and launch action by index
-                            if(unit != null && unit.gameObject.TryGetComponent(out EntityUpgrade upgrade))
+                            if (occupier != null && occupier.gameObject.TryGetComponent(out UpgradeLauncher launcher))
                             {
-                                upgrade.LaunchLocal(GameMgr, 0, unit.FactionID);
-                                Debug.Log("Upgraded unit!");
+                                Debug.Log($"to upgrade: {occupier.Code}");
+                                
+                                launcher.LaunchTaskAction(0,false);
+                                /*
+                                upgrade.LaunchLocal(GameMgr, 0, occupier.FactionID);
+                                Debug.Log(
+                                    $"upgrading: {Upgraded.Name} | " +
+                                    $"upgraded: {EventArgs.UpgradedInstance.Name} | " +
+                                    $"selected: {selected.Name}");
+                                */
                             }
                         }
                     }
                 }
+                
             }
         }
     }
+    
 
     // Start is called before the first frame update
     void Start()
@@ -61,8 +73,8 @@ public class BAC_CustomGEvents : MonoBehaviour, IPreRunGameService
         
     }
 
-    void Disable()
+    public void Disable()
     {
-        GEvents.EntityUpgradedGlobal -= EntityUpgraded;
+        GEvents.EntityInstanceUpgradedGlobal -= CheckingUpgrades;
     }
 }

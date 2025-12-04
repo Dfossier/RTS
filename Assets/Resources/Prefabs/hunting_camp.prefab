@@ -500,14 +500,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9113c0bd693a7d429490d84152a822b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  code: hunting_camp_UpgradeLauncher_33
+  code: upgrade_hc_occupants
   isActive: 1
   tabID:
     x: 0
     y: 1
   upgradeTasks:
   - taskTitle: 'Upgrade: villagerdereks -> villagerderekshunter'
-    taskUI: {fileID: 11400000, guid: 9a65d07f49e4aa74fa1d15fb626bc712, type: 2}
+    taskUI: {fileID: 11400000, guid: 676ec42f190ad184d8882e4377042cd7, type: 2}
     allowedFactionTypes:
       type: 0
       options: []
@@ -1059,7 +1059,7 @@ MonoBehaviour:
   isActive: 1
   tabID:
     x: 0
-    y: 2
+    y: 0
   targetPicker:
     type: 0
     options:
@@ -1067,7 +1067,7 @@ MonoBehaviour:
       categories:
       - military_foot_unit
     targetUnits: 1
-    targetBuildings: 1
+    targetBuildings: 0
   capacity: 3
   customUnitSlots:
     defaultAmount: 1
@@ -1106,7 +1106,7 @@ MonoBehaviour:
         _max: 2
   ejectToRallypoint: 0
   ejectOnDestroy: 1
-  allowMovementToExitCarrier: 0
+  allowMovementToExitCarrier: 1
   callUnitsRange: 100
   callIdleOnly: 0
   callAttackUnits: 1
@@ -1123,8 +1123,8 @@ MonoBehaviour:
     allowFreeFaction: 0
     allowLocalPlayer: 1
     allowRest: 1
-    updateFactionOnOccupy: 1
-    freeOnEjection: 1
+    updateFactionOnOccupy: 0
+    freeOnEjection: 0
     canBeAttackedOnFreeFaction: 0
     canBeAttackedOnValidFaction: 1
   showStoredUnitsGizmos: 1

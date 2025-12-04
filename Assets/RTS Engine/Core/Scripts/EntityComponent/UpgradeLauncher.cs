@@ -101,7 +101,7 @@ namespace RTSEngine.EntityComponent
                     // For each instance, check if the upgrades have been already launched
                     if (entityCompUpgradeMgr.TryGet(componentUpgrade.SourceEntity, Entity.FactionID, out List<UpgradeElement<IEntityComponent>> upgradedComponentElements))
                     {
-                        foreach(var nextElement in upgradedComponentElements)
+                        foreach (var nextElement in upgradedComponentElements)
                         {
                             DisableTasksWithPrefabCode(nextElement.sourceCode, isEntityUpgrade: false);
                             EnableUpgradeTargetTasksWithPrefab(nextElement.target.Code, isEntityUpgrade: false);
@@ -193,8 +193,17 @@ namespace RTSEngine.EntityComponent
             if (args.FactionID != Entity.FactionID)
                 return;
 
+            Debug.Log($"Upgrading from: {sender.Code}");
+
             DisableTasksWithPrefabCode(args.UpgradeElement.sourceCode, isEntityUpgrade: true);
-            EnableUpgradeTargetTasksWithPrefab(args.UpgradeElement.target.Code, isEntityUpgrade: true);
+            if(sender.Code == "hunting_camp")
+            {
+                Debug.Log("upgrade for hunting camp occupants");
+            }
+            else
+            {
+                EnableUpgradeTargetTasksWithPrefab(args.UpgradeElement.target.Code, isEntityUpgrade: true);
+            }
 
             globalEvent.RaiseEntityComponentTaskUIReloadRequestGlobal(
                 this,
