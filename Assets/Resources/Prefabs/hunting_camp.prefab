@@ -190,8 +190,8 @@ GameObject:
   - component: {fileID: 7106019178336659933}
   - component: {fileID: 4060053874782290868}
   - component: {fileID: 6988614009398380265}
-  - component: {fileID: 5403031890589035882}
   - component: {fileID: 7213242037326594839}
+  - component: {fileID: 3140226314143472620}
   m_Layer: 0
   m_Name: hunting_camp
   m_TagString: Untagged
@@ -488,7 +488,20 @@ MonoBehaviour:
     colorPropertyName: _Color
     transparency: 0
     darkness: 0
---- !u!114 &5403031890589035882
+--- !u!114 &7213242037326594839
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 831296138674022046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6873ac66dad55e8468bdf59e2a9eaeeb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxCount: 4
+--- !u!114 &3140226314143472620
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -500,14 +513,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9113c0bd693a7d429490d84152a822b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  code: upgrade_hc_occupants
+  code: hunting_camp_UpgradeLauncher_42
   isActive: 1
   tabID:
     x: 0
     y: 1
   upgradeTasks:
   - taskTitle: 'Upgrade: villagerdereks -> villagerderekshunter'
-    taskUI: {fileID: 11400000, guid: 676ec42f190ad184d8882e4377042cd7, type: 2}
+    taskUI: {fileID: 11400000, guid: 83f6edf04d9db9e40a448de54b36d8b2, type: 2}
     allowedFactionTypes:
       type: 0
       options: []
@@ -524,19 +537,6 @@ MonoBehaviour:
     upgradeIndex: 0
   entityTargetUpgradeTasks: []
   entityComponentTargetUpgradeTasks: []
---- !u!114 &7213242037326594839
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 831296138674022046}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6873ac66dad55e8468bdf59e2a9eaeeb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxCount: 4
 --- !u!1 &836417686493719699
 GameObject:
   m_ObjectHideFlags: 0

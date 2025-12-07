@@ -957,7 +957,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sourceEntity: {fileID: 1913004789782250}
   sourceInstanceOnly: 1
-  updateSpawnedInstances: 0
+  updateSpawnedInstances: 1
   upgradeEffect:
     input: {fileID: 0}
   upgrades:
@@ -1012,7 +1012,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6873ac66dad55e8468bdf59e2a9eaeeb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxCount: 0
+  maxCount: 1
 --- !u!1 &1605637123714786520
 GameObject:
   m_ObjectHideFlags: 0
