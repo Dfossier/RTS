@@ -37,6 +37,7 @@ namespace RTSEngine.Entities.Static
         public IBuildingPlacer PlacerComponent => null;
         public IBuildingHealth Health => null;
         public IBuildingWorkerManager WorkerMgr => null;
+        public IUnitCreator UnitCreator => null;
 
         // Static faction entity properties
         public IFactionManager FactionMgr { private set; get; }

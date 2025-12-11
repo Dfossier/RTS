@@ -84,7 +84,7 @@ namespace RTSEngine.Entities
         public IEntitySelectionMarker SelectionMarker { private set; get; }
         public IEntityHealth Health { protected set; get; }
         public IEntityWorkerManager WorkerMgr { private set; get; }
-
+        public IUnitCreator UnitCreator { private set; get; }
         public virtual bool CanLaunchTask => IsInitialized && !Health.IsDead;
 
         private bool interactable;
@@ -516,6 +516,10 @@ namespace RTSEngine.Entities
 
             // Minimap Icon
             MinimapIconHandler = GetComponentInChildren<IEntityMinimapIconHandler>();
+            if(Type == EntityType.building)
+            {
+                UnitCreator = GetComponentInChildren<IUnitCreator>();
+            }
         }
 
         protected virtual void Disable (bool isUpgrade, bool isFactionUpdate)

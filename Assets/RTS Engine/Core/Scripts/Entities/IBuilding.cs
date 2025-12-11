@@ -19,6 +19,7 @@ namespace RTSEngine.Entities
         IBuildingPlacer PlacerComponent { get; }
 
         new IBuildingHealth Health { get; }
+        new IUnitCreator UnitCreator { get; }
         new IBuildingWorkerManager WorkerMgr { get; }
 
         event CustomEventHandler<IBuilding, EventArgs> BuildingBuilt;

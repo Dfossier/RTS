@@ -70,7 +70,7 @@ namespace RTSEngine.Entities
 
         IEntityHealth Health { get; }
         IEntityWorkerManager WorkerMgr { get; }
-
+        IUnitCreator UnitCreator { get; }
         bool CanLaunchTask { get; }
         //a variable to check that an entity is interactable, can launch tasks, can set targets and is initiated.
         void SetIdle(bool includeMovement = true);
