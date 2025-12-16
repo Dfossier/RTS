@@ -168,11 +168,23 @@ namespace RTSEngine.Upgrades
         // Upgrades a faction entity instance locally
         private void UpgradeInstance(IFactionEntity sourceInstance, UpgradeElement<IEntity> upgradeElement, int factionID, IEnumerable<EntityUpgradeComponentMatcherElement> entityComponentMatcher, IEffectObject upgradeEffect)
         {
-            // Upgraded instances get the same curr health to max health ratio when they are created as the instnaces that they were upgraded from
-            float healthRatio = sourceInstance.Health.CurrHealth / (float)sourceInstance.Health.MaxHealth;
 
+            // Upgraded instances get the same curr health to max health ratio when they are created as the instnaces that they were upgraded from
+            float healthRatio = 0;
             // We want to re-select the upgraded instance after creating if this is the case
-            bool wasSelected = sourceInstance.Selection.IsSelected;
+            bool wasSelected = false;
+            if (sourceInstance.Health == null)
+            {
+                UnitHealth unitHealth = sourceInstance.gameObject.GetComponent<UnitHealth>();
+                healthRatio = unitHealth.MaxHealth;
+                wasSelected = false;
+            }
+            else
+            {
+                healthRatio = sourceInstance.Health.CurrHealth / (float)sourceInstance.Health.MaxHealth;
+                wasSelected = sourceInstance.Selection.IsSelected;
+            }
+
 
             IEntity upgradedInstance = null;
 
@@ -258,7 +270,10 @@ namespace RTSEngine.Upgrades
             effectObjPool.Spawn(upgradeEffect, upgradedInstance.transform);
 
             // Destroy the upgraded instance
-            sourceInstance.Health.DestroyLocal(true, null);
+            if(sourceInstance.Health != null)
+            {
+                sourceInstance.Health.DestroyLocal(true, null);
+            }
 
             if (wasSelected)
                 selectionMgr.Add(upgradedInstance, SelectionType.multiple, isLocalPlayerClickSelection: false);

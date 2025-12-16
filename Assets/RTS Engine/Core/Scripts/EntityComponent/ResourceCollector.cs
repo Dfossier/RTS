@@ -63,6 +63,7 @@ namespace RTSEngine.EntityComponent
         #region Handling Events: Collected Resource
         private void HandleTargetHealthUpdated(IEntity resource, HealthUpdateArgs args)
         {
+            //Debug.Log(Target.instance.ResourceType);
             if (args.Source != unit
                 || resource != Target.instance)
                 return;

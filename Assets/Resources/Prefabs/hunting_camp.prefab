@@ -190,6 +190,8 @@ GameObject:
   - component: {fileID: 7106019178336659933}
   - component: {fileID: 4060053874782290868}
   - component: {fileID: 6988614009398380265}
+  - component: {fileID: 7213242037326594839}
+  - component: {fileID: 3140226314143472620}
   m_Layer: 0
   m_Name: hunting_camp
   m_TagString: Untagged
@@ -486,6 +488,55 @@ MonoBehaviour:
     colorPropertyName: _Color
     transparency: 0
     darkness: 0
+--- !u!114 &7213242037326594839
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 831296138674022046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6873ac66dad55e8468bdf59e2a9eaeeb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxCount: 4
+--- !u!114 &3140226314143472620
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 831296138674022046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9113c0bd693a7d429490d84152a822b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: hunting_camp_UpgradeLauncher_42
+  isActive: 1
+  tabID:
+    x: 0
+    y: 1
+  upgradeTasks:
+  - taskTitle: 'Upgrade: villagerdereks -> villagerderekshunter'
+    taskUI: {fileID: 11400000, guid: 83f6edf04d9db9e40a448de54b36d8b2, type: 2}
+    allowedFactionTypes:
+      type: 0
+      options: []
+    requiredResources: []
+    factionEntityRequirements: []
+    missingRequirementData:
+      icon: {fileID: 0}
+      color: {r: 0, g: 0, b: 0, a: 0}
+    onComplete:
+      m_PersistentCalls:
+        m_Calls: []
+    prefabObject: {fileID: 1913004789782250, guid: 70b2cb94f8a6e9544b1c604369e7e462,
+      type: 3}
+    upgradeIndex: 0
+  entityTargetUpgradeTasks: []
+  entityComponentTargetUpgradeTasks: []
 --- !u!1 &836417686493719699
 GameObject:
   m_ObjectHideFlags: 0
@@ -1008,7 +1059,7 @@ MonoBehaviour:
   isActive: 1
   tabID:
     x: 0
-    y: 2
+    y: 0
   targetPicker:
     type: 0
     options:
@@ -1016,7 +1067,7 @@ MonoBehaviour:
       categories:
       - military_foot_unit
     targetUnits: 1
-    targetBuildings: 1
+    targetBuildings: 0
   capacity: 3
   customUnitSlots:
     defaultAmount: 1
@@ -1055,7 +1106,7 @@ MonoBehaviour:
         _max: 2
   ejectToRallypoint: 0
   ejectOnDestroy: 1
-  allowMovementToExitCarrier: 0
+  allowMovementToExitCarrier: 1
   callUnitsRange: 100
   callIdleOnly: 0
   callAttackUnits: 1
@@ -1072,8 +1123,8 @@ MonoBehaviour:
     allowFreeFaction: 0
     allowLocalPlayer: 1
     allowRest: 1
-    updateFactionOnOccupy: 1
-    freeOnEjection: 1
+    updateFactionOnOccupy: 0
+    freeOnEjection: 0
     canBeAttackedOnFreeFaction: 0
     canBeAttackedOnValidFaction: 1
   showStoredUnitsGizmos: 1
@@ -3404,7 +3455,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 2ae571df2bec2ce4aa8af668173c9b5a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.5
+      value: -1.45
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 2ae571df2bec2ce4aa8af668173c9b5a, type: 3}
       propertyPath: m_LocalPosition.z
@@ -3554,7 +3605,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: e83e354153bb425439c2d1490062e850, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.5
+      value: -1.45
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: e83e354153bb425439c2d1490062e850, type: 3}
       propertyPath: m_LocalPosition.z
@@ -3629,7 +3680,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 2ae571df2bec2ce4aa8af668173c9b5a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.5
+      value: -1.45
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 2ae571df2bec2ce4aa8af668173c9b5a, type: 3}
       propertyPath: m_LocalPosition.z
@@ -3704,7 +3755,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 2ae571df2bec2ce4aa8af668173c9b5a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.5
+      value: -1.45
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 2ae571df2bec2ce4aa8af668173c9b5a, type: 3}
       propertyPath: m_LocalPosition.z
@@ -3779,7 +3830,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 71317272330713649be3af7fd5d48549, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.5
+      value: -1.52
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 71317272330713649be3af7fd5d48549, type: 3}
       propertyPath: m_LocalPosition.z
@@ -3854,7 +3905,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: dac1591bb04439c46ac769677be8c2ce, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.5
+      value: -1.61
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: dac1591bb04439c46ac769677be8c2ce, type: 3}
       propertyPath: m_LocalPosition.z
@@ -3929,7 +3980,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 2ae571df2bec2ce4aa8af668173c9b5a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.5
+      value: -1.45
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 2ae571df2bec2ce4aa8af668173c9b5a, type: 3}
       propertyPath: m_LocalPosition.z

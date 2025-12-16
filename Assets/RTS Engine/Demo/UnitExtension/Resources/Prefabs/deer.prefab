@@ -398,6 +398,7 @@ GameObject:
   - component: {fileID: 7582849089770859910}
   - component: {fileID: 7686239489646723646}
   - component: {fileID: 6733183489487592841}
+  - component: {fileID: 2510638424283467187}
   m_Layer: 0
   m_Name: deer
   m_TagString: Untagged
@@ -597,6 +598,9 @@ MonoBehaviour:
   waitTime: 3
   animalmodel: {fileID: 7774045363059448350}
   timer_tolerance: 0
+  unitAttack: {fileID: 0}
+  ownerTarget: {fileID: 0}
+  followDistance: 3
 --- !u!82 &7582849089770859910
 AudioSource:
   m_ObjectHideFlags: 0
@@ -728,6 +732,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   coloredRenderers: []
+--- !u!114 &2510638424283467187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7501055689196940650}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6ff6a16d4b94c9438fc6be6c9a54158, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Owner: {fileID: 0}
 --- !u!1 &7501175084258782510
 GameObject:
   m_ObjectHideFlags: 0

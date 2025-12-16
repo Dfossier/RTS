@@ -26,7 +26,7 @@ public class StoneGeneration : MonoBehaviour
 
     public void GenerateStones()
     {
-        Debug.Log("generating stones...");
+        //Debug.Log("generating stones...");
         stoneCount = 0;
         int attempts = 0;
         int maxAttempts = maxStones * 40;
@@ -155,7 +155,7 @@ public class StoneGeneration : MonoBehaviour
             attempts++;
         }
 
-        Debug.Log($"Stones generated: {stoneCount}");
+        //Debug.Log($"Stones generated: {stoneCount}");
     }
 
     private bool GetRandomPointOnNavMesh(Vector3 center, Vector3 size, out Vector3 result, int maxAttempts = 30)

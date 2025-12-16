@@ -603,11 +603,9 @@ GameObject:
   - component: {fileID: -5808368136814700124}
   - component: {fileID: 2010447614463032499}
   - component: {fileID: -1213303870745349832}
-  - component: {fileID: 3686776028891728588}
-  - component: {fileID: 145787523432272829}
-  - component: {fileID: 2574208147690276935}
+  - component: {fileID: 1017234630356317397}
   m_Layer: 0
-  m_Name: villager_dereks
+  m_Name: villager_dereks_hunter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -650,8 +648,8 @@ MonoBehaviour:
   tabID:
     x: 0
     y: 0
-  _name: Villager
-  code: villagerdereks
+  _name: Villager Hunter
+  code: villagerderekshunter
   category: civilian_unit,walking_unit,rtse_demo_entity
   description: 'Constructs buildings.
 
@@ -694,7 +692,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabID:
     x: 0
-    y: 3
+    y: 0
   maxHealth: 40
   initialHealth: 40
   canIncrease: 1
@@ -943,7 +941,7 @@ MonoBehaviour:
     colorPropertyName: _Color
     transparency: 0
     darkness: 0.5
---- !u!114 &3686776028891728588
+--- !u!114 &1017234630356317397
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -952,67 +950,70 @@ MonoBehaviour:
   m_GameObject: {fileID: 1913004789782250}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 976ebcf693c3e0d49a4f3e81bfef2899, type: 3}
+  m_Script: {fileID: 11500000, guid: ccfabfc78b515ef42acffb5a7c9fce67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sourceEntity: {fileID: 1913004789782250}
-  sourceInstanceOnly: 1
-  updateSpawnedInstances: 1
-  upgradeEffect:
-    input: {fileID: 0}
-  upgrades:
-  - upgradeTarget: {fileID: 1913004789782250, guid: 0a2c72b5828b9f34c8e361c99458c224,
-      type: 3}
-    entityComponentMatcher: []
-    triggerUpgrades: []
---- !u!114 &145787523432272829
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1913004789782250}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b9113c0bd693a7d429490d84152a822b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  code: villagerdereks_UpgradeLauncher_79
+  code: huerder
   isActive: 1
   tabID:
     x: 0
     y: 1
-  upgradeTasks:
-  - taskTitle: 'Upgrade: villagerdereks -> villagerderekshunter'
-    taskUI: {fileID: 11400000, guid: 676ec42f190ad184d8882e4377042cd7, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources: []
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 0, g: 0, b: 0, a: 0}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 1913004789782250}
-    upgradeIndex: 0
-  entityTargetUpgradeTasks: []
-  entityComponentTargetUpgradeTasks: []
---- !u!114 &2574208147690276935
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1913004789782250}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6873ac66dad55e8468bdf59e2a9eaeeb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxCount: 1
+  priority: 0
+  requireIdleEntity: 1
+  targetFinderData:
+    enabled: 1
+    reloadTime: 5
+    range: 10
+    idleOnly: 1
+    typePicker:
+      type: 1
+      options:
+        codes: []
+        categories:
+        - animals
+      targetUnits: 1
+      targetBuildings: 0
+      targetResources: 0
+    center: {fileID: 0}
+  setTargetTaskUI: {fileID: 0}
+  orderAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  showTargetGizmo: 1
+  progressEnabledAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  progressOverrideController:
+    fetchType: 0
+    items: []
+  progressDuration: 1
+  progressMaxDistance: 1
+  inProgressObject: {fileID: 0}
+  sourceEffect:
+    input: {fileID: 0}
+  targetEffect:
+    input: {fileID: 0}
+  showProgressGizmo: 1
+  stoppingDistance: 5
+  targetPicker:
+    type: 0
+    options:
+      codes: []
+      categories: []
+    targetUnits: 1
+    targetBuildings: 1
+    targetExternal: 1
+    targetStored: 1
 --- !u!1 &1605637123714786520
 GameObject:
   m_ObjectHideFlags: 0
@@ -1147,8 +1148,8 @@ MonoBehaviour:
   code: builder_component
   isActive: 1
   tabID:
-    x: 1
-    y: 1
+    x: 0
+    y: 0
   priority: 0
   requireIdleEntity: 1
   targetFinderData:
@@ -1506,12 +1507,12 @@ MonoBehaviour:
     requiredResources:
     - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
       value:
-        amount: 0
+        amount: 60
         capacity: 0
       nonConsumable: 0
     - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
       value:
-        amount: 0
+        amount: 40
         capacity: 0
       nonConsumable: 0
     factionEntityRequirements: []
@@ -2444,10 +2445,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   code: villagerdereks_Converter_227
-  isActive: 0
+  isActive: 1
   tabID:
     x: 0
-    y: 0
+    y: 2
   priority: 0
   requireIdleEntity: 1
   targetFinderData:
