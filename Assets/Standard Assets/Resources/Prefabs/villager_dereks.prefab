@@ -957,7 +957,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sourceEntity: {fileID: 1913004789782250}
   sourceInstanceOnly: 1
-  updateSpawnedInstances: 0
+  updateSpawnedInstances: 1
   upgradeEffect:
     input: {fileID: 0}
   upgrades:

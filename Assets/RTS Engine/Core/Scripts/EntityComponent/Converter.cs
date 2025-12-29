@@ -14,7 +14,7 @@ namespace RTSEngine.EntityComponent
     {
         #region Class Attributes
         [SerializeField, Tooltip("When assigned a target, this is the stopping distance that the converter will have when moving towards the target"), Min(0.0f)]
-        private float stoppingDistance = 5.0f; 
+        private float stoppingDistance = 5.0f;
         private int requiredFoodAmount = 0;
 
         [SerializeField, Tooltip("Define the faction entities that can be converted by this converter.")]
@@ -52,8 +52,9 @@ namespace RTSEngine.EntityComponent
         {
             if (CustomAnimalHerdingLogic() == false)
                 return;
+
             Target.instance.SetFaction(factionEntity, factionEntity.FactionID); //convert target unit
-            
+
             Stop(); //cancel conversion job.
         }
 
@@ -85,7 +86,8 @@ namespace RTSEngine.EntityComponent
         {
             ResourceTypeInfo foodRef;
 
-            if (!HaveEnoughFood(out foodRef)){
+            if (!HaveEnoughFood(out foodRef))
+            {
                 return false;
             }
 
@@ -143,7 +145,7 @@ namespace RTSEngine.EntityComponent
         #endregion
 
         #region Searching/Updating Target
-        public override ErrorMessage IsTargetValid (SetTargetInputData data)
+        public override ErrorMessage IsTargetValid(SetTargetInputData data)
         {
             TargetData<IFactionEntity> potentialTarget = data.target;
 
@@ -152,7 +154,7 @@ namespace RTSEngine.EntityComponent
             // In the case of a building that is yet to be constructed, we check using the CanLaunchTask property of the target (which takes into accoun the construction status in case target is a building).
             else if (potentialTarget.instance.IsDummy)
                 return ErrorMessage.uninteractable;
-            else if(RTSHelper.IsSameFaction(potentialTarget.instance, factionEntity))
+            else if (RTSHelper.IsSameFaction(potentialTarget.instance, factionEntity))
                 return ErrorMessage.factionIsFriendly;
             else if (potentialTarget.instance.IsFactionLocked)
                 return ErrorMessage.factionLocked;
@@ -204,7 +206,7 @@ namespace RTSEngine.EntityComponent
 
             AnimalsOwnerController[] allAnimals = FindObjectsOfType<AnimalsOwnerController>();
 
-            if(allAnimals.Length > 0)
+            if (allAnimals.Length > 0)
             {
                 foreach (var animal in allAnimals)
                 {
@@ -229,4 +231,4 @@ namespace RTSEngine.EntityComponent
         }
 
     }
-    }
+}
