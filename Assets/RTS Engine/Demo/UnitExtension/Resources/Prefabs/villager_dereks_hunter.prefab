@@ -604,6 +604,7 @@ GameObject:
   - component: {fileID: 2010447614463032499}
   - component: {fileID: -1213303870745349832}
   - component: {fileID: 1017234630356317397}
+  - component: {fileID: 4559993467007272617}
   m_Layer: 0
   m_Name: villager_dereks_hunter
   m_TagString: Untagged
@@ -964,18 +965,18 @@ MonoBehaviour:
     enabled: 1
     reloadTime: 5
     range: 10
-    idleOnly: 1
+    idleOnly: 0
     typePicker:
       type: 1
       options:
         codes: []
         categories:
-        - animals
+        - animal
       targetUnits: 1
       targetBuildings: 0
       targetResources: 0
     center: {fileID: 0}
-  setTargetTaskUI: {fileID: 0}
+  setTargetTaskUI: {fileID: 11400000, guid: 2dd262efefc9b044186f9d973930c4b1, type: 2}
   orderAudio:
     fetchType: 0
     items: []
@@ -1014,6 +1015,19 @@ MonoBehaviour:
     targetBuildings: 1
     targetExternal: 1
     targetStored: 1
+--- !u!114 &4559993467007272617
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1913004789782250}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6873ac66dad55e8468bdf59e2a9eaeeb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxCount: 4
 --- !u!1 &1605637123714786520
 GameObject:
   m_ObjectHideFlags: 0

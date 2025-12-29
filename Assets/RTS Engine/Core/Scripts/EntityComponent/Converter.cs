@@ -52,6 +52,7 @@ namespace RTSEngine.EntityComponent
         {
             if (CustomAnimalHerdingLogic() == false)
                 return;
+
             Target.instance.SetFaction(factionEntity, factionEntity.FactionID); //convert target unit
             
             Stop(); //cancel conversion job.
