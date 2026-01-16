@@ -4542,10 +4542,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   code: upgrade_launcher
-  isActive: 1
+  isActive: 0
   tabID:
     x: 0
-    y: 1
+    y: 0
   upgradeTasks:
   - taskTitle: 'Upgrade: villager (movement_component -> movement_upgraded)'
     taskUI: {fileID: 11400000, guid: 9a65d07f49e4aa74fa1d15fb626bc712, type: 2}

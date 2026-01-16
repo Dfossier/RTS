@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   data:
     code: upgrade_villager_hunter
-    enabled: 1
+    enabled: 0
     displayType: 0
     icon: {fileID: 21300000, guid: 761cb750de4f0924b9a72a75b6748de2, type: 3}
     panelCategory: 1

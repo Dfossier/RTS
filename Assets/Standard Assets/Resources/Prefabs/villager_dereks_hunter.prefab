@@ -955,10 +955,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   code: huerder
-  isActive: 1
+  isActive: 0
   tabID:
     x: 0
-    y: 2
+    y: 0
   priority: 0
   requireIdleEntity: 1
   targetFinderData:
@@ -1122,6 +1122,7 @@ GameObject:
   - component: {fileID: 8555748740504474472}
   - component: {fileID: 1679206194469665684}
   - component: {fileID: 3091394460165979334}
+  - component: {fileID: 4792821020612523645}
   - component: {fileID: 4021130262081670003}
   - component: {fileID: 4074481829658430919}
   - component: {fileID: 2258046672643151985}
@@ -1681,16 +1682,16 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1619382219826126837}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2b611935c044ac3479865dddaa61c62b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   code: collector_component
-  isActive: 1
+  isActive: 0
   tabID:
-    x: 1
-    y: 1
+    x: 0
+    y: 2
   priority: 5
   requireIdleEntity: 1
   targetFinderData:
@@ -2233,6 +2234,108 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
+    loopProgressAudio: 0
+  onTargetResourceFullSearch: 0
+  onTargetResourceDepletedSearch: 0
+--- !u!114 &4792821020612523645
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1619382219826126837}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b611935c044ac3479865dddaa61c62b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: villagerderekshunter_ResourceCollector_95
+  isActive: 1
+  tabID:
+    x: 0
+    y: 2
+  priority: 5
+  requireIdleEntity: 1
+  targetFinderData:
+    enabled: 0
+    reloadTime: 1
+    range: 20
+    idleOnly: 1
+    typePicker:
+      type: 0
+      options:
+        codes: []
+        categories: []
+      targetUnits: 0
+      targetBuildings: 0
+      targetResources: 1
+    center: {fileID: 0}
+  setTargetTaskUI: {fileID: 11400000, guid: 4cdd4057e4567bf4da27ecfda0269d22, type: 2}
+  orderAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  showTargetGizmo: 1
+  progressEnabledAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  progressOverrideController:
+    fetchType: 0
+    items: []
+  progressDuration: 1
+  progressMaxDistance: 0.2
+  inProgressObject: {fileID: 0}
+  sourceEffect:
+    input: {fileID: 0}
+  targetEffect:
+    input: {fileID: 0}
+  showProgressGizmo: 1
+  collectableResources:
+  - type: {fileID: 11400000, guid: a388932a9a066e642a1796e10d1a4da4, type: 2}
+    orderAudio:
+      fetchType: 0
+      items: []
+      cooldown:
+        enabled: 0
+        defaultValueRange:
+          _min: 0
+          _max: 0
+    amount: 1
+    animatorOverrideController:
+      fetchType: 0
+      items: []
+    enableObject: {fileID: 0}
+    enableAudio:
+      fetchType: 0
+      items: []
+      cooldown:
+        enabled: 0
+        defaultValueRange:
+          _min: 0
+          _max: 0
+    sourceEffect:
+      input: {fileID: 1772328715493589406, guid: c03ef73df651f6e47bdb5f430efeeb1e,
+        type: 3}
+    targetEffect:
+      input: {fileID: 8675553018011355173, guid: 261adf212916c144bbb6cbc9dd40fb51,
+        type: 3}
+    progressAudio:
+      fetchType: 0
+      items: []
+      cooldown:
+        enabled: 0
+        defaultValueRange:
+          _min: 0
+          _max: 0
     loopProgressAudio: 0
   onTargetResourceFullSearch: 0
   onTargetResourceDepletedSearch: 0
@@ -2849,8 +2952,8 @@ MonoBehaviour:
   code: villagerdereks_Converter_227
   isActive: 1
   tabID:
-    x: 0
-    y: 1
+    x: 1
+    y: 0
   priority: 0
   requireIdleEntity: 1
   targetFinderData:

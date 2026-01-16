@@ -200,6 +200,7 @@ GameObject:
   - component: {fileID: 114472513907078762}
   - component: {fileID: 8160762670702756803}
   - component: {fileID: 208194398242451984}
+  - component: {fileID: 1047721565925468127}
   m_Layer: 0
   m_Name: tree_wood_resource
   m_TagString: Untagged
@@ -270,8 +271,8 @@ MonoBehaviour:
   tabID:
     x: 0
     y: 0
-  maxHealth: 500
-  initialHealth: 500
+  maxHealth: 100
+  initialHealth: 100
   canIncrease: 1
   canDecrease: 1
   hoverHealthBarData:
@@ -344,6 +345,18 @@ NavMeshObstacle:
   m_CarveOnlyStationary: 1
   m_Center: {x: 0, y: 0.5, z: 0}
   m_TimeToStationary: 0.5
+--- !u!114 &1047721565925468127
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1633965520044808}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f79120399d63b74c89f647edee9a012, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1741581195821952
 GameObject:
   m_ObjectHideFlags: 0
