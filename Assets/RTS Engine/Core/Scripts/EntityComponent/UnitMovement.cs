@@ -13,6 +13,7 @@ using RTSEngine.Audio;
 using RTSEngine.Terrain;
 using RTSEngine.UnitExtension;
 using UnityEngine.Serialization;
+using System.Net;
 
 namespace RTSEngine.EntityComponent
 {
@@ -417,7 +418,8 @@ namespace RTSEngine.EntityComponent
 
             isMovementPending = true;
 
-            Controller.Prepare(newTarget.position, source);
+            if (source.IsValid())
+                Controller.Prepare(newTarget.position, source);
 
             return ErrorMessage.none;
         }

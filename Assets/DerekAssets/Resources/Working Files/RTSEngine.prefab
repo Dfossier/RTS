@@ -162727,7 +162727,7 @@ MonoBehaviour:
   prevScene: MainMenu
   gameCode: 2022.0.0
   defeatCondition: 1
-  peaceTimeDuration: 10
+  peaceTimeDuration: 60
   winGameAudio:
     fetchType: 0
     items: []

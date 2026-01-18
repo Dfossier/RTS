@@ -413,10 +413,11 @@ public class TerrainGenerator : MonoBehaviour
         yield return new WaitForSeconds(200f); // Adjust the wait time as needed
         
 
-        RtsEngineInstance = Instantiate(rtsEngine, sceneTransform);
+        //RtsEngineInstance = Instantiate(rtsEngine, sceneTransform);
         if(RtsEngineInstance != null)
         {
-            ResourceManager resourceManager = RtsEngineInstance.GetComponent<ResourceManager>();
+            ResourceManager resourceManager = FindFirstObjectByType<ResourceManager>();
+
             resourceManager.TGenerator = this;
             //resourceManager.StartPostLoad();
                  
