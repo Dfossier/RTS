@@ -122,6 +122,7 @@ namespace RTSEngine.ResourceExtension
                                         factionID = -1,
                                         setInitialHealth = false,
                                     });
+                                    resource.gameObject.layer = 0;
                                 }
                             }
                         }
@@ -168,6 +169,7 @@ namespace RTSEngine.ResourceExtension
                         factionID = -1,
                         setInitialHealth = false,
                     });
+                    resource.gameObject.layer = 0;
                 }
                 else if (breaker == 20)
                 {

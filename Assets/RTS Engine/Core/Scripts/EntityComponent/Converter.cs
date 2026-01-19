@@ -210,7 +210,7 @@ namespace RTSEngine.EntityComponent
             {
                 foreach (var animal in allAnimals)
                 {
-                    if(!animal.IsValid()) continue;
+                    if(!animal.IsValid()) break;
                     // Was this animal owned by this converter?
                     if (animal.Owner == factionEntity.gameObject)
                     {

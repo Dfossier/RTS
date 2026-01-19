@@ -270,7 +270,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabID:
     x: 0
-    y: 0
+    y: 1
   maxHealth: 100
   initialHealth: 100
   canIncrease: 1
@@ -291,7 +291,7 @@ MonoBehaviour:
       defaultValueRange:
         _min: 1
         _max: 2
-  destroyObject: 1
+  destroyObject: 0
   destroyObjectDelay: 0
   destroyAward: []
   destructionAudio:
@@ -357,6 +357,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f79120399d63b74c89f647edee9a012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _parentTR: {fileID: 0}
+  _startsFullyGrown: 1
+  growSpeed: 0.0019
+  _maxRegrowTime: 60
 --- !u!1 &1741581195821952
 GameObject:
   m_ObjectHideFlags: 0
