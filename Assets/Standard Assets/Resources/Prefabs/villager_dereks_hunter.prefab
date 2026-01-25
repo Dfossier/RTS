@@ -954,15 +954,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ccfabfc78b515ef42acffb5a7c9fce67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  code: huerder
+  code: herder
   isActive: 0
   tabID:
     x: 0
-    y: 0
+    y: 2
   priority: 0
   requireIdleEntity: 1
   targetFinderData:
-    enabled: 1
+    enabled: 0
     reloadTime: 5
     range: 10
     idleOnly: 0
@@ -976,7 +976,7 @@ MonoBehaviour:
       targetBuildings: 0
       targetResources: 0
     center: {fileID: 0}
-  setTargetTaskUI: {fileID: 0}
+  setTargetTaskUI: {fileID: 11400000, guid: 824061efdea11a14db1106d6030d137a, type: 2}
   orderAudio:
     fetchType: 0
     items: []
@@ -1006,6 +1006,7 @@ MonoBehaviour:
     input: {fileID: 0}
   showProgressGizmo: 1
   stoppingDistance: 5
+  conversionCost: []
   targetPicker:
     type: 0
     options:
@@ -1120,7 +1121,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8555748740504474472}
-  - component: {fileID: 1679206194469665684}
   - component: {fileID: 3091394460165979334}
   - component: {fileID: 4792821020612523645}
   - component: {fileID: 4021130262081670003}
@@ -1148,533 +1148,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4476943404885354}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1679206194469665684
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1619382219826126837}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9c1e885e8e7860a4f8cceb9aac61c68c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  code: builder_component
-  isActive: 1
-  tabID:
-    x: 0
-    y: 0
-  priority: 0
-  requireIdleEntity: 1
-  targetFinderData:
-    enabled: 1
-    reloadTime: 5
-    range: 20
-    idleOnly: 1
-    typePicker:
-      type: 0
-      options:
-        codes: []
-        categories: []
-      targetUnits: 1
-      targetBuildings: 1
-      targetResources: 1
-    center: {fileID: 0}
-  setTargetTaskUI: {fileID: 11400000, guid: fecc97456b0827948945bb64ab7b2fc5, type: 2}
-  orderAudio:
-    fetchType: 0
-    items:
-    - {fileID: 8300000, guid: eedde9a22b741494fb17e97dc5fd6c26, type: 3}
-    cooldown:
-      enabled: 0
-      defaultValueRange:
-        _min: 1
-        _max: 2
-  showTargetGizmo: 1
-  progressEnabledAudio:
-    fetchType: 0
-    items: []
-    cooldown:
-      enabled: 0
-      defaultValueRange:
-        _min: 1
-        _max: 2
-  progressOverrideController:
-    fetchType: 0
-    items:
-    - {fileID: 22100000, guid: 0d65d52f89506f2478245fffbeab4379, type: 2}
-  progressDuration: 1
-  progressMaxDistance: 0.5
-  inProgressObject: {fileID: 691589316627563630}
-  sourceEffect:
-    input: {fileID: 0}
-  targetEffect:
-    input: {fileID: 0}
-  showProgressGizmo: 1
-  healthPerProgress: 15
-  timeMultiplier: 0.2
-  canConstruct: 1
-  constructionTargetPicker:
-    type: 0
-    options:
-      codes: []
-      categories: []
-    targetUnits: 1
-    targetBuildings: 1
-  canPlaceBuildings: 1
-  creationTasks:
-  - taskTitle: 'Place Building: farm'
-    taskUI: {fileID: 11400000, guid: a5bbbeebeeca79a4faa11c2e541a66b6, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 0
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 1450904872675106399, guid: 64f36ec767cab8541a2deea57caf7508,
-      type: 3}
-  - taskTitle: 'Place Building: barracks_level1'
-    taskUI: {fileID: 11400000, guid: 46a396e4af1513042967f6b3bf7ee501, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: bc712db0d42339240b16b338029bd113, type: 2}
-      value:
-        amount: 145
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 120
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 1757281130161208, guid: 60bc8234d51b0664ca320a55465554cf,
-      type: 3}
-  - taskTitle: 'Place Building: town_center'
-    taskUI: {fileID: 11400000, guid: a29734e6a85ed1148991ef99f3f39aea, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 160
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 160
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 1536897726572502, guid: 13f9d44ccafc2424295533f2d2f4db93,
-      type: 3}
-  - taskTitle: 'Place Building: granary'
-    taskUI: {fileID: 11400000, guid: 29a7c7fa16b84984bbc29b98f187f050, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 60
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: bc712db0d42339240b16b338029bd113, type: 2}
-      value:
-        amount: 40
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 1585572764893566, guid: 926d54fcb19f187488abed77ed850d00,
-      type: 3}
-  - taskTitle: 'Place Building: siege_factory'
-    taskUI: {fileID: 11400000, guid: f13ebf07987210d45917b4c991c6824d, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: bc712db0d42339240b16b338029bd113, type: 2}
-      value:
-        amount: 85
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 85
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 2447908893683629377, guid: c729c4d0415d1654d9ee77b32ed239b6,
-      type: 3}
-  - taskTitle: 'Place Building: temple'
-    taskUI: {fileID: 11400000, guid: 08e97aecfed345c4397d9c5e9054656b, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 110
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 4173216077953317450, guid: 5fbc6690efe8ba64e846c61bed78feb1,
-      type: 3}
-  - taskTitle: 'Place Building: university'
-    taskUI: {fileID: 11400000, guid: 498e582cc4d47b34381eedb5a7502a44, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 60
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 120
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 2349096675118822525, guid: 245a47f86e9ef224ba67fb7d7eb7ffe3,
-      type: 3}
-  - taskTitle: 'Place Building: tower_level1'
-    taskUI: {fileID: 11400000, guid: 7c6840b2004325247aadbc9cc96ac37b, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: bc712db0d42339240b16b338029bd113, type: 2}
-      value:
-        amount: 95
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 80
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 1061421805667030, guid: 178b713b32fccd247a42925c0d7dd041,
-      type: 3}
-  - taskTitle: 'Place Building: house'
-    taskUI: {fileID: 11400000, guid: 9ba4ef3277e481c4b85c627203089dc3, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 60
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 40
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 7708895771794036253, guid: 763ab939493f03c46b113374e1a166f7,
-      type: 3}
-  - taskTitle: 'Place Building: campfire'
-    taskUI: {fileID: 11400000, guid: addbebb734582a44aafdbf3cdb73197d, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 60
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 40
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 8160032789067560374, guid: cd648c6efb4fae940be84df2374ebfea,
-      type: 3}
-  - taskTitle: 'Place Building: watchtower'
-    taskUI: {fileID: 11400000, guid: 6602ffe52f2918d4184e0c2894199e09, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 60
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 40
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 8990506748476383512, guid: 86b136cdb6a5b0849b048b2cc5b5945f,
-      type: 3}
-  - taskTitle: 'Place Building: quarry'
-    taskUI: {fileID: 11400000, guid: ec84b0a7193e6a94081a7d1648e02759, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 60
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 40
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 678971575791265007, guid: 1de0c8c03799f2e479873ee938085f26,
-      type: 3}
-  - taskTitle: 'Place Building: hunting camp'
-    taskUI: {fileID: 11400000, guid: de5d5c3c7aa1dcc4795b05a8a4c57f1b, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 60
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 40
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 831296138674022046, guid: a6f102a6dc5160b4c80799fafbbad95d,
-      type: 3}
-  - taskTitle: 'Place Building: horticultural plot'
-    taskUI: {fileID: 11400000, guid: fff8de6bbe472524c9bef33f292052fd, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 0
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 0
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 7495770028921170910, guid: ede7f468241102841ab129476d47f1bb,
-      type: 3}
-  - taskTitle: 'Place Building: grain storage facility'
-    taskUI: {fileID: 11400000, guid: 95ef9877c1c0da64c9f4a2c2b9243f8d, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 60
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 40
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 1768643121196649675, guid: e8df9bb83b6e6a24f9ede18490f96bb7,
-      type: 3}
-  - taskTitle: 'Place Building: grain storage facility'
-    taskUI: {fileID: 11400000, guid: fa42fa7bd09c7d7489028809d01ab0e9, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 0
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 0
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 1450904872675106399, guid: 7cf08bd38d163fb4689896ba83271d71,
-      type: 3}
-  upgradeTargetCreationTasks:
-  - taskTitle: 'Task 0: barracks_level2'
-    taskUI: {fileID: 11400000, guid: 349d82fd19db2144e94bf3f16759f604, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: bc712db0d42339240b16b338029bd113, type: 2}
-      value:
-        amount: 155
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 130
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 6813796212561143312, guid: fec93b6a49601c64696abab5882edc3d,
-      type: 3}
-  - taskTitle: 'Task 1: tower_level2'
-    taskUI: {fileID: 11400000, guid: c5739a16299981d488a186b4233754fd, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: bc712db0d42339240b16b338029bd113, type: 2}
-      value:
-        amount: 110
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 95
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 8242944553134752325, guid: 09e397eddace22c4c8752e88e879cc16,
-      type: 3}
-  fetchConstructionAudioOnce: 0
-  constructionAudio:
-    fetchType: 0
-    items:
-    - {fileID: 8300000, guid: 84d35472a5d8bad47a41c305d88ebfa0, type: 3}
-    cooldown:
-      enabled: 0
-      defaultValueRange:
-        _min: 1
-        _max: 2
 --- !u!114 &3091394460165979334
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2952,12 +2425,12 @@ MonoBehaviour:
   code: villagerdereks_Converter_227
   isActive: 1
   tabID:
-    x: 1
+    x: 0
     y: 0
   priority: 0
   requireIdleEntity: 1
   targetFinderData:
-    enabled: 1
+    enabled: 0
     reloadTime: 5
     range: 50
     idleOnly: 0
@@ -3002,7 +2475,13 @@ MonoBehaviour:
   targetEffect:
     input: {fileID: 0}
   showProgressGizmo: 1
-  stoppingDistance: 5
+  stoppingDistance: 1
+  conversionCost:
+  - type: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
+    value:
+      amount: 5
+      capacity: 0
+    nonConsumable: 0
   targetPicker:
     type: 0
     options:
@@ -3624,7 +3103,7 @@ MonoBehaviour:
   isActive: 1
   tabID:
     x: 0
-    y: 0
+    y: 1
   priority: 0
   requireIdleEntity: 1
   targetFinderData:
@@ -3701,9 +3180,20 @@ MonoBehaviour:
       _min: 1
       _max: 2
   launcher:
-    useAttackObjects: 0
+    useAttackObjects: 1
     launchType: 1
-    sources: []
+    sources:
+    - attackObject:
+        input: {fileID: 7296278316070026815, guid: dbe289212b282c9468b90b87877a42ba,
+          type: 3}
+      launchPosition: {fileID: 4373758356940898}
+      launchRotationAngles: {x: 0, y: 0, z: 0}
+      preDelayTime: 0
+      postDelayTime: 0
+      launchDelayTime: 0
+      damageInDelay: 0
+      delayParentObject: {fileID: 0}
+      index: 0
     attackIterationLaunchEvent:
       m_PersistentCalls:
         m_Calls: []
@@ -3998,12 +3488,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 21e663ed08f054e4187b46c6c9fffb17, type: 3}
---- !u!1 &691589316627563630 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3661296869602108780, guid: 21e663ed08f054e4187b46c6c9fffb17,
-    type: 3}
-  m_PrefabInstance: {fileID: 4275761900876767490}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &7006071019942900976 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6515616512683955698, guid: 21e663ed08f054e4187b46c6c9fffb17,

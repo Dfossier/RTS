@@ -193,8 +193,8 @@ MonoBehaviour:
   tabID:
     x: 0
     y: 0
-  maxHealth: 100
-  initialHealth: 100
+  maxHealth: 10
+  initialHealth: 10
   canIncrease: 1
   canDecrease: 1
   hoverHealthBarData:

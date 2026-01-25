@@ -313,22 +313,26 @@ namespace RTSEngine.UI
                 || !dropOffResourcePanel.entityPicker.IsValidTarget(entity))
                 return;
 
+            // First, hide all resource icons
+            HideDropOffResources();
+
             // Resource collector handling
-            if(entity.IsUnit())
+            if (entity.IsUnit())
             {
                 IDropOffSource dropOffComp = (entity as IUnit).DropOffSource;
                 if(dropOffComp.IsValid())
                 {
                     foreach(var elem in dropOffComp.CollectedResources)
                     {
-                        if(dropOffResourceTasks.TryGetValue(elem.Key, out DropOffResourceTaskUI resourceTaskUI))
+                        // MODIFICATION: Only show resources with amount > 0
+                        if (elem.Value > 0 && dropOffResourceTasks.TryGetValue(elem.Key, out DropOffResourceTaskUI resourceTaskUI))
                         {
                             resourceTaskUI.Reload(new DropOffResourceTaskUIAttributes
                             {
                                 dropOffSource = dropOffComp,
                                 resourceType = elem.Key,
                                 maxCapacityColor = dropOffResourcePanel.maxCapacityColor
-                            }) ;
+                            });
                         }
                     }
                 }

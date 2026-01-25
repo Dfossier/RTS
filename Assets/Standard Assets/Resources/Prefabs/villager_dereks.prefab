@@ -1286,12 +1286,7 @@ MonoBehaviour:
     requiredResources:
     - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
       value:
-        amount: 60
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: bc712db0d42339240b16b338029bd113, type: 2}
-      value:
-        amount: 40
+        amount: 10
         capacity: 0
       nonConsumable: 0
     factionEntityRequirements: []
@@ -1524,56 +1519,6 @@ MonoBehaviour:
     prefabObject: {fileID: 831296138674022046, guid: a6f102a6dc5160b4c80799fafbbad95d,
       type: 3}
   - taskTitle: 'Place Building: horticultural plot'
-    taskUI: {fileID: 11400000, guid: fff8de6bbe472524c9bef33f292052fd, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 0
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 0
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 7495770028921170910, guid: ede7f468241102841ab129476d47f1bb,
-      type: 3}
-  - taskTitle: 'Place Building: grain storage facility'
-    taskUI: {fileID: 11400000, guid: 95ef9877c1c0da64c9f4a2c2b9243f8d, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-      value:
-        amount: 60
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 40
-        capacity: 0
-      nonConsumable: 0
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 1768643121196649675, guid: e8df9bb83b6e6a24f9ede18490f96bb7,
-      type: 3}
-  - taskTitle: 'Place Building: grain storage facility'
     taskUI: {fileID: 11400000, guid: fa42fa7bd09c7d7489028809d01ab0e9, type: 2}
     allowedFactionTypes:
       type: 0
@@ -1596,7 +1541,7 @@ MonoBehaviour:
     onComplete:
       m_PersistentCalls:
         m_Calls: []
-    prefabObject: {fileID: 1450904872675106399, guid: 7cf08bd38d163fb4689896ba83271d71,
+    prefabObject: {fileID: 7495770028921170910, guid: ede7f468241102841ab129476d47f1bb,
       type: 3}
   upgradeTargetCreationTasks:
   - taskTitle: 'Task 0: barracks_level2'
@@ -2038,7 +1983,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 5
     animatorOverrideController:
       fetchType: 0
       items:
@@ -2284,7 +2229,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 5
     animatorOverrideController:
       fetchType: 0
       items:
@@ -2323,7 +2268,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 5
     animatorOverrideController:
       fetchType: 0
       items:
@@ -2362,7 +2307,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 5
     animatorOverrideController:
       fetchType: 0
       items:
@@ -2437,7 +2382,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 5
     animatorOverrideController:
       fetchType: 0
       items:
@@ -2475,7 +2420,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 5
     animatorOverrideController:
       fetchType: 0
       items:
@@ -2513,7 +2458,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 5
     animatorOverrideController:
       fetchType: 0
       items:
@@ -2551,7 +2496,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 5
     animatorOverrideController:
       fetchType: 0
       items:
@@ -2589,7 +2534,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 5
     animatorOverrideController:
       fetchType: 0
       items:
@@ -2627,7 +2572,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 5
     animatorOverrideController:
       fetchType: 0
       items:
@@ -2665,7 +2610,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 5
     animatorOverrideController:
       fetchType: 0
       items:
@@ -2703,7 +2648,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 5
     animatorOverrideController:
       fetchType: 0
       items:
@@ -2741,7 +2686,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 1
+    amount: 5
     animatorOverrideController:
       fetchType: 0
       items:
@@ -2770,7 +2715,7 @@ MonoBehaviour:
           _min: 1
           _max: 2
     loopProgressAudio: 0
-  totalMaxCapacity: 10
+  totalMaxCapacity: 5
   dropOffOnTargetAvailable: 1
   showDropOffPosition: 1
   editorFoldout: 0
@@ -2884,6 +2829,7 @@ MonoBehaviour:
     input: {fileID: 0}
   showProgressGizmo: 1
   stoppingDistance: 5
+  conversionCost: []
   targetPicker:
     type: 0
     options:
@@ -3505,7 +3451,7 @@ MonoBehaviour:
   isActive: 1
   tabID:
     x: 0
-    y: 0
+    y: 1
   priority: 0
   requireIdleEntity: 1
   targetFinderData:
@@ -3582,9 +3528,20 @@ MonoBehaviour:
       _min: 1
       _max: 2
   launcher:
-    useAttackObjects: 0
+    useAttackObjects: 1
     launchType: 1
-    sources: []
+    sources:
+    - attackObject:
+        input: {fileID: 7296278316070026815, guid: dbe289212b282c9468b90b87877a42ba,
+          type: 3}
+      launchPosition: {fileID: 4373758356940898}
+      launchRotationAngles: {x: 0, y: 0, z: 0}
+      preDelayTime: 0
+      postDelayTime: 0
+      launchDelayTime: 0
+      damageInDelay: 0
+      delayParentObject: {fileID: 0}
+      index: 0
     attackIterationLaunchEvent:
       m_PersistentCalls:
         m_Calls: []

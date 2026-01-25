@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   data:
     code: create_building_granary
-    enabled: 0
+    enabled: 1
     displayType: 2
     icon: {fileID: 21300000, guid: ed754c7e98976a44aa4d939c3a9e1d9f, type: 3}
     panelCategory: 0
