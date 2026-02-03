@@ -430,6 +430,96 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3547874760641677658}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3848391598321916728
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8356546978419879592}
+  - component: {fileID: 2243424550474248140}
+  m_Layer: 0
+  m_Name: 'lumber_generator '
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8356546978419879592
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3848391598321916728}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 2.14, y: 0, z: 3.36}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8827331937734749012}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2243424550474248140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3848391598321916728}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edddac3108d6221418e8a42fc680a8e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: camp_fire_ResourceGenerator_lumber
+  isActive: 1
+  tabID:
+    x: 0
+    y: 0
+  requireGarrisonedWorkers: 1
+  workerSpeedMultiplier: 0.5
+  period: 10
+  resources:
+  - type: {fileID: 11400000, guid: 64034668ccc0909478a1829bc32d9cb1, type: 2}
+    value:
+      amount: 1
+      capacity: 0
+    nonConsumable: 0
+  requiredResources:
+  - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
+    value:
+      amount: 4
+      capacity: 0
+    nonConsumable: 0
+  collectionThreshold:
+  - type: {fileID: 11400000, guid: 64034668ccc0909478a1829bc32d9cb1, type: 2}
+    value:
+      amount: 10
+      capacity: 0
+    nonConsumable: 0
+  stopGeneratingOnThresholdMet: 0
+  autoCollect: 1
+  collectionAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  collectionTaskUI: {fileID: 0}
+  onThresholdMet:
+    m_PersistentCalls:
+      m_Calls: []
+  onCollected:
+    m_PersistentCalls:
+      m_Calls: []
+  onRequirementMissing:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &3884547560821165016
 GameObject:
   m_ObjectHideFlags: 0
@@ -1068,6 +1158,96 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &5133540427362714749
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1114610234416664984}
+  - component: {fileID: 5722216406336910680}
+  m_Layer: 0
+  m_Name: grain_generator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1114610234416664984
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5133540427362714749}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 2.14, y: 0, z: 3.36}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8827331937734749012}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5722216406336910680
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5133540427362714749}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edddac3108d6221418e8a42fc680a8e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: camp_fire_ResourceGenerator_Grain
+  isActive: 1
+  tabID:
+    x: 0
+    y: 0
+  requireGarrisonedWorkers: 1
+  workerSpeedMultiplier: 1
+  period: 5
+  resources:
+  - type: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
+    value:
+      amount: 4
+      capacity: 0
+    nonConsumable: 0
+  requiredResources:
+  - type: {fileID: 11400000, guid: e279bbd3b414b6b4bb8d64afd1344c38, type: 2}
+    value:
+      amount: 1
+      capacity: 0
+    nonConsumable: 0
+  collectionThreshold:
+  - type: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
+    value:
+      amount: 10
+      capacity: 0
+    nonConsumable: 0
+  stopGeneratingOnThresholdMet: 0
+  autoCollect: 1
+  collectionAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  collectionTaskUI: {fileID: 0}
+  onThresholdMet:
+    m_PersistentCalls:
+      m_Calls: []
+  onCollected:
+    m_PersistentCalls:
+      m_Calls: []
+  onRequirementMissing:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &5330482260909677171
 GameObject:
   m_ObjectHideFlags: 0
@@ -2556,6 +2736,8 @@ GameObject:
   - component: {fileID: 3956189722348425701}
   - component: {fileID: 6873820745966393220}
   - component: {fileID: 8810825235998345644}
+  - component: {fileID: 109597590772043750}
+  - component: {fileID: 8732802274385878892}
   m_Layer: 0
   m_Name: CampFire
   m_TagString: Untagged
@@ -2607,9 +2789,9 @@ MonoBehaviour:
   _name: Camp Fire
   code: camp_fire
   category: civilian_building,rtse_demo_entity
-  description: "Increases your territory. \nAdds 5 population slots.\nCreates and
-    upgrades civilians."
-  icon: {fileID: 21300000, guid: 42e13815d03e4814fab2ee1beb04d1c1, type: 3}
+  description: A campfire is all the shelter hunter gatherers had for many nights. 
+    You can process basic materials here.
+  icon: {fileID: 21300000, guid: a93ee83b7e55b1743ab00a6b3c415d03, type: 3}
   radius: 3.5
   model: {fileID: 5330482260909677171}
   isIdle: 0
@@ -2992,6 +3174,58 @@ MonoBehaviour:
   StartUnits:
   - CreatorTaskIndex: 0
     SpawnCount: 3
+--- !u!114 &109597590772043750
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8160032789067560374}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c158218786cbca40bda2f9eab153d55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: camp_fire_ResourceGeneratorToggleUI_grain
+  isActive: 1
+  tabID:
+    x: 0
+    y: 1
+  targetGenerator: {fileID: 5722216406336910680}
+  toggleTask: {fileID: 11400000, guid: 4eef6a5e99243194193bfe407bc73174, type: 2}
+  activeIcon: {fileID: 0}
+  inactiveIcon: {fileID: 0}
+  activeColor: {r: 0, g: 1, b: 0, a: 1}
+  inactiveColor: {r: 1, g: 0, b: 0, a: 1}
+  effectMode: 0
+  startEnabled: 1
+  activeIconTint: {r: 0.5, g: 1, b: 0.5, a: 1}
+--- !u!114 &8732802274385878892
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8160032789067560374}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c158218786cbca40bda2f9eab153d55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: camp_fire_ResourceGeneratorToggleUI_wood
+  isActive: 1
+  tabID:
+    x: 0
+    y: 0
+  targetGenerator: {fileID: 2243424550474248140}
+  toggleTask: {fileID: 11400000, guid: 2dea2673b46be2e488e7b85b0cfd2f0b, type: 2}
+  activeIcon: {fileID: 0}
+  inactiveIcon: {fileID: 0}
+  activeColor: {r: 0, g: 1, b: 0, a: 1}
+  inactiveColor: {r: 1, g: 0, b: 0, a: 1}
+  effectMode: 1
+  startEnabled: 1
+  activeIconTint: {r: 0.5, g: 1, b: 0.5, a: 1}
 --- !u!1 &8160035167586413140
 GameObject:
   m_ObjectHideFlags: 0
@@ -4345,8 +4579,6 @@ GameObject:
   - component: {fileID: 7581332939575309758}
   - component: {fileID: 1250429246301624781}
   - component: {fileID: 5667644468311262206}
-  - component: {fileID: 7818843757043050682}
-  - component: {fileID: 3700016227557264784}
   m_Layer: 0
   m_Name: building_components
   m_TagString: Untagged
@@ -4366,7 +4598,9 @@ Transform:
   m_LocalPosition: {x: -2.14, y: 0, z: -3.36}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1114610234416664984}
+  - {fileID: 8356546978419879592}
   m_Father: {fileID: 8154676417734480558}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1280665590270701725
@@ -4661,122 +4895,6 @@ MonoBehaviour:
     canBeAttackedOnValidFaction: 1
   showStoredUnitsGizmos: 1
   storedUnitsFoldout: 0
---- !u!114 &7818843757043050682
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8813891554683606450}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: edddac3108d6221418e8a42fc680a8e2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  code: camp_fire_ResourceGenerator_132
-  isActive: 1
-  tabID:
-    x: 0
-    y: 0
-  requireGarrisonedWorkers: 1
-  workerSpeedMultiplier: 0.5
-  period: 10
-  resources:
-  - type: {fileID: 11400000, guid: 64034668ccc0909478a1829bc32d9cb1, type: 2}
-    value:
-      amount: 1
-      capacity: 0
-    nonConsumable: 0
-  requiredResources:
-  - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-    value:
-      amount: 4
-      capacity: 0
-    nonConsumable: 0
-  collectionThreshold:
-  - type: {fileID: 11400000, guid: 64034668ccc0909478a1829bc32d9cb1, type: 2}
-    value:
-      amount: 10
-      capacity: 0
-    nonConsumable: 0
-  stopGeneratingOnThresholdMet: 0
-  autoCollect: 1
-  collectionAudio:
-    fetchType: 0
-    items: []
-    cooldown:
-      enabled: 1
-      defaultValueRange:
-        _min: 1
-        _max: 2
-  collectionTaskUI: {fileID: 0}
-  onThresholdMet:
-    m_PersistentCalls:
-      m_Calls: []
-  onCollected:
-    m_PersistentCalls:
-      m_Calls: []
-  onRequirementMissing:
-    m_PersistentCalls:
-      m_Calls: []
---- !u!114 &3700016227557264784
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8813891554683606450}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: edddac3108d6221418e8a42fc680a8e2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  code: camp_fire_ResourceGenerator_216
-  isActive: 1
-  tabID:
-    x: 0
-    y: 0
-  requireGarrisonedWorkers: 1
-  workerSpeedMultiplier: 1
-  period: 5
-  resources:
-  - type: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
-    value:
-      amount: 4
-      capacity: 0
-    nonConsumable: 0
-  requiredResources:
-  - type: {fileID: 11400000, guid: e279bbd3b414b6b4bb8d64afd1344c38, type: 2}
-    value:
-      amount: 1
-      capacity: 0
-    nonConsumable: 0
-  collectionThreshold:
-  - type: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
-    value:
-      amount: 10
-      capacity: 0
-    nonConsumable: 0
-  stopGeneratingOnThresholdMet: 0
-  autoCollect: 1
-  collectionAudio:
-    fetchType: 0
-    items: []
-    cooldown:
-      enabled: 1
-      defaultValueRange:
-        _min: 1
-        _max: 2
-  collectionTaskUI: {fileID: 0}
-  onThresholdMet:
-    m_PersistentCalls:
-      m_Calls: []
-  onCollected:
-    m_PersistentCalls:
-      m_Calls: []
-  onRequirementMissing:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!1 &9211040354089234754
 GameObject:
   m_ObjectHideFlags: 0

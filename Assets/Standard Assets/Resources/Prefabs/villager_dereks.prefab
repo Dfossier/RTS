@@ -1286,7 +1286,7 @@ MonoBehaviour:
     requiredResources:
     - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
       value:
-        amount: 10
+        amount: 15
         capacity: 0
       nonConsumable: 0
     factionEntityRequirements: []
@@ -1426,12 +1426,7 @@ MonoBehaviour:
     requiredResources:
     - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
       value:
-        amount: 60
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 40
+        amount: 5
         capacity: 0
       nonConsumable: 0
     factionEntityRequirements: []
@@ -1501,12 +1496,7 @@ MonoBehaviour:
     requiredResources:
     - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
       value:
-        amount: 0
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 0
+        amount: 15
         capacity: 0
       nonConsumable: 0
     factionEntityRequirements: []
@@ -1524,14 +1514,9 @@ MonoBehaviour:
       type: 0
       options: []
     requiredResources:
-    - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
+    - type: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
       value:
-        amount: 0
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 0
+        amount: 2
         capacity: 0
       nonConsumable: 0
     factionEntityRequirements: []

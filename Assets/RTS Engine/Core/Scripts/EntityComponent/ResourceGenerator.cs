@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 
+
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -46,6 +47,9 @@ namespace RTSEngine.EntityComponent
         [SerializeField, Tooltip("Duration (in seconds) required to generate resources."), Space()]
         private float period = 1.0f;
         private TimeModifiedTimer timer;
+
+        // Public property to expose timer progress for UI indicators (0 = just generated, 1 = about to generate)
+        public float TimerProgress => timer != null ? 1f - (timer.CurrValue / period) : 0f;
 
         [SerializeField, Tooltip("Resources to generate every period."), Space(10)]
         private ResourceInput[] resources = new ResourceInput[0];
@@ -117,7 +121,8 @@ namespace RTSEngine.EntityComponent
             // Try to get UnitCarrier component if requiring garrisoned workers
             if (requireGarrisonedWorkers)
             {
-                unitCarrier = FactionEntity.GetComponent<UnitCarrier>();
+                // Try GetComponentInChildren to search the entire hierarchy
+                unitCarrier = Entity.GetComponentInChildren<UnitCarrier>();
 
                 if (unitCarrier == null)
                 {
@@ -187,13 +192,26 @@ namespace RTSEngine.EntityComponent
                 || !FactionEntity.CanLaunchTask
                 || !IsActive
                 || (stopGeneratingOnThresholdMet && isThresholdMet))
+            {
                 return;
+            }
 
             // Check if we require garrisoned workers
             if (requireGarrisonedWorkers)
             {
+                // Count actual garrisoned units (non-null slots)
+                int workerCount = 0;
+                if (unitCarrier != null)
+                {
+                    foreach (var unit in unitCarrier.CarrierSlots)
+                    {
+                        if (unit != null)
+                            workerCount++;
+                    }
+                }
+
                 // If no carrier or no workers garrisoned, stop generation
-                if (unitCarrier == null || unitCarrier.CurrAmount == 0)
+                if (unitCarrier == null || workerCount == 0)
                 {
                     // No workers = no resource conversion
                     return;
@@ -205,7 +223,7 @@ namespace RTSEngine.EntityComponent
                 //   1 worker = 1.5x speed
                 //   2 workers = 2.0x speed
                 //   3 workers = 2.5x speed, etc.
-                float speedBoost = 1.0f + (unitCarrier.CurrAmount * workerSpeedMultiplier);
+                float speedBoost = 1.0f + (workerCount * workerSpeedMultiplier);
 
                 // Manually decrease timer with worker speed boost
                 // We need to apply both the time modifier and our worker speed boost
@@ -244,6 +262,7 @@ namespace RTSEngine.EntityComponent
         /// </summary>
         private ErrorMessage GeneratePeriodResourcesActionLocal(bool playerCommand)
         {
+            // Check if required resources are available
             if (!resourceMgr.HasResources(requiredResources, FactionEntity.FactionID))
             {
                 onRequirementMissing.Invoke();
@@ -274,9 +293,10 @@ namespace RTSEngine.EntityComponent
 
                 globalEvent.RaiseEntityComponentTaskUIReloadRequestGlobal(this);
             }
-                
+
             // Consume the required resources per period:
-            resourceMgr.UpdateResource(FactionEntity.FactionID, requiredResources, add:false);
+            if (requiredResources != null && requiredResources.Length > 0)
+                resourceMgr.UpdateResource(FactionEntity.FactionID, requiredResources, add:false);
 
             timer.Reload();
 
@@ -299,7 +319,7 @@ namespace RTSEngine.EntityComponent
         private ErrorMessage CollectResourcesActionLocal(bool playerCommand)
         {
             // We no longer meet the threshold.
-            isThresholdMet = false; 
+            isThresholdMet = false;
 
             for (int i = 0; i < generatedResources.Length; i++)
             {
@@ -312,7 +332,6 @@ namespace RTSEngine.EntityComponent
                             capacity = generatedResources[i].Capacity
                         }
                     };
-
 
                 resourceMgr.UpdateResource(
                     FactionEntity.FactionID,

@@ -400,6 +400,7 @@ GameObject:
   m_Component:
   - component: {fileID: 505436479775517452}
   - component: {fileID: 7629801916396142538}
+  - component: {fileID: 2986414549224651176}
   m_Layer: 0
   m_Name: building_components
   m_TagString: Untagged
@@ -441,6 +442,31 @@ MonoBehaviour:
   workerPositions:
   - {fileID: 0}
   - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  forcedTerrainAreas: []
+  defineMaxAmount: 0
+  maxWorkerAmount: 4
+  showWorkerPositionsGizmos: 1
+  showWorkersGizmos: 1
+  showWorkersFoldout: 0
+--- !u!114 &2986414549224651176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 599285555556886051}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2ba244131eb1cc47917ba3e9545913d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 0
+  code: resource_worker_manager
+  workerPositions:
   - {fileID: 0}
   forcedTerrainAreas: []
   defineMaxAmount: 0
@@ -2211,11 +2237,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2498955918979872679}
-  - component: {fileID: 5684239064737228809}
   - component: {fileID: 8280660013649353501}
   - component: {fileID: 444750116356534003}
   - component: {fileID: 9219796890682913212}
   - component: {fileID: 874744816393836935}
+  - component: {fileID: 3227174457859104437}
+  - component: {fileID: 2575560748326142213}
+  - component: {fileID: -3168288909391309477}
+  - component: {fileID: 6482877957421716093}
   m_Layer: 0
   m_Name: horticultural_plot
   m_TagString: Untagged
@@ -2244,43 +2273,6 @@ Transform:
   - {fileID: 8772432503736937657}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5684239064737228809
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7495770028921170910}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fb2547be28dc0f542932522ee9053f81, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  tabID:
-    x: 0
-    y: 0
-  _name: Horticultural Plot
-  code: horticultural_plot
-  category: civilian_building
-  description: There's evidence of humans practicing horticulture dating back 20,000
-    years ago near the Sea of Galilee.
-  icon: {fileID: 21300000, guid: 3101e6f7b9c093749b7f90f4c9aabbf6, type: 3}
-  radius: 2
-  model: {fileID: 9161462750612528283}
-  isIdle: 0
-  isMainEntity: 0
-  isFactionLocked: 0
-  initResources: []
-  disableResources: []
-  coloredRenderers:
-  - renderer: {fileID: 0}
-    materialID: 0
-    transparency: 0
-    darkness: 0
-  - renderer: {fileID: 0}
-    materialID: 0
-    transparency: 0
-    darkness: 0
 --- !u!114 &8280660013649353501
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2492,6 +2484,171 @@ NavMeshObstacle:
   m_CarveOnlyStationary: 1
   m_Center: {x: 0, y: 1, z: 0}
   m_TimeToStationary: 0.5
+--- !u!114 &3227174457859104437
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7495770028921170910}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b5b607a7bf071c4c92eeab709cc4571, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 1
+  _name: Horticultural Plot
+  code: horticultural_plot
+  category: civilian_building
+  description: There's evidence of humans practicing horticulture dating back 20,000
+    years ago near the Sea of Galilee.
+  icon: {fileID: 21300000, guid: 1033e4266bd07ed4098f02a71617d35f, type: 3}
+  radius: 1
+  model: {fileID: 9161462750612528283}
+  isIdle: 0
+  isMainEntity: 0
+  isFactionLocked: 0
+  initResources:
+  - type: {fileID: 11400000, guid: e279bbd3b414b6b4bb8d64afd1344c38, type: 2}
+    value:
+      amount: 10
+      capacity: 0
+    nonConsumable: 0
+  disableResources: []
+  coloredRenderers: []
+  resourceType: {fileID: 11400000, guid: e279bbd3b414b6b4bb8d64afd1344c38, type: 2}
+  autoCollect: 0
+  collectionAudio:
+    fetchType: 0
+    items:
+    - {fileID: 8300000, guid: 5c6ebd91b94453545bd13db5be097b1e, type: 3}
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+--- !u!114 &2575560748326142213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7495770028921170910}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7752bd4b3b280274bb53e7d0cde8408c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  allTypes: {fileID: 0}
+  typeSpecific:
+  - regulatorData: {fileID: 11400000, guid: da57b14b947d29946a154bdcfad81241, type: 2}
+    factionTypes:
+      type: 0
+      options: []
+    npcTypes:
+      type: 0
+      options:
+      - {fileID: 11400000, guid: 3493c8af534d298418a9824742a03c90, type: 2}
+  - regulatorData: {fileID: 11400000, guid: 765f57e03afa49246b44de1e9368f8ff, type: 2}
+    factionTypes:
+      type: 0
+      options: []
+    npcTypes:
+      type: 0
+      options:
+      - {fileID: 11400000, guid: 91a9ec14b39b8cf41852be1ae356a847, type: 2}
+--- !u!114 &-3168288909391309477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7495770028921170910}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb56912e7ea8b9c438fb681ee810adaf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tabID:
+    x: 0
+    y: 0
+  maxHealth: 10
+  initialHealth: 1
+  canIncrease: 1
+  canDecrease: 1
+  hoverHealthBarData:
+    enabled: 1
+    offset: {x: 0, y: 1, z: 0}
+    size: {x: 1, y: 1, z: 1}
+    parent: {fileID: 0}
+  hoverHealthBarY: 2
+  hitEffect:
+    input: {fileID: 0}
+  hitAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  destroyObject: 1
+  destroyObjectDelay: 0
+  destroyAward: []
+  destructionAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  destructionEffect:
+    input: {fileID: 0}
+  states: []
+  destroyState:
+    usePercentage: 0
+    healthRange:
+      _min: 0
+      _max: 100
+    showChildObjects: []
+    hideChildObjects: []
+    triggerEvent:
+      m_PersistentCalls:
+        m_Calls: []
+  collectedState:
+    usePercentage: 0
+    healthRange:
+      _min: 0
+      _max: 100
+    showChildObjects: []
+    hideChildObjects: []
+    triggerEvent:
+      m_PersistentCalls:
+        m_Calls: []
+--- !u!114 &6482877957421716093
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7495770028921170910}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 540b20f40d999c0438a93f89bf1353bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  healthPerGrowthTick: 5
+  growthInterval: 2
+  minHealthToGrow: 1
+  stopAtMaxHealth: 1
+  visualModel: {fileID: 0}
+  minScale: {x: 0.1, y: 0.1, z: 0.1}
+  maxScale: {x: 1, y: 1, z: 1}
+  smoothScaling: 1
+  debugMode: 0
 --- !u!1 &7872127692080671033
 GameObject:
   m_ObjectHideFlags: 0

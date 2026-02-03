@@ -240,8 +240,9 @@ MonoBehaviour:
   _name: Hunting Camp
   code: hunting_camp
   category: civilian_building
-  description: 'Hunting efficiency and taming progression Historical Basis: Mesolithic
-    hunting sites and meat processing areas (Star Carr)'
+  description: Humans hunted animals to exhaustion for millenia.  The first herd
+    animals were domesticated by humans 10,000 years ago.  This building will upgrade
+    villagers into specialized herders.
   icon: {fileID: 21300000, guid: 3101e6f7b9c093749b7f90f4c9aabbf6, type: 3}
   radius: 4
   model: {fileID: 707954591076371522}
