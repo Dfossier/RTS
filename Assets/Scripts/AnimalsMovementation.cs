@@ -30,6 +30,7 @@ public class AnimalsMovementation : MonoBehaviour
     public Transform ownerTarget;
     public float followDistance = 3f; // how close it stays to owner
 
+    public int animStateDebug = 0;
 
     void Start()
     {
@@ -61,6 +62,7 @@ public class AnimalsMovementation : MonoBehaviour
 
     void Update()
     {
+        animStateDebug = animator.GetInteger("states");
         // return if animal is attacking, rts engine will handle it and move it around
         if (unitAttack != null)
         {

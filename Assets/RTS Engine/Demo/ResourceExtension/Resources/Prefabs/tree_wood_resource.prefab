@@ -201,6 +201,9 @@ GameObject:
   - component: {fileID: 8160762670702756803}
   - component: {fileID: 208194398242451984}
   - component: {fileID: 8202394625515980304}
+  - component: {fileID: 6152564240321135166}
+  - component: {fileID: 8329883139844086013}
+  - component: {fileID: 1573398345262990013}
   m_Layer: 0
   m_Name: tree_wood_resource
   m_TagString: Untagged
@@ -366,6 +369,52 @@ MonoBehaviour:
   maxScale: {x: 1, y: 1, z: 1}
   smoothScaling: 1
   debugMode: 0
+--- !u!114 &6152564240321135166
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1633965520044808}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06c78af948052824d93c22c84c08dd65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SamplePoints: []
+  PermanentlyReveal: 0
+--- !u!114 &8329883139844086013
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1633965520044808}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bd2966c16df4fa4cba52ea99b2698d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObjectsToHide:
+  - {fileID: 23729614106927470}
+  - {fileID: 23128335903013036}
+  - {fileID: 4327130695223086300}
+  - {fileID: 2380046574421182828}
+--- !u!114 &1573398345262990013
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1633965520044808}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6dfbeda9b3b3aa04bbb897826b875157, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObjectsToHide:
+  - {fileID: 3277167284503419098}
+  - {fileID: 6360790789370404516}
 --- !u!1 &1741581195821952
 GameObject:
   m_ObjectHideFlags: 0

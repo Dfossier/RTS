@@ -4,18 +4,22 @@ namespace FOW
 {
     public class HiderDisableObjects : HiderBehavior
     {
-        [SerializeField] private GameObject[] ObjectsToHide;
+        [SerializeField] public GameObject[] ObjectsToHide;
 
         protected override void OnHide()
         {
             foreach (GameObject o in ObjectsToHide)
-                o.SetActive(false);
+                if (o != null) {
+                    o.SetActive(false);
+                }
         }
 
         protected override void OnReveal()
         {
             foreach (GameObject o in ObjectsToHide)
-                o.SetActive(true);
+                if(o != null) {
+                    o.SetActive(true);
+                }
         }
 
         public void ModifyHiddenObjects(GameObject[] newObjectsToHide)

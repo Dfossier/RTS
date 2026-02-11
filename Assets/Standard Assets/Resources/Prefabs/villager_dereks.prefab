@@ -606,6 +606,9 @@ GameObject:
   - component: {fileID: 3686776028891728588}
   - component: {fileID: 145787523432272829}
   - component: {fileID: 2574208147690276935}
+  - component: {fileID: 6627643175949368113}
+  - component: {fileID: 3925751273468736399}
+  - component: {fileID: 6811840592057413287}
   m_Layer: 0
   m_Name: villager_dereks
   m_TagString: Untagged
@@ -1013,6 +1016,104 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxCount: 1
+--- !u!114 &6627643175949368113
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1913004789782250}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c8c92e8943a9914ba89720ba5fcf806, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  viewRadius: 10
+  softenDistance: 3
+  innerSoftenAngle: 5
+  unobscuredRadius: 1
+  unobscuredSoftenDistance: 0.25
+  visionHeight: 3
+  visionHeightSoftenDistance: 1.5
+  viewAngle: 360
+  opacity: 1
+  EyeOffset: 0
+  ShaderEyeOffset: 0
+  StartRevealerAsStatic: 0
+  revealHiderInFadeOutZonePercentage: 0.5
+  MaxHidersSampledPerFrame: 50
+  SetHiderRayOriginToHidersHeight: 0
+  SetHiderRayDestinationToRevealersHeight: 1
+  useOcclusion: 1
+  addCorners: 1
+  ObstacleMask:
+    serializedVersion: 2
+    m_Bits: 0
+  OcclusionQuality: 5
+  raycastResolution: 0.5
+  NumExtraIterations: 4
+  numExtraRaysOnIteration: 3
+  ResolveEdge: 1
+  MaxEdgeResolveIterations: 10
+  MaxAcceptableEdgeAngleDifference: 0.005
+  edgeDstThreshold: 0.1
+  doubleHitMaxAngleDelta: 15
+  DebugMode: 0
+  DrawInitialRays: 0
+  SegmentTest: -1
+  DrawExpectedNextPoints: 0
+  DrawIteritiveRays: 0
+  DrawEdgeResolveRays: 0
+  DrawExtraCastLines: 0
+  DrawHiderSamples: 0
+  DebugLogHiderBlockerName: 0
+--- !u!114 &3925751273468736399
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1913004789782250}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06c78af948052824d93c22c84c08dd65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SamplePoints: []
+  PermanentlyReveal: 0
+--- !u!114 &6811840592057413287
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1913004789782250}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2d5b2b9e8e22ff419cad16d1a486995, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: villagerdereks_PixelPerfectFogOfWarComponent_212
+  isActive: 1
+  OverrideModel: 1
+  Renderers:
+  - {fileID: 23461145379742392}
+  - {fileID: 23060081162541748}
+  - {fileID: 23877602953723002}
+  - {fileID: 23500161809256514}
+  - {fileID: 4352667671045929293}
+  - {fileID: 9060190554045164145}
+  - {fileID: 7254732810049593777}
+  - {fileID: 7191893014639811290}
+  - {fileID: 4418751350932328994}
+  - {fileID: 8091338629306456187}
+  - {fileID: 3800840280238015708}
+  - {fileID: 23430134207117446}
+  - {fileID: 1362875267681217548}
+  - {fileID: 216243055390552818}
+  ObjectsToDisable: []
+  _hideInFog: 1
+  IsCurrentlyHidden: 0
 --- !u!1 &1605637123714786520
 GameObject:
   m_ObjectHideFlags: 0
@@ -3821,9 +3922,21 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 21e663ed08f054e4187b46c6c9fffb17, type: 3}
+--- !u!23 &216243055390552818 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 4059626876801012720, guid: 21e663ed08f054e4187b46c6c9fffb17,
+    type: 3}
+  m_PrefabInstance: {fileID: 4275761900876767490}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &691589316627563630 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3661296869602108780, guid: 21e663ed08f054e4187b46c6c9fffb17,
+    type: 3}
+  m_PrefabInstance: {fileID: 4275761900876767490}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &1362875267681217548 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 3008238656741002510, guid: 21e663ed08f054e4187b46c6c9fffb17,
     type: 3}
   m_PrefabInstance: {fileID: 4275761900876767490}
   m_PrefabAsset: {fileID: 0}
@@ -3929,6 +4042,12 @@ PrefabInstance:
 --- !u!4 &6917838272687956756 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 269ebfa583194ee48a107af8fb0b000d,
+    type: 3}
+  m_PrefabInstance: {fileID: 7461233390576436479}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &8091338629306456187 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: 269ebfa583194ee48a107af8fb0b000d,
     type: 3}
   m_PrefabInstance: {fileID: 7461233390576436479}
   m_PrefabAsset: {fileID: 0}

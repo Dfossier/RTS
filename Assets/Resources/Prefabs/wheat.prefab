@@ -123,6 +123,9 @@ GameObject:
   - component: {fileID: 3629933516315331604}
   - component: {fileID: 3886559072633017217}
   - component: {fileID: 5252362522661762246}
+  - component: {fileID: 8156539239589920280}
+  - component: {fileID: 7567434429257188380}
+  - component: {fileID: 6815693793701801184}
   m_Layer: 0
   m_Name: wheat
   m_TagString: Untagged
@@ -263,6 +266,49 @@ NavMeshObstacle:
   m_CarveOnlyStationary: 1
   m_Center: {x: 0, y: 0.5, z: 0}
   m_TimeToStationary: 0.5
+--- !u!114 &8156539239589920280
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2287053743929045252}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06c78af948052824d93c22c84c08dd65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SamplePoints: []
+  PermanentlyReveal: 0
+--- !u!114 &7567434429257188380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2287053743929045252}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bd2966c16df4fa4cba52ea99b2698d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObjectsToHide:
+  - {fileID: 40528298264697027}
+  - {fileID: 2698963353406346790}
+--- !u!114 &6815693793701801184
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2287053743929045252}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6dfbeda9b3b3aa04bbb897826b875157, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObjectsToHide:
+  - {fileID: 5534987133214043864}
 --- !u!1 &3249561267953296470
 GameObject:
   m_ObjectHideFlags: 0
@@ -583,6 +629,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f39908ed61214694d9ca578345b001f9, type: 3}
+--- !u!23 &2698963353406346790 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: f39908ed61214694d9ca578345b001f9,
+    type: 3}
+  m_PrefabInstance: {fileID: 3653881094601149090}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &3836934951484976457 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: f39908ed61214694d9ca578345b001f9,

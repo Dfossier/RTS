@@ -129,6 +129,9 @@ GameObject:
   - component: {fileID: 3815448194503447070}
   - component: {fileID: 5001022877390710998}
   - component: {fileID: 6136359357488564875}
+  - component: {fileID: 1674186474317214182}
+  - component: {fileID: 7274667452171684907}
+  - component: {fileID: 7150225528183211672}
   m_Layer: 0
   m_Name: stone
   m_TagString: Untagged
@@ -269,6 +272,53 @@ NavMeshObstacle:
   m_CarveOnlyStationary: 1
   m_Center: {x: 0, y: 0.5, z: 0}
   m_TimeToStationary: 0.5
+--- !u!114 &1674186474317214182
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 839869426152664612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06c78af948052824d93c22c84c08dd65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SamplePoints: []
+  PermanentlyReveal: 0
+--- !u!114 &7274667452171684907
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 839869426152664612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bd2966c16df4fa4cba52ea99b2698d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObjectsToHide:
+  - {fileID: 4977423269549559987}
+  - {fileID: 8269384409958476140}
+  - {fileID: 7333324756080933648}
+  - {fileID: 4155290874650625814}
+  - {fileID: 7918131149977883299}
+  - {fileID: 6419419589811315897}
+--- !u!114 &7150225528183211672
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 839869426152664612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6dfbeda9b3b3aa04bbb897826b875157, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObjectsToHide:
+  - {fileID: 3099586860633652146}
 --- !u!1 &973711474093719934
 GameObject:
   m_ObjectHideFlags: 0

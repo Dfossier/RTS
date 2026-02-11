@@ -399,6 +399,9 @@ GameObject:
   - component: {fileID: 7686239489646723646}
   - component: {fileID: 6733183489487592841}
   - component: {fileID: 2510638424283467187}
+  - component: {fileID: 2574853055518378180}
+  - component: {fileID: 7797778656512625589}
+  - component: {fileID: 5307241938836261625}
   m_Layer: 0
   m_Name: deer
   m_TagString: Untagged
@@ -601,6 +604,7 @@ MonoBehaviour:
   unitAttack: {fileID: 0}
   ownerTarget: {fileID: 0}
   followDistance: 3
+  animStateDebug: 0
 --- !u!82 &7582849089770859910
 AudioSource:
   m_ObjectHideFlags: 0
@@ -745,6 +749,93 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Owner: {fileID: 0}
+--- !u!114 &2574853055518378180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7501055689196940650}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06c78af948052824d93c22c84c08dd65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SamplePoints: []
+  PermanentlyReveal: 0
+--- !u!114 &7797778656512625589
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7501055689196940650}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c8c92e8943a9914ba89720ba5fcf806, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  viewRadius: 15
+  softenDistance: 3
+  innerSoftenAngle: 5
+  unobscuredRadius: 1
+  unobscuredSoftenDistance: 0.25
+  visionHeight: 3
+  visionHeightSoftenDistance: 1.5
+  viewAngle: 360
+  opacity: 1
+  EyeOffset: 0
+  ShaderEyeOffset: 0
+  StartRevealerAsStatic: 0
+  revealHiderInFadeOutZonePercentage: 0.5
+  MaxHidersSampledPerFrame: 50
+  SetHiderRayOriginToHidersHeight: 0
+  SetHiderRayDestinationToRevealersHeight: 1
+  useOcclusion: 1
+  addCorners: 1
+  ObstacleMask:
+    serializedVersion: 2
+    m_Bits: 0
+  OcclusionQuality: 5
+  raycastResolution: 0.5
+  NumExtraIterations: 4
+  numExtraRaysOnIteration: 3
+  ResolveEdge: 1
+  MaxEdgeResolveIterations: 10
+  MaxAcceptableEdgeAngleDifference: 0.005
+  edgeDstThreshold: 0.1
+  doubleHitMaxAngleDelta: 15
+  DebugMode: 0
+  DrawInitialRays: 0
+  SegmentTest: -1
+  DrawExpectedNextPoints: 0
+  DrawIteritiveRays: 0
+  DrawEdgeResolveRays: 0
+  DrawExtraCastLines: 0
+  DrawHiderSamples: 0
+  DebugLogHiderBlockerName: 0
+--- !u!114 &5307241938836261625
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7501055689196940650}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2d5b2b9e8e22ff419cad16d1a486995, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: deer_PixelPerfectFogOfWarComponent_108
+  isActive: 1
+  OverrideModel: 1
+  Renderers:
+  - {fileID: 7515124440759840684}
+  - {fileID: 7642461332808004634}
+  - {fileID: 7642079846642877634}
+  ObjectsToDisable: []
+  _hideInFog: 1
+  IsCurrentlyHidden: 0
 --- !u!1 &7501175084258782510
 GameObject:
   m_ObjectHideFlags: 0
@@ -1700,6 +1791,11 @@ PrefabInstance:
       objectReference: {fileID: 9100000, guid: b85ec1e302770b642b85403c214e5816, type: 2}
     - target: {fileID: 95366048792280394, guid: e8ad581f3a696214d91fde278c6dde6d,
         type: 3}
+      propertyPath: m_CullingMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 95366048792280394, guid: e8ad581f3a696214d91fde278c6dde6d,
+        type: 3}
       propertyPath: m_ApplyRootMotion
       value: 0
       objectReference: {fileID: 0}
@@ -1708,6 +1804,18 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e8ad581f3a696214d91fde278c6dde6d, type: 3}
+--- !u!137 &7642079846642877634 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 137428110865397690, guid: e8ad581f3a696214d91fde278c6dde6d,
+    type: 3}
+  m_PrefabInstance: {fileID: 7774938099412038520}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &7642461332808004634 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 137741410332247906, guid: e8ad581f3a696214d91fde278c6dde6d,
+    type: 3}
+  m_PrefabInstance: {fileID: 7774938099412038520}
+  m_PrefabAsset: {fileID: 0}
 --- !u!95 &7689034245888511538 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 95366048792280394, guid: e8ad581f3a696214d91fde278c6dde6d,
