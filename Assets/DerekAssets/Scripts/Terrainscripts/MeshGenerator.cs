@@ -227,15 +227,18 @@ public class MeshData {
 	void FlatShading() {
 		Vector3[] flatShadedVertices = new Vector3[triangles.Length];
 		Vector2[] flatShadedUvs = new Vector2[triangles.Length];
+		Vector2[] flatShadedUv3s = new Vector2[triangles.Length];
 
 		for (int i = 0; i < triangles.Length; i++) {
 			flatShadedVertices [i] = vertices [triangles [i]];
 			flatShadedUvs [i] = uvs [triangles [i]];
+			flatShadedUv3s [i] = uv3s [triangles [i]];
 			triangles [i] = i;
 		}
 
 		vertices = flatShadedVertices;
 		uvs = flatShadedUvs;
+		uv3s = flatShadedUv3s;
 	}
 
 	public Mesh CreateMesh() {
