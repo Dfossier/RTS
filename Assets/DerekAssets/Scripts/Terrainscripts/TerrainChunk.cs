@@ -61,7 +61,7 @@ public class TerrainChunk
         meshFilter = meshObject.AddComponent<MeshFilter>();
         meshCollider = meshObject.AddComponent<MeshCollider>();
         meshCollider.convex = false;
-        meshRenderer.material = material;
+        meshRenderer.sharedMaterial = material;
 
         meshObject.transform.position = new Vector3(position.x, 0, position.y);
         indexX = (int)meshObject.transform.position.x;

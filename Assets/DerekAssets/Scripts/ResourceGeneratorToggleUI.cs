@@ -4,6 +4,7 @@ using RTSEngine.EntityComponent;
 using RTSEngine.UI;
 using RTSEngine.Event;
 using RTSEngine.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
@@ -69,6 +70,7 @@ public class ResourceGeneratorToggleUI : EntityComponentBase
     private Color activeIconTint = new Color(0.5f, 1f, 0.5f, 1f); // Light green tint
 
     private IBuilding building;
+    private IGlobalEventPublisher globalEvent;
     #endregion
 
     #region Public Access
@@ -82,6 +84,7 @@ public class ResourceGeneratorToggleUI : EntityComponentBase
     protected override void OnInit()
     {
         building = Entity as IBuilding;
+        globalEvent = gameMgr.GetService<IGlobalEventPublisher>();
 
         // Auto-find ResourceGenerator if not assigned
         if (targetGenerator == null)
@@ -110,6 +113,20 @@ public class ResourceGeneratorToggleUI : EntityComponentBase
 
         // Always start disabled (force OFF regardless of inspector value)
         targetGenerator.SetActiveLocal(false, playerCommand: false);
+
+        // Subscribe to generator state changes so the toggle icon refreshes immediately
+        targetGenerator.ActiveStatusUpdate += HandleGeneratorActiveStatusUpdated;
+    }
+
+    protected override void OnDisabled()
+    {
+        if (targetGenerator != null)
+            targetGenerator.ActiveStatusUpdate -= HandleGeneratorActiveStatusUpdated;
+    }
+
+    private void HandleGeneratorActiveStatusUpdated(IEntityComponent comp, EventArgs args)
+    {
+        globalEvent.RaiseEntityComponentTaskUIReloadRequestGlobal(this);
     }
     #endregion
 

@@ -112,6 +112,66 @@ public class TerrainGenerator : MonoBehaviour
 
         if (navMeshSurface == null && gameObject.TryGetComponent(out NavMeshSurface nav))
             navMeshSurface = nav;
+
+        // Persist terrain across scene loads if RTS engine loads a different scene
+        if (startGameAfterTerrainGen)
+        {
+            DontDestroyOnLoad(gameObject);
+            // Subscribe to scene loaded event
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Reapply material properties whenever a new scene loads
+        if (mapMaterial != null && textureSettings != null)
+        {
+            StartCoroutine(ReapplyMaterialProperties());
+        }
+    }
+
+    void OnDestroy()
+    {
+        // Unsubscribe from scene loaded event
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+
+        //Destroy the Update Navmesh event shouldn't happen with the current code but in case it changes later no leak will be created;
+        foreach(var terrainChunk in terrainChunkDictionary)
+        {
+            terrainChunkDictionary[terrainChunk.Key].OnTerrainUpdated -= UpdateNavMesh;
+        }
+    }
+
+    void OnEnable()
+    {
+        // Re-apply material properties when object is enabled (e.g., after scene load)
+        if (mapMaterial != null && textureSettings != null)
+        {
+            StartCoroutine(ReapplyMaterialProperties());
+        }
+    }
+
+    IEnumerator ReapplyMaterialProperties()
+    {
+        // Wait a frame to ensure scene is fully loaded
+        yield return null;
+        yield return new WaitForEndOfFrame();
+
+        if (mapMaterial != null && textureSettings != null && heightMapSettings != null)
+        {
+            Debug.Log($"Reapplying material properties. Material: {mapMaterial.name}, Shader: {mapMaterial.shader.name}");
+            textureSettings.ApplyToMaterial(mapMaterial);
+            textureSettings.UpdateMeshHeights(mapMaterial, heightMapSettings.minHeight, heightMapSettings.maxHeight);
+
+            // Verify all terrain chunks are using the shared material
+            int chunkCount = 0;
+            foreach (var kvp in terrainChunkDictionary)
+            {
+                chunkCount++;
+            }
+            Debug.Log($"Material properties reapplied to {chunkCount} terrain chunks");
+        }
     }
 
     void Start()
@@ -178,10 +238,15 @@ public class TerrainGenerator : MonoBehaviour
 
         if (terrainData.loadCount == levelDepthInTiles*levelWidthInTiles)
         {
-            
+
             //Rtsengine.SetActive(true);
             //freeunitGen.GenerateUnits(this.levelWidthInTiles, this.tileWidthInVertices, this.terrainData);
             Destroy(seaPlane);
+
+            // Re-apply material properties after all chunks are loaded to prevent black tiles
+            textureSettings.ApplyToMaterial(mapMaterial);
+            textureSettings.UpdateMeshHeights(mapMaterial, heightMapSettings.minHeight, heightMapSettings.maxHeight);
+
             terrainData.loadCount = 0;
             StartCoroutine(InstantiateRTSEngineAfterDelay());
         }
@@ -399,6 +464,11 @@ public class TerrainGenerator : MonoBehaviour
                 }
             }
             gameObject.GetComponent<GrassGeneration>().GenerateGrassOnNavMesh();
+
+            // Re-apply material properties one final time before scene transition
+            textureSettings.ApplyToMaterial(mapMaterial);
+            textureSettings.UpdateMeshHeights(mapMaterial, heightMapSettings.minHeight, heightMapSettings.maxHeight);
+
             // GameObject.Find("sceneLoader").GetComponent<DerekTerrainManager>().InitializeDerekTerrain();
             if (startGameAfterTerrainGen)
             {
@@ -501,15 +571,6 @@ public class TerrainGenerator : MonoBehaviour
                     }
                 }
              }
-        }
-    }
-
-    private void OnDestroy()
-    {
-        //Destroy the Update Navmesh event shouldn't happen with the current code but in case it changes later no leak will be created;
-        foreach(var terrainChunk in terrainChunkDictionary)
-        {
-            terrainChunkDictionary[terrainChunk.Key].OnTerrainUpdated -= UpdateNavMesh;
         }
     }
 

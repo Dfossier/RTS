@@ -4,7 +4,8 @@ Shader "Custom/Terrain"
 	Properties
 	{
 		testTexture("Texture", 2D) = "white"{}
-	testScale("Scale", Float) = 1
+		testScale("Scale", Float) = 1
+		_DebugMode("Debug Mode", Float) = 0
 	}
 		SubShader
 	{
@@ -46,6 +47,7 @@ Shader "Custom/Terrain"
 
 	sampler2D testTexture;
 	float testScale;
+	float _DebugMode;
 
 	UNITY_DECLARE_TEX2DARRAY(baseTextures);
 
@@ -120,90 +122,122 @@ Shader "Custom/Terrain"
 		maxHeat = 1;
 		minMoisture = 0;
 	    maxMoisture = 1;
-		oneHeat = 1 / 2;
-		twoHeat = 1 * 2 / 3;
 		waterLevel = 1.5;
 
 
 		float heightPercent = inverseLerp(minHeight, maxHeight, IN.worldPos.y);
 		float heatPercent = inverseLerp(minHeat, maxHeat, IN.biomeMap.x);
 		float moisturePercent = inverseLerp(minMoisture, maxMoisture, IN.biomeMap.y);
-		float halfHeat = inverseLerp(minHeat, oneHeat, IN.biomeMap.x);
 		float isNotWater = saturate(sign(IN.worldPos.y - waterLevel));
-		float isCold = saturate(sign(IN.biomeMap.x - twoHeat));
 
 
 
 		float3 blendAxes = abs(IN.worldNormal);
-		blendAxes /= blendAxes.x + blendAxes.y + blendAxes.z; 
+		float blendAxesSum = blendAxes.x + blendAxes.y + blendAxes.z;
+		blendAxes /= max(blendAxesSum, 0.0001); 
 
 
-		for (int i = 0; i < layerCount; i++)
-		{
-			
-			float heightStrength = inverseLerp(
-				-baseBlends[i] / 2 - EPSILON,
-				baseBlends[i] / 2,
-				heightPercent - baseStartHeights[i]) / 2;
+		// WHITTAKER BIOME DIAGRAM - 2D LOOKUP WITH SOFT BLENDING
+		// Heat and moisture are independent axes
+		// Blend between adjacent biomes for smooth transitions
 
-			float heatStrength = inverseLerp(
-			   -baseBlends[i] / 2 - EPSILON,
-				baseBlends[i] / 2,
-				heatPercent - baseStartHeats[i])/2;
+		float blendWidth = 0.15;  // Blend zone width
 
-			float moistureStrength = inverseLerp(
-			   -baseBlends[i] / 2 - EPSILON,
-				baseBlends[i] / 2,
-				moisturePercent - baseStartMoistures[i])/2;
+		// WATER CHECK
+		if (isNotWater < 0.5) {
+			// Water/beach - use layer 0 or 1 based on height
+			int waterBiome = (heightPercent > baseStartHeights[1]) ? 1 : 0;
+			float3 baseColour = baseColours[waterBiome] * baseColourStrength[waterBiome];
+			float3 textureColour = triplanar(IN.worldPos, baseTextureScales[waterBiome], blendAxes, waterBiome) * (1 - baseColourStrength[waterBiome]);
+			o.Albedo = baseColour + textureColour;
+		}
+		else {
+			// LAND - Whittaker diagram with blending
 
+			float3 finalColor = float3(0, 0, 0);
 
-			float3 baseColour = baseColours[i] * baseColourStrength[i];
-			float3 textureColour = triplanar(IN.worldPos, baseTextureScales[i], blendAxes, i) * (1 - baseColourStrength[i]);
+			// TUNDRA (heat > 0.6) - MUCH MORE tundra
+			float tundraStrength = smoothstep(0.6 - blendWidth, 0.6 + blendWidth, heatPercent);
 
-			//o.Albedo = (o.Albedo * (1 - heightStrength) + (baseColour + textureColour) * heightStrength);
-			//the original, this writes lower height values first then overwrites them with higher height values
-			//the higher the draw strength, the higher the overwrite starts
-			//if we want water to be drawn first, then we need a low drawStrength
+			// HOT ZONE (heat < 0.2) - Keep desert size
+			float hotZone = 1.0 - smoothstep(0.2 - blendWidth, 0.2 + blendWidth, heatPercent);
+			float desertStrength = hotZone * (1.0 - smoothstep(0.3 - blendWidth, 0.3 + blendWidth, moisturePercent));
+			float jungleStrength = hotZone * smoothstep(0.3 - blendWidth, 0.3 + blendWidth, moisturePercent);
 
+			// TEMPERATE ZONE (0.2 <= heat < 0.6) - Narrower temperate band
+			float temperateZone = (1.0 - tundraStrength) * (1.0 - hotZone);
+			float steppeStrength = temperateZone * (1.0 - smoothstep(0.4 - blendWidth, 0.4 + blendWidth, moisturePercent));
+			float grasslandStrength = temperateZone * smoothstep(0.4 - blendWidth, 0.4 + blendWidth, moisturePercent);
 
-			//         This part only draws below the waterline
-			//o.Albedo = o.Albedo * (1 - isWater)                 +            (baseColour + textureColour) * heightStrength
-				
-			o.Albedo = 
-				//this one draws texture by moisture level for warm areas
-				((o.Albedo * (1 - moistureStrength) + (baseColour + textureColour) * (moistureStrength))*(1-isCold)
-				
-				//this one draws the cold biome
-				+(o.Albedo * (1 - heatStrength) + (baseColour + textureColour) * heatStrength)*(isCold))*isNotWater
-				
-				
-				+(o.Albedo * (1 - heightStrength) + (baseColour + textureColour) * heightStrength)*(1-isNotWater)
-				;
-			
-			
+			// Render each biome with its strength
+			float3 tundraColor = baseColours[5] * baseColourStrength[5] + triplanar(IN.worldPos, baseTextureScales[5], blendAxes, 5) * (1 - baseColourStrength[5]);
+			float3 desertColor = baseColours[2] * baseColourStrength[2] + triplanar(IN.worldPos, baseTextureScales[2], blendAxes, 2) * (1 - baseColourStrength[2]);
+			float3 steppeColor = baseColours[3] * baseColourStrength[3] + triplanar(IN.worldPos, baseTextureScales[3], blendAxes, 3) * (1 - baseColourStrength[3]);
+			float3 grassJungleColor = baseColours[4] * baseColourStrength[4] + triplanar(IN.worldPos, baseTextureScales[4], blendAxes, 4) * (1 - baseColourStrength[4]);
 
-			//testing 2   this puts the water first by drawing textures based on inverse height strength
-			//o.Albedo = o.Albedo * (1 - heightStrength)  
-				
-				//halfPercent draws everything else based on closeness to top (heightstrength), and everything on the inverse of heatstrength from dryest to wettest 
-			    //+o.Albedo * heightStrength * (halfHeat) * (1-moistureStrength)
-				//+(baseColour + textureColour) * (halfHeat) * (1-heightStrength)* (moistureStrength)
-			    //this shows the cold areas
-			    // +(baseColour + textureColour) * (1-halfHeat)* heightStrength 
-				//;
-		    
-			//testing 1
-			//o.Albedo = heatPercent;
+			// Blend all biomes
+			finalColor = tundraColor * tundraStrength
+					   + desertColor * desertStrength
+					   + grassJungleColor * (jungleStrength + grasslandStrength)
+					   + steppeColor * steppeStrength;
 
-			//o.Albedo =
-				// o.Albedo * (1-halfHeat)
-				//+(o.Albedo * (1 - moistureStrength) + (baseColour + textureColour) * moistureStrength)
-				//+ (baseColour + textureColour)*heatStrength * halfHeat;
-				// ;
-
+			o.Albedo = finalColor;
 		}
 
-		//o.Albedo = float3(IN.heatmap, 0);
+		// DEBUG VISUALIZATIONS
+		// Change _DebugMode in material inspector:
+		// 0 = Normal biome rendering
+		// 1 = Heat map (Red gradient: dark=cold/equator, bright=hot/poles)
+		// 2 = Moisture map (Green gradient: dark=dry, bright=wet)
+		// 3 = Combined (Red=heat, Green=moisture)
+		// 4 = Heat zones (shows cold threshold at 0.667)
+		// 5 = Moisture zones (shows biome boundaries)
+
+		if (_DebugMode == 1) {
+			// Heat only - Red gradient
+			o.Albedo = float3(IN.biomeMap.x, 0, 0);
+		}
+		else if (_DebugMode == 2) {
+			// Moisture only - Green gradient
+			o.Albedo = float3(0, IN.biomeMap.y, 0);
+		}
+		else if (_DebugMode == 3) {
+			// Combined: Red=heat, Green=moisture, Blue=height
+			o.Albedo = float3(IN.biomeMap.x, IN.biomeMap.y, heightPercent);
+		}
+		else if (_DebugMode == 4) {
+			// Heat zones: Blue=cold (>0.6), Red=hot (<0.2), Yellow=temperate
+			if (heatPercent > 0.6)
+				o.Albedo = float3(0.5, 0.7, 1.0);  // Light blue - Tundra zone (coldest 40%)
+			else if (heatPercent < 0.2)
+				o.Albedo = float3(1.0, 0.3, 0.2);  // Red - Hot zone (hottest 20%)
+			else
+				o.Albedo = float3(1.0, 0.9, 0.3);  // Yellow - Temperate zone (middle 40%)
+		}
+		else if (_DebugMode == 5) {
+			// Whittaker Biome Diagram - matches the shader's actual biome selection
+			if (heatPercent > 0.6) {
+				// Tundra (EXPANDED - 40% of map)
+				o.Albedo = float3(0.9, 0.9, 1.0);  // White/blue
+			}
+			else if (heatPercent < 0.2 && moisturePercent < 0.3) {
+				// Desert (hot + dry)
+				o.Albedo = float3(0.9, 0.6, 0.3);  // Reddish sandy
+			}
+			else if (heatPercent < 0.2 && moisturePercent >= 0.3) {
+				// Jungle (hot + wet)
+				o.Albedo = float3(0.1, 0.5, 0.1);  // Dark green
+			}
+			else if (moisturePercent < 0.4) {
+				// Steppe (temperate + dry)
+				o.Albedo = float3(0.8, 0.7, 0.4);  // Tan
+			}
+			else {
+				// Grassland (temperate + wet)
+				o.Albedo = float3(0.2, 0.7, 0.15);  // Bright green
+			}
+		}
+		// else: _DebugMode == 0 or undefined, use normal biome rendering (already set above)
 	}
 	ENDCG
 	}

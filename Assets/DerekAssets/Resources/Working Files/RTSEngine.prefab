@@ -2853,6 +2853,91 @@ MonoBehaviour:
   - {fileID: 7263880705549992941}
   - {fileID: 7263880705549992941}
   - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
+  - {fileID: 7263880705549992941}
   factionUnitMarkers:
   - {fileID: 0}
   - {fileID: 0}
@@ -108028,6 +108113,7 @@ GameObject:
   - component: {fileID: 6355253155794772404}
   - component: {fileID: 6355253155794772405}
   - component: {fileID: 6355253155794772402}
+  - component: {fileID: 2422405289866997246}
   m_Layer: 0
   m_Name: Determinisim
   m_TagString: Untagged
@@ -108062,7 +108148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f5ac57ca3322014aaf57814fc8f8dba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultModifier: 1
+  defaultModifier: 0.5
   currentModifier: 0
   globalTimersCount: 0
 --- !u!114 &6355253155794772402
@@ -108090,6 +108176,32 @@ MonoBehaviour:
     targetUnits: 1
     targetBuildings: 1
     targetResources: 1
+--- !u!114 &2422405289866997246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6355253155794772407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a09f24f172181cf4fb8c01b2033546a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  presets:
+  - label: 1x
+    modifier: 1
+    hotkey: 49
+  - label: 2x
+    modifier: 2
+    hotkey: 50
+  - label: 3x
+    modifier: 3
+    hotkey: 51
+  startPresetIndex: 0
+  decreaseKey: 45
+  increaseKey: 61
+  logChanges: 1
 --- !u!1 &6355253155796037544
 GameObject:
   m_ObjectHideFlags: 0
@@ -154603,16 +154715,10 @@ MonoBehaviour:
   - {fileID: 3310750596758662194}
   AvailableFactions:
   - FactionType: {fileID: 11400000, guid: 90d507da6715cc34db0423f78ce47e89, type: 2}
-    FactionBuildings:
-    - Building: {fileID: 0}
-      StartingHealth: 2500
+    FactionBuildings: []
     FactionUnits: []
   - FactionType: {fileID: 11400000, guid: 69b1443c79d71254a8ad862c759e75ca, type: 2}
-    FactionBuildings:
-    - Building: {fileID: 0}
-      StartingHealth: 2500
-    - Building: {fileID: 0}
-      StartingHealth: 1000
+    FactionBuildings: []
     FactionUnits: []
   TerrainsParent: {fileID: 7633290764842095420, guid: 88dc444f8c28b4a4695eb4b3ff8cff9a,
     type: 3}

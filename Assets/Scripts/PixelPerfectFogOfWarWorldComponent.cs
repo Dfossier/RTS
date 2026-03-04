@@ -13,12 +13,59 @@ namespace Assets._GAME.Scripts.Components
     {
         public static bool ShowAllEntities = false;
 
+        [Header("Debug Controls")]
+        [Tooltip("Set to true to completely disable Fog of War rendering (for testing)")]
+        public bool DisableFogOfWar = false;
+
+        private void OnEnable()
+        {
+            Debug.Log("[FoW] PixelPerfectFogOfWarWorldComponent ENABLED - F1=ShowAllEntities, F2=ToggleFoW");
+        }
+
+        private void Start()
+        {
+            if (FOW.FogOfWarWorld.instance == null)
+            {
+                Debug.LogWarning("[FoW] FogOfWarWorld.instance is NULL! Make sure FogOfWarWorld component exists in scene.");
+            }
+            else
+            {
+                Debug.Log($"[FoW] FogOfWarWorld found. Current state: enabled={FOW.FogOfWarWorld.instance.enabled}");
+            }
+        }
+
         private void Update()
         {
+            // F1 - Toggle showing all entities (reveals units but keeps FoW overlay)
             if (Input.GetKeyDown(KeyCode.F1))
             {
                 ShowAllEntities = !ShowAllEntities;
+                Debug.Log($"[FoW] F1 PRESSED - ShowAllEntities: {ShowAllEntities}");
+            }
 
+            // F2 - Toggle Fog of War completely (disables entire system)
+            if (Input.GetKeyDown(KeyCode.F2))
+            {
+                DisableFogOfWar = !DisableFogOfWar;
+                if (FOW.FogOfWarWorld.instance != null)
+                {
+                    FOW.FogOfWarWorld.instance.enabled = !DisableFogOfWar;
+                    Debug.Log($"[FoW] F2 PRESSED - Fog of War {(DisableFogOfWar ? "DISABLED" : "ENABLED")}");
+                }
+                else
+                {
+                    Debug.LogError("[FoW] F2 PRESSED but FogOfWarWorld.instance is NULL!");
+                }
+            }
+
+            // Apply DisableFogOfWar setting every frame (in case it's changed in Inspector)
+            if (FOW.FogOfWarWorld.instance != null)
+            {
+                bool shouldBeEnabled = !DisableFogOfWar;
+                if (FOW.FogOfWarWorld.instance.enabled != shouldBeEnabled)
+                {
+                    FOW.FogOfWarWorld.instance.enabled = shouldBeEnabled;
+                }
             }
         }
     }

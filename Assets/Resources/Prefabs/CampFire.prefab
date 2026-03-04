@@ -2735,7 +2735,6 @@ GameObject:
   - component: {fileID: 8079371747804903726}
   - component: {fileID: 3956189722348425701}
   - component: {fileID: 6873820745966393220}
-  - component: {fileID: 8810825235998345644}
   - component: {fileID: 109597590772043750}
   - component: {fileID: 8732802274385878892}
   - component: {fileID: 4055745902542314958}
@@ -2765,6 +2764,7 @@ Transform:
   - {fileID: 8157373767846614554}
   - {fileID: 8256002097464295748}
   - {fileID: 3079662825066520528}
+  - {fileID: 6078716182494070333}
   - {fileID: 8827331937734749012}
   - {fileID: 4583635985311867131}
   - {fileID: 8157647416156214492}
@@ -2788,7 +2788,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabID:
     x: 0
-    y: 0
+    y: 1
   _name: Camp Fire
   code: camp_fire
   category: civilian_building,rtse_demo_entity
@@ -2804,18 +2804,13 @@ MonoBehaviour:
   - type: {fileID: 11400000, guid: b16294d219bf6db449279be57eae3702, type: 2}
     value:
       amount: 0
-      capacity: 10
-    nonConsumable: 0
-  - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-    value:
-      amount: 100
-      capacity: 0
+      capacity: 5
     nonConsumable: 0
   disableResources:
   - type: {fileID: 11400000, guid: b16294d219bf6db449279be57eae3702, type: 2}
     value:
       amount: 0
-      capacity: -10
+      capacity: -5
     nonConsumable: 0
   coloredRenderers:
   - renderer: {fileID: 0}
@@ -2916,7 +2911,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabID:
     x: 0
-    y: 2
+    y: 1
   maxHealth: 2500
   initialHealth: 1
   canIncrease: 1
@@ -2939,17 +2934,7 @@ MonoBehaviour:
         _max: 2
   destroyObject: 1
   destroyObjectDelay: 1
-  destroyAward:
-  - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-    value:
-      amount: 70
-      capacity: 0
-    nonConsumable: 0
-  - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-    value:
-      amount: 70
-      capacity: 0
-    nonConsumable: 0
+  destroyAward: []
   destructionAudio:
     fetchType: 0
     items: []
@@ -3160,23 +3145,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   coloredRenderers: []
---- !u!114 &8810825235998345644
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8160032789067560374}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e53dcbd61c3efa1419eef688e5273027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  SpawnUnitsOnComplete: 1
-  UnitsSpawned: 0
-  StartUnits:
-  - CreatorTaskIndex: 0
-    SpawnCount: 3
 --- !u!114 &109597590772043750
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3571,7 +3539,7 @@ Transform:
   m_GameObject: {fileID: 8160107479082025154}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.32, y: 0, z: -1.09}
+  m_LocalPosition: {x: -0.09, y: 0, z: -0.23}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4716,7 +4684,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8827331937734749012}
   - component: {fileID: 1280665590270701725}
-  - component: {fileID: 6818165316052107207}
   - component: {fileID: 5914822745196726155}
   - component: {fileID: 7581332939575309758}
   - component: {fileID: 1250429246301624781}
@@ -4799,56 +4766,6 @@ MonoBehaviour:
   setTargetResourceOfSameTypeOnDead: 1
   setTargetResourceOnDeadRange: 20
   attackMoveEnabled: 1
---- !u!114 &6818165316052107207
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8813891554683606450}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 024b174d8e0f7ee4790a0f68429f56ea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  code: unit_creator
-  isActive: 1
-  tabID:
-    x: 0
-    y: 1
-  creationTasks:
-  - taskTitle: 'Create Unit: villager'
-    taskUI: {fileID: 11400000, guid: 525078f2fbc9fe14a97c11bb0dc99c4e, type: 2}
-    allowedFactionTypes:
-      type: 0
-      options: []
-    requiredResources:
-    - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
-      value:
-        amount: 15
-        capacity: 0
-      nonConsumable: 0
-    - type: {fileID: 11400000, guid: b16294d219bf6db449279be57eae3702, type: 2}
-      value:
-        amount: 1
-        capacity: 0
-      nonConsumable: 1
-    factionEntityRequirements: []
-    missingRequirementData:
-      icon: {fileID: 0}
-      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
-    onComplete:
-      m_PersistentCalls:
-        m_Calls: []
-    prefabObject: {fileID: 1913004789782250, guid: 70b2cb94f8a6e9544b1c604369e7e462,
-      type: 3}
-    squadData:
-      enabled: 0
-      count: 3
-    limit: 0
-    maxAmount: 10
-  upgradeTargetCreationTasks: []
-  spawnTransform: {fileID: 8157647416156214492}
 --- !u!114 &5914822745196726155
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5037,6 +4954,62 @@ MonoBehaviour:
     canBeAttackedOnValidFaction: 1
   showStoredUnitsGizmos: 1
   storedUnitsFoldout: 0
+--- !u!1 &9055065780641190549
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6078716182494070333}
+  - component: {fileID: 8004291598506781887}
+  m_Layer: 0
+  m_Name: unit_spawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6078716182494070333
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9055065780641190549}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8154676417734480558}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8004291598506781887
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9055065780641190549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 220bddeb700b36540a296b01fee3349a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  unitPrefab: {fileID: 114993838964213816, guid: 70b2cb94f8a6e9544b1c604369e7e462,
+    type: 3}
+  spawnTransform: {fileID: 8157647416156214492}
+  spawnRadius: 6
+  period: 15
+  resourceGates:
+  - type: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
+    minimumLevel: 50
+    costPerSpawn: 0
+  - type: {fileID: 11400000, guid: a388932a9a066e642a1796e10d1a4da4, type: 2}
+    minimumLevel: 50
+    costPerSpawn: 0
 --- !u!1 &9211040354089234754
 GameObject:
   m_ObjectHideFlags: 0
