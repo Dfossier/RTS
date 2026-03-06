@@ -140,6 +140,23 @@ public class ResourceGrowth : MonoBehaviour
                 wasBuilt = true;
                 timer = 0f; // start the growth timer fresh from this moment
 
+                // Stop all workers currently building this plot — it grows on its own now.
+                // We copy the list first because Stop() removes workers from WorkerMgr.Workers.
+                if (building.WorkerMgr != null && building.WorkerMgr.Amount > 0)
+                {
+                    int count = building.WorkerMgr.Amount;
+                    IUnit[] workersCopy = new IUnit[count];
+                    for (int i = 0; i < count; i++)
+                        workersCopy[i] = building.WorkerMgr.Workers[i];
+
+                    foreach (IUnit worker in workersCopy)
+                        if (worker.IsValid() && worker.BuilderComponent.IsValid())
+                            worker.BuilderComponent.Stop();
+
+                    if (debugMode)
+                        Debug.Log($"[ResourceGrowth] {gameObject.name}: stopped {count} builder(s).");
+                }
+
                 // startingAmount must be >= 1 to avoid reducing health to 0 which
                 // triggers Destroy() inside EntityHealth.AddLocal.
                 int clampedStart = Mathf.Max(1, startingAmount);
