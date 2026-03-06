@@ -2288,12 +2288,12 @@ MonoBehaviour:
   tabID:
     x: 0
     y: 0
-  maxHealth: 100
+  maxHealth: 10
   initialHealth: 1
   canIncrease: 1
   canDecrease: 1
   hoverHealthBarData:
-    enabled: 1
+    enabled: 0
     offset: {x: 0, y: 4, z: 0}
     size: {x: 1, y: 1, z: 1}
     parent: {fileID: 0}
@@ -2359,7 +2359,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
   repairCosts: []
-  buildTime: 50
+  buildTime: 10
 --- !u!82 &444750116356534003
 AudioSource:
   m_ObjectHideFlags: 0
@@ -2498,7 +2498,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabID:
     x: 0
-    y: 1
+    y: 0
   _name: Horticultural Plot
   code: horticultural_plot
   category: civilian_building
@@ -2510,12 +2510,7 @@ MonoBehaviour:
   isIdle: 0
   isMainEntity: 0
   isFactionLocked: 0
-  initResources:
-  - type: {fileID: 11400000, guid: e279bbd3b414b6b4bb8d64afd1344c38, type: 2}
-    value:
-      amount: 10
-      capacity: 0
-    nonConsumable: 0
+  initResources: []
   disableResources: []
   coloredRenderers: []
   resourceType: {fileID: 11400000, guid: e279bbd3b414b6b4bb8d64afd1344c38, type: 2}
@@ -2574,7 +2569,7 @@ MonoBehaviour:
   tabID:
     x: 0
     y: 0
-  maxHealth: 10
+  maxHealth: 15
   initialHealth: 1
   canIncrease: 1
   canDecrease: 1
@@ -2635,20 +2630,16 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7495770028921170910}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 540b20f40d999c0438a93f89bf1353bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthPerGrowthTick: 5
-  growthInterval: 2
-  minHealthToGrow: 1
-  stopAtMaxHealth: 1
-  visualModel: {fileID: 0}
-  minScale: {x: 0.1, y: 0.1, z: 0.1}
-  maxScale: {x: 1, y: 1, z: 1}
-  smoothScaling: 1
-  debugMode: 0
+  startingAmount: 1
+  amountPerTick: 1
+  growthInterval: 30
+  stopAtMax: 1
+  debugMode: 1
 --- !u!1 &7872127692080671033
 GameObject:
   m_ObjectHideFlags: 0

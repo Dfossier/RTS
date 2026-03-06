@@ -1,4 +1,5 @@
 using RTSEngine;
+using RTSEngine.Determinism;
 using RTSEngine.Entities;
 using RTSEngine.Event;
 using RTSEngine.Health;
@@ -26,8 +27,8 @@ public class ResourceGrowth : MonoBehaviour
     [SerializeField, Tooltip("Amount to add per tick")]
     private int amountPerTick = 1;
 
-    [SerializeField, Tooltip("Seconds between each tick")]
-    private float growthInterval = 5f;
+    [SerializeField, Tooltip("Game-time seconds between each tick (scaled by game speed, same as all other engine timers)")]
+    private float growthInterval = 30f;
 
     [SerializeField, Tooltip("Stop growing once the resource is full")]
     private bool stopAtMax = true;
@@ -170,7 +171,9 @@ public class ResourceGrowth : MonoBehaviour
 
         if (stopAtMax && resourceHealth.HasMaxHealth) return;
 
-        timer += Time.deltaTime;
+        // Scale by the engine's time modifier so growth respects game speed
+        // (same pattern as TimeModifiedTimer.ModifiedDecrease in the RTS Engine).
+        timer += Time.deltaTime * TimeModifier.CurrentModifier;
         if (timer >= growthInterval)
         {
             timer = 0f;
