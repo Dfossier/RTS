@@ -2288,7 +2288,7 @@ MonoBehaviour:
   tabID:
     x: 0
     y: 0
-  maxHealth: 10
+  maxHealth: 1
   initialHealth: 1
   canIncrease: 1
   canDecrease: 1
@@ -2569,7 +2569,7 @@ MonoBehaviour:
   tabID:
     x: 0
     y: 0
-  maxHealth: 15
+  maxHealth: 1
   initialHealth: 1
   canIncrease: 1
   canDecrease: 1
@@ -2637,7 +2637,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   startingAmount: 1
   amountPerTick: 1
-  growthInterval: 30
+  growthInterval: 1
+  growthMax: 15
   stopAtMax: 1
   debugMode: 1
 --- !u!1 &7872127692080671033

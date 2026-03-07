@@ -26,6 +26,7 @@ namespace RTSEngine.Health
         bool CanDecrease { get; set; }
 
         bool IsDead { get; }
+        bool DestroyObject { get; }
         IEntity TerminatedBy { get; }
         float DestroyObjectDelay { get; }
 

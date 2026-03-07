@@ -1,3 +1,5 @@
+using System;
+
 using RTSEngine;
 using RTSEngine.Determinism;
 using RTSEngine.Entities;
@@ -7,13 +9,25 @@ using RTSEngine.Health;
 using UnityEngine;
 
 /// <summary>
-/// Grows a resource's amount over time by adding to its ResourceHealth at regular intervals.
+/// Grows a resource's amount over time by simultaneously increasing both
+/// ResourceHealth.MaxHealth and ResourceHealth.CurrHealth each tick.
+///
+/// The resource starts at 1/1 (max=1, current=1) and grows tick by tick until
+/// MaxHealth reaches growthMax (e.g. 15). Current health always equals max health
+/// between ticks, so the resource is "full" at every intermediate stage — but
+/// there is still room to grow because MaxHealth < growthMax.
+///
+/// When a collector harvests some wheat (reduces CurrHealth), MaxHealth is
+/// unaffected. Growth resumes on the next tick and adds to current only (max is
+/// already at the right level for that stage). If CurrHealth hits 0 the
+/// ResourceBuilding self-destructs (destroyObject = true on ResourceHealth).
 ///
 /// For ResourceBuildings (e.g. horticultural plot):
-///   - Growth is blocked until construction completes (polls building.IsBuilt each frame).
-///   - The moment IsBuilt becomes true, the resource is forced to 'startingAmount' so it
-///     always begins at a known low value regardless of what the engine did during construction.
-///   - Growth then proceeds from startingAmount up to the ResourceHealth max.
+///   - Growth is blocked until construction completes.
+///   - On BuildingBuilt, BuildingHealth.CanIncrease is set to false so no builder
+///     can ever re-target this plot through Builder.IsTargetValid().
+///   - Worker stopping is handled cleanly by MustStopProgress() on the next
+///     TargetUpdate() tick (HasMaxHealth=true → Stop()).
 ///
 /// For pure Resource entities (no building phase):
 ///   - Growth begins immediately after the entity is initialized.
@@ -21,24 +35,26 @@ using UnityEngine;
 public class ResourceGrowth : MonoBehaviour
 {
     [Header("Growth Settings")]
-    [SerializeField, Tooltip("Resource amount when growth begins (after construction for buildings). Clamped to >= 1.")]
+    [SerializeField, Tooltip("Resource amount (and starting max) when growth begins. Clamped to >= 1.")]
     private int startingAmount = 1;
 
-    [SerializeField, Tooltip("Amount to add per tick")]
+    [SerializeField, Tooltip("Amount added to both MaxHealth and CurrHealth per tick.")]
     private int amountPerTick = 1;
 
-    [SerializeField, Tooltip("Game-time seconds between each tick (scaled by game speed, same as all other engine timers)")]
+    [SerializeField, Tooltip("Game-time seconds between each tick (scaled by game speed).")]
     private float growthInterval = 30f;
 
-    [SerializeField, Tooltip("Stop growing once the resource is full")]
+    [SerializeField, Tooltip("The final maximum the resource can reach. Growth stops when MaxHealth >= growthMax.")]
+    private int growthMax = 15;
+
+    [SerializeField, Tooltip("Stop growing once MaxHealth reaches growthMax.")]
     private bool stopAtMax = true;
 
     [Header("Debug")]
     [SerializeField]
     private bool debugMode = false;
 
-    // Max frames to wait for IsInitialized before giving up (avoids infinite hang
-    // if the entity was placed in-scene without going through the RTS Engine).
+    // Max frames to wait for IsInitialized before giving up.
     private const int INIT_TIMEOUT_FRAMES = 500;
 
     private IResource resource;
@@ -65,10 +81,6 @@ public class ResourceGrowth : MonoBehaviour
             yield break;
         }
 
-        // Poll IsInitialized with a timeout so we never hang indefinitely.
-        // IsInitialized becomes true inside Building.CompleteInit(), which is called
-        // by Place() during the normal engine spawn path. If the entity was dropped
-        // into the scene without going through the engine, this will time out.
         int waitFrames = 0;
         while (!resource.IsInitialized)
         {
@@ -91,11 +103,6 @@ public class ResourceGrowth : MonoBehaviour
             yield break;
         }
 
-        // Warn early if growth can never succeed due to inspector misconfiguration.
-        if (!resourceHealth.CanIncrease)
-            Debug.LogWarning($"[ResourceGrowth] {gameObject.name}: ResourceHealth.CanIncrease is false — " +
-                             $"growth ticks will always fail with 'healthNoIncrease'.");
-
         building = resource as IBuilding;
 
         if (building == null)
@@ -104,19 +111,19 @@ public class ResourceGrowth : MonoBehaviour
             wasBuilt = true;
             if (debugMode)
                 Debug.Log($"[ResourceGrowth] {gameObject.name}: not a building resource. " +
-                          $"Growth starts immediately at {resourceHealth.CurrHealth}/{resourceHealth.MaxHealth}.");
+                          $"Growth starts immediately at {resourceHealth.CurrHealth}/{resourceHealth.MaxHealth} (growthMax={growthMax}).");
         }
         else if (building.IsBuilt)
         {
-            // Building was already constructed before Initialize() ran
-            // (e.g. isBuilt=true in initParams, or BuildingHealth.initialHealth==maxHealth).
-            // wasBuilt stays false so Update() still runs the reset on its first frame.
+            // Building was already constructed before Initialize() ran.
+            // wasBuilt stays false so Update() fires the one-time setup.
             if (debugMode)
                 Debug.Log($"[ResourceGrowth] {gameObject.name}: building already constructed at init. " +
-                          $"Reset to startingAmount will fire on first Update.");
+                          $"Setup will fire on first Update.");
         }
         else
         {
+            building.BuildingBuilt += OnBuildingBuilt;
             if (debugMode)
                 Debug.Log($"[ResourceGrowth] {gameObject.name}: waiting for construction to complete.");
         }
@@ -124,72 +131,48 @@ public class ResourceGrowth : MonoBehaviour
         initialized = true;
     }
 
+    /// <summary>
+    /// Called synchronously by the engine when construction finishes (inside Builder.OnProgress()).
+    /// We only set CanIncrease=false here — worker stopping is left to MustStopProgress() which
+    /// fires cleanly at the top of the next TargetUpdate() tick.
+    /// </summary>
+    private void OnBuildingBuilt(IBuilding sender, EventArgs args)
+    {
+        building.BuildingBuilt -= OnBuildingBuilt;
+
+        if (wasBuilt) return; // guard against double-firing
+        wasBuilt = true;
+        timer = 0f;
+
+        // Disable construction targeting on this building so no builder can ever re-target it.
+        building.Health.CanIncrease = false;
+
+        if (debugMode)
+            Debug.Log($"[ResourceGrowth] {gameObject.name}: BuildingBuilt fired — " +
+                      $"BuildingHealth.CanIncrease disabled. Workers stop via MustStopProgress on next tick.");
+
+        ApplyStartingAmount();
+    }
+
     void Update()
     {
         if (!initialized) return;
         if (resourceHealth.IsDead) return;
 
-        // For building resources: poll IsBuilt every frame.
-        if (building != null)
+        // Pre-built case: building was already IsBuilt when Initialize ran.
+        if (building != null && !wasBuilt)
         {
             if (!building.IsBuilt) return;
 
-            // First frame where IsBuilt becomes true — reset resource to startingAmount.
-            if (!wasBuilt)
-            {
-                wasBuilt = true;
-                timer = 0f; // start the growth timer fresh from this moment
-
-                // Stop all workers currently building this plot — it grows on its own now.
-                // We copy the list first because Stop() removes workers from WorkerMgr.Workers.
-                if (building.WorkerMgr != null && building.WorkerMgr.Amount > 0)
-                {
-                    int count = building.WorkerMgr.Amount;
-                    IUnit[] workersCopy = new IUnit[count];
-                    for (int i = 0; i < count; i++)
-                        workersCopy[i] = building.WorkerMgr.Workers[i];
-
-                    foreach (IUnit worker in workersCopy)
-                        if (worker.IsValid() && worker.BuilderComponent.IsValid())
-                            worker.BuilderComponent.Stop();
-
-                    if (debugMode)
-                        Debug.Log($"[ResourceGrowth] {gameObject.name}: stopped {count} builder(s).");
-                }
-
-                // startingAmount must be >= 1 to avoid reducing health to 0 which
-                // triggers Destroy() inside EntityHealth.AddLocal.
-                int clampedStart = Mathf.Max(1, startingAmount);
-                int delta = clampedStart - resourceHealth.CurrHealth;
-
-                if (delta != 0)
-                {
-                    if (delta < 0)
-                    {
-                        // Health is higher than intended startingAmount.
-                        // Note: AddLocal with a negative value also fires hit VFX/audio and
-                        // sets ResourceHealth.collected=true (which activates the collectedState
-                        // visual). This is an edge case — under normal conditions delta==0
-                        // because nothing changes ResourceHealth during construction.
-                        Debug.LogWarning($"[ResourceGrowth] {gameObject.name}: ResourceHealth was " +
-                                         $"{resourceHealth.CurrHealth} at construction end (expected {clampedStart}). " +
-                                         $"Forcing reset via AddLocal — hit VFX/audio may fire.");
-                    }
-
-                    resourceHealth.AddLocal(new HealthUpdateArgs(delta, null), force: true);
-                }
-
-                if (debugMode)
-                    Debug.Log($"[ResourceGrowth] {gameObject.name}: construction complete — " +
-                              $"resource at {resourceHealth.CurrHealth}/{resourceHealth.MaxHealth} " +
-                              $"(delta applied: {delta}). Growing +{amountPerTick} every {growthInterval}s.");
-            }
+            wasBuilt = true;
+            timer = 0f;
+            building.Health.CanIncrease = false;
+            ApplyStartingAmount();
         }
 
-        if (stopAtMax && resourceHealth.HasMaxHealth) return;
+        if (stopAtMax && resourceHealth.MaxHealth >= growthMax) return;
 
-        // Scale by the engine's time modifier so growth respects game speed
-        // (same pattern as TimeModifiedTimer.ModifiedDecrease in the RTS Engine).
+        // Scale by the engine's time modifier so growth respects game speed.
         timer += Time.deltaTime * TimeModifier.CurrentModifier;
         if (timer >= growthInterval)
         {
@@ -198,21 +181,59 @@ public class ResourceGrowth : MonoBehaviour
         }
     }
 
+    private void ApplyStartingAmount()
+    {
+        // startingAmount must be >= 1 to avoid reducing health to 0 (triggers Destroy in EntityHealth.AddLocal).
+        int clampedStart = Mathf.Max(1, startingAmount);
+        int delta = clampedStart - resourceHealth.CurrHealth;
+
+        if (delta != 0)
+        {
+            if (delta < 0)
+                Debug.LogWarning($"[ResourceGrowth] {gameObject.name}: ResourceHealth was " +
+                                 $"{resourceHealth.CurrHealth} at construction end (expected {clampedStart}). " +
+                                 $"Forcing reset via AddLocal — hit VFX/audio may fire.");
+
+            resourceHealth.AddLocal(new HealthUpdateArgs(delta, null), force: true);
+        }
+
+        if (debugMode)
+            Debug.Log($"[ResourceGrowth] {gameObject.name}: construction complete — " +
+                      $"resource at {resourceHealth.CurrHealth}/{resourceHealth.MaxHealth} " +
+                      $"(delta: {delta}). Growing +{amountPerTick} (max+curr) every {growthInterval}s until growthMax={growthMax}.");
+    }
+
+    private void OnDestroy()
+    {
+        if (!wasBuilt && building.IsValid())
+            building.BuildingBuilt -= OnBuildingBuilt;
+    }
+
     private void Grow()
     {
-        int toAdd = Mathf.Min(amountPerTick, resourceHealth.MaxHealth - resourceHealth.CurrHealth);
-        if (toAdd <= 0) return;
+        if (resourceHealth.MaxHealth >= growthMax) return;
 
-        int before = resourceHealth.CurrHealth;
-        ErrorMessage result = resourceHealth.Add(new HealthUpdateArgs(toAdd, source: null));
+        int newMax = Mathf.Min(resourceHealth.MaxHealth + amountPerTick, growthMax);
+        int delta = newMax - resourceHealth.MaxHealth;
+
+        int beforeMax = resourceHealth.MaxHealth;
+        int beforeCurr = resourceHealth.CurrHealth;
+
+        // Raise the ceiling first so the subsequent Add() doesn't get clamped.
+        resourceHealth.SetMax(new HealthUpdateArgs(newMax, null));
+
+        // Grow current health by the same delta.
+        ErrorMessage result = resourceHealth.Add(new HealthUpdateArgs(delta, source: null));
 
         if (debugMode)
         {
             if (result == ErrorMessage.none)
-                Debug.Log($"[ResourceGrowth] {gameObject.name}: {before} → {resourceHealth.CurrHealth}/{resourceHealth.MaxHealth}");
+                Debug.Log($"[ResourceGrowth] {gameObject.name}: " +
+                          $"max {beforeMax}→{resourceHealth.MaxHealth}, " +
+                          $"curr {beforeCurr}→{resourceHealth.CurrHealth} / {resourceHealth.MaxHealth}");
             else
-                Debug.LogWarning($"[ResourceGrowth] {gameObject.name}: growth failed ({result}). " +
-                                 $"Check CanIncrease and IsDead on the ResourceHealth component.");
+                Debug.LogWarning($"[ResourceGrowth] {gameObject.name}: current-health grow failed ({result}). " +
+                                 $"MaxHealth was raised to {resourceHealth.MaxHealth}.");
         }
     }
 }

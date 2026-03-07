@@ -107,6 +107,7 @@ namespace RTSEngine.Health
         public IEntity TerminatedBy { private set; get; }
         [SerializeField, Tooltip("Destroy the entity object when health reaches zero?")]
         private bool destroyObject = true;
+        public bool DestroyObject => destroyObject;
         [SerializeField, Tooltip("If the object is to be destroyed on zero health, this presents how long it takes before the object is destroyed.")]
         private float destroyObjectDelay = 0.0f;
         public virtual float DestroyObjectDelay => new TimeModifiedFloat(destroyObjectDelay).Value;

@@ -63,6 +63,11 @@ namespace RTSEngine.Entities
 
         private void HandleResourceDead(IEntity entity, DeadEventArgs args)
         {
+            // If the resource health is configured to not destroy the object (destroyObject = false),
+            // skip the cascade destruction so the building can remain and the resource can revive.
+            if (!Health.DestroyObject)
+                return;
+
             base.Health.DestroyLocal(args.IsUpgrade, args.Source);
 
             Health.EntityDead -= HandleResourceDead;
