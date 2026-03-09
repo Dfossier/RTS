@@ -4,6 +4,7 @@ using RTSEngine;
 using RTSEngine.Determinism;
 using RTSEngine.Entities;
 using RTSEngine.Event;
+using RTSEngine.Game;
 using RTSEngine.Health;
 
 using UnityEngine;
@@ -32,8 +33,9 @@ using UnityEngine;
 /// For pure Resource entities (no building phase):
 ///   - Growth begins immediately after the entity is initialized.
 /// </summary>
-public class ResourceGrowth : MonoBehaviour
+public class ResourceGrowth : MonoBehaviour, IEntityPreInitializable
 {
+    protected IGameManager GameMgr { get; private set; }
     [Header("Growth Settings")]
     [SerializeField, Tooltip("Resource amount (and starting max) when growth begins. Clamped to >= 1.")]
     private int startingAmount = 1;
@@ -66,9 +68,13 @@ public class ResourceGrowth : MonoBehaviour
 
     void Start()
     {
-        StartCoroutine(Initialize());
+        
     }
-
+    public void OnEntityPreInit(IGameManager gameMgr,IEntity entity)
+    {
+        if(entity.IsInitialized)
+            StartCoroutine(Initialize());
+    }
     private System.Collections.IEnumerator Initialize()
     {
         yield return null;  // wait one frame for engine's Awake/OnEnable to run
@@ -235,5 +241,10 @@ public class ResourceGrowth : MonoBehaviour
                 Debug.LogWarning($"[ResourceGrowth] {gameObject.name}: current-health grow failed ({result}). " +
                                  $"MaxHealth was raised to {resourceHealth.MaxHealth}.");
         }
+    }
+
+    public void Disable()
+    {
+
     }
 }
