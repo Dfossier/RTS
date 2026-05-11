@@ -66,9 +66,19 @@ public class ResourceGrowth : MonoBehaviour, IEntityPreInitializable
     private bool initialized = false;
     private bool wasBuilt = false;
 
+    /// <summary>
+    /// Called by BiomePlotModifier (or any external script) in Awake() to override
+    /// the inspector defaults before the growth coroutine reads them.
+    /// </summary>
+    public void SetGrowthParameters(int newGrowthMax, float newGrowthInterval)
+    {
+        growthMax = Mathf.Max(1, newGrowthMax);
+        growthInterval = Mathf.Max(0.01f, newGrowthInterval);
+    }
+
     void Start()
     {
-        
+
     }
     public void OnEntityPreInit(IGameManager gameMgr,IEntity entity)
     {

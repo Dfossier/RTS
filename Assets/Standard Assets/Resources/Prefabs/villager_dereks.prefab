@@ -1252,8 +1252,8 @@ MonoBehaviour:
   code: builder_component
   isActive: 1
   tabID:
-    x: 0
-    y: 1
+    x: 1
+    y: 0
   priority: 0
   requireIdleEntity: 1
   targetFinderData:
@@ -1293,7 +1293,7 @@ MonoBehaviour:
     fetchType: 0
     items:
     - {fileID: 22100000, guid: 0d65d52f89506f2478245fffbeab4379, type: 2}
-  progressDuration: 1
+  progressDuration: 5
   progressMaxDistance: 0.5
   inProgressObject: {fileID: 691589316627563630}
   sourceEffect:
@@ -1301,7 +1301,7 @@ MonoBehaviour:
   targetEffect:
     input: {fileID: 0}
   showProgressGizmo: 1
-  healthPerProgress: 15
+  healthPerProgress: 5
   timeMultiplier: 0.2
   canConstruct: 1
   constructionTargetPicker:
@@ -1959,7 +1959,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 5
+    amount: 1
     animatorOverrideController:
       fetchType: 0
       items:
@@ -2073,7 +2073,7 @@ MonoBehaviour:
         defaultValueRange:
           _min: 1
           _max: 2
-    amount: 5
+    amount: 1
     animatorOverrideController:
       fetchType: 0
       items:
@@ -2272,7 +2272,7 @@ MonoBehaviour:
   isActive: 1
   tabID:
     x: 0
-    y: 2
+    y: 1
   priority: 2
   requireIdleEntity: 0
   targetFinderData:

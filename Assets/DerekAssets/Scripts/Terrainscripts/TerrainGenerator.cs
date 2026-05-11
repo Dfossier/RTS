@@ -160,7 +160,7 @@ public class TerrainGenerator : MonoBehaviour
 
         if (mapMaterial != null && textureSettings != null && heightMapSettings != null)
         {
-            Debug.Log($"Reapplying material properties. Material: {mapMaterial.name}, Shader: {mapMaterial.shader.name}");
+            //Debug.Log($"Reapplying material properties. Material: {mapMaterial.name}, Shader: {mapMaterial.shader.name}");
             textureSettings.ApplyToMaterial(mapMaterial);
             textureSettings.UpdateMeshHeights(mapMaterial, heightMapSettings.minHeight, heightMapSettings.maxHeight);
 

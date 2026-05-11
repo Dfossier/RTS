@@ -288,90 +288,6 @@ Transform:
   - {fileID: 3139871423575832943}
   m_Father: {fileID: 8374224054280619517}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &3291027187126520356
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7016180434449144075}
-  - component: {fileID: 5088075744932372083}
-  - component: {fileID: 3774589643192464782}
-  m_Layer: 0
-  m_Name: model_uncollected
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &7016180434449144075
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3291027187126520356}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.31, y: 0.454, z: 0.13}
-  m_LocalScale: {x: 0, y: 0, z: 0}
-  m_ConstrainProportionsScale: 1
-  m_Children: []
-  m_Father: {fileID: 8374224054280619517}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &5088075744932372083
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3291027187126520356}
-  m_Mesh: {fileID: 4300000, guid: 03e6093920d64bb419204a7cba8b857d, type: 3}
---- !u!23 &3774589643192464782
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3291027187126520356}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 36040a46479f66945837978e1d3cb314, type: 2}
-  - {fileID: 2100000, guid: 53b4bac2f8465374ea8264a5964b27a6, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 0
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &4239596649977152604
 GameObject:
   m_ObjectHideFlags: 0
@@ -401,7 +317,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 7016180434449144075}
+  - {fileID: 8390168145050715681}
   - {fileID: 5902532362498171545}
   m_Father: {fileID: 2498955918979872679}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -485,6 +401,7 @@ GameObject:
   - component: {fileID: 9200310192902374427}
   - component: {fileID: 6877542599184551349}
   - component: {fileID: 3398315310020075238}
+  - component: {fileID: 7096242229618986876}
   m_Layer: 0
   m_Name: horticultural_plot
   m_TagString: Untagged
@@ -505,7 +422,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 8390168145050715681}
   - {fileID: 5476192109709063340}
   - {fileID: 8989842974838509286}
   - {fileID: 505436479775517452}
@@ -531,8 +447,12 @@ MonoBehaviour:
   _name: Horticultural Plot
   code: horticultural_plot
   category: civilian_building
-  description: There's evidence of humans practicing horticulture dating back 20,000
-    years ago near the Sea of Galilee.
+  description: 'Must be threshed before it can be used as grain by villagers.
+
+
+    There''s
+    evidence of humans practicing horticulture dating back 20,000 years ago near
+    the Sea of Galilee.'
   icon: {fileID: 21300000, guid: 1033e4266bd07ed4098f02a71617d35f, type: 3}
   radius: 0.59
   model: {fileID: 4239596649977152604}
@@ -567,8 +487,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabID:
     x: 0
-    y: 2
-  maxHealth: 2
+    y: 0
+  maxHealth: 15
   initialHealth: 1
   canIncrease: 1
   canDecrease: 1
@@ -618,7 +538,7 @@ MonoBehaviour:
   - usePercentage: 0
     healthRange:
       _min: 0
-      _max: 1
+      _max: 7
     showChildObjects: []
     hideChildObjects: []
     triggerEvent:
@@ -626,8 +546,8 @@ MonoBehaviour:
         m_Calls: []
   - usePercentage: 0
     healthRange:
-      _min: 1
-      _max: 2
+      _min: 7
+      _max: 14
     showChildObjects: []
     hideChildObjects: []
     triggerEvent:
@@ -636,8 +556,8 @@ MonoBehaviour:
   constructionCompleteState:
     usePercentage: 0
     healthRange:
-      _min: 2
-      _max: 2
+      _min: 15
+      _max: 15
     showChildObjects:
     - {fileID: 4239596649977152604}
     hideChildObjects: []
@@ -672,8 +592,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabID:
     x: 0
-    y: 2
-  maxHealth: 100
+    y: 1
+  maxHealth: 15
   initialHealth: 1
   canIncrease: 1
   canDecrease: 1
@@ -693,7 +613,7 @@ MonoBehaviour:
       defaultValueRange:
         _min: 1
         _max: 2
-  destroyObject: 0
+  destroyObject: 1
   destroyObjectDelay: 0
   destroyAward: []
   destructionAudio:
@@ -710,7 +630,7 @@ MonoBehaviour:
   - usePercentage: 0
     healthRange:
       _min: 1
-      _max: 99
+      _max: 14
     showChildObjects: []
     hideChildObjects: []
     triggerEvent:
@@ -720,7 +640,7 @@ MonoBehaviour:
     usePercentage: 0
     healthRange:
       _min: 0
-      _max: 100
+      _max: 15
     showChildObjects: []
     hideChildObjects: []
     triggerEvent:
@@ -729,12 +649,12 @@ MonoBehaviour:
   collectedState:
     usePercentage: 0
     healthRange:
-      _min: 100
-      _max: 100
+      _min: 15
+      _max: 15
     showChildObjects:
     - {fileID: 3286899092917843691}
     hideChildObjects:
-    - {fileID: 3291027187126520356}
+    - {fileID: 0}
     triggerEvent:
       m_PersistentCalls:
         m_Calls: []
@@ -781,15 +701,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TabID: 0
-  growSpeed: 1200
+  growSpeed: 150
   ResourceObjects:
-  - {fileID: 3291027187126520356}
+  - {fileID: 9161462750612528283}
   CanGrow: 0
   IsGrowing: 0
   HasGrownMax: 0
   MinScale: 0.8
-  MaxScale: 1.4
-  ResourceMax: 100
+  MaxScale: 3
+  ResourceMax: 15
   _startGrowthDelay: 10
   _startDelay: 0
 --- !u!82 &444750116356534003
@@ -969,11 +889,47 @@ MonoBehaviour:
   isActive: 1
   OverrideModel: 1
   Renderers:
-  - {fileID: 3774589643192464782}
+  - {fileID: 0}
   - {fileID: 262478542793587586}
   ObjectsToDisable: []
   _hideInFog: 1
   IsCurrentlyHidden: 0
+--- !u!114 &7096242229618986876
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7495770028921170910}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e052dc7899bef494780ff124914899b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  grassland:
+    growthMax: 15
+    growthInterval: 1
+  jungle:
+    growthMax: 12
+    growthInterval: 1.5
+  steppe:
+    growthMax: 10
+    growthInterval: 2
+  desert:
+    growthMax: 6
+    growthInterval: 4
+  tundra:
+    growthMax: 4
+    growthInterval: 6
+  defaultProfile:
+    growthMax: 8
+    growthInterval: 3
+  rayOriginHeight: 50
+  rayMaxDistance: 200
+  terrainLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  debugMode: 1
 --- !u!1 &8227445880667798175
 GameObject:
   m_ObjectHideFlags: 0
@@ -1234,27 +1190,27 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 2498955918979872679}
+    m_TransformParent: {fileID: 8374224054280619517}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: f39908ed61214694d9ca578345b001f9,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 8
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f39908ed61214694d9ca578345b001f9,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 8
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f39908ed61214694d9ca578345b001f9,
         type: 3}
       propertyPath: m_LocalScale.z
-      value: 8
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f39908ed61214694d9ca578345b001f9,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f39908ed61214694d9ca578345b001f9,
         type: 3}
@@ -1274,7 +1230,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: f39908ed61214694d9ca578345b001f9,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f39908ed61214694d9ca578345b001f9,
         type: 3}
@@ -1319,7 +1275,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: f39908ed61214694d9ca578345b001f9,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1329,6 +1285,12 @@ PrefabInstance:
 --- !u!4 &8390168145050715681 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: f39908ed61214694d9ca578345b001f9,
+    type: 3}
+  m_PrefabInstance: {fileID: 8351191056350880202}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &9161462750612528283 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: f39908ed61214694d9ca578345b001f9,
     type: 3}
   m_PrefabInstance: {fileID: 8351191056350880202}
   m_PrefabAsset: {fileID: 0}

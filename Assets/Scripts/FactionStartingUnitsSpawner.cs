@@ -59,7 +59,7 @@ public class FactionStartingUnitsSpawner : MonoBehaviour, IPreRunGameService
         {
             FactionSlot slot = (FactionSlot)source.FactionSlots.ElementAt(i);
             Vector3 basePos = slot.FactionSpawnPosition;
-            Debug.Log($"[FactionStartingUnitsSpawner] Faction {i} (ID={slot.ID}) spawnPos={basePos}");
+            //Debug.Log($"[FactionStartingUnitsSpawner] Faction {i} (ID={slot.ID}) spawnPos={basePos}");
 
             foreach (Unit prefab in startingUnits)
             {
@@ -76,7 +76,7 @@ public class FactionStartingUnitsSpawner : MonoBehaviour, IPreRunGameService
                     spawnPos = basePos;
                 }
 
-                Debug.Log($"[FactionStartingUnitsSpawner] Spawning '{prefab.name}' for faction {i} at {spawnPos}");
+                //Debug.Log($"[FactionStartingUnitsSpawner] Spawning '{prefab.name}' for faction {i} at {spawnPos}");
                 unitMgr.CreateUnit(
                     prefab,
                     spawnPos,

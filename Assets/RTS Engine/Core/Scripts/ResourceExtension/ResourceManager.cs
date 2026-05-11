@@ -125,7 +125,7 @@ namespace RTSEngine.ResourceExtension
                                 }
                             }
                         }
-                        Debug.Log($"Spawned Groups: {counter} _ left: {TGenerator.PostLoadResources.Count}");
+                        //Debug.Log($"Spawned Groups: {counter} _ left: {TGenerator.PostLoadResources.Count}");
                         await System.Threading.Tasks.Task.Delay(5);
                     }
 
@@ -184,7 +184,7 @@ namespace RTSEngine.ResourceExtension
                 _timer += Time.deltaTime;
                 if(_timer > DelayLoadTimer)
                 {
-                    Debug.Log($"starting resources post load");
+                    //Debug.Log($"starting resources post load");
                     //StartPostLoad();
                     LoadResourcesTask();
                     PostLoadingComplete = true;

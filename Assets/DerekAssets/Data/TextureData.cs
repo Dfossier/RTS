@@ -33,7 +33,7 @@ public class TextureData : UpdatableData
             return;
         }
 
-        Debug.Log($"ApplyToMaterial: Applying {layers.Length} layers to material {material.name}");
+        //Debug.Log($"ApplyToMaterial: Applying {layers.Length} layers to material {material.name}");
 
         material.SetInt("layerCount", layers.Length);
         material.SetColorArray("baseColours", layers.Select(x => x.tint).ToArray());
@@ -59,7 +59,7 @@ public class TextureData : UpdatableData
 
         Texture2DArray texturesArray = GenerateTextureArray(layers.Select(x => x.texture).ToArray());
         material.SetTexture("baseTextures", texturesArray);
-        Debug.Log($"ApplyToMaterial: Applied texture array with {layers.Length} textures");
+        //Debug.Log($"ApplyToMaterial: Applied texture array with {layers.Length} textures");
 
         UpdateMeshHeights(material, savedMinHeight, savedMaxHeight);
     }
