@@ -1,260 +1,220 @@
 using System;
-
+using System.Collections;
+using UnityEngine;
 using RTSEngine;
-using RTSEngine.Determinism;
+using RTSEngine.Game;
 using RTSEngine.Entities;
 using RTSEngine.Event;
-using RTSEngine.Game;
 using RTSEngine.Health;
+using RTSEngine.UI;
 
-using UnityEngine;
-
-/// <summary>
-/// Grows a resource's amount over time by simultaneously increasing both
-/// ResourceHealth.MaxHealth and ResourceHealth.CurrHealth each tick.
-///
-/// The resource starts at 1/1 (max=1, current=1) and grows tick by tick until
-/// MaxHealth reaches growthMax (e.g. 15). Current health always equals max health
-/// between ticks, so the resource is "full" at every intermediate stage — but
-/// there is still room to grow because MaxHealth < growthMax.
-///
-/// When a collector harvests some wheat (reduces CurrHealth), MaxHealth is
-/// unaffected. Growth resumes on the next tick and adds to current only (max is
-/// already at the right level for that stage). If CurrHealth hits 0 the
-/// ResourceBuilding self-destructs (destroyObject = true on ResourceHealth).
-///
-/// For ResourceBuildings (e.g. horticultural plot):
-///   - Growth is blocked until construction completes.
-///   - On BuildingBuilt, BuildingHealth.CanIncrease is set to false so no builder
-///     can ever re-target this plot through Builder.IsTargetValid().
-///   - Worker stopping is handled cleanly by MustStopProgress() on the next
-///     TargetUpdate() tick (HasMaxHealth=true → Stop()).
-///
-/// For pure Resource entities (no building phase):
-///   - Growth begins immediately after the entity is initialized.
-/// </summary>
 public class ResourceGrowth : MonoBehaviour, IEntityPreInitializable
 {
-    protected IGameManager GameMgr { get; private set; }
     [Header("Growth Settings")]
-    [SerializeField, Tooltip("Resource amount (and starting max) when growth begins. Clamped to >= 1.")]
-    private int startingAmount = 1;
+    [Tooltip("HP added to the resource each growth tick")]
+    public int amountPerTick = 1;
 
-    [SerializeField, Tooltip("Amount added to both MaxHealth and CurrHealth per tick.")]
-    private int amountPerTick = 1;
+    [Tooltip("Seconds between each growth tick")]
+    public float growthInterval = 5f;
 
-    [SerializeField, Tooltip("Game-time seconds between each tick (scaled by game speed).")]
-    private float growthInterval = 30f;
+    [Tooltip("Maximum HP the resource can reach (overridden by BiomePlotModifier)")]
+    public int growthMax = 15;
 
-    [SerializeField, Tooltip("The final maximum the resource can reach. Growth stops when MaxHealth >= growthMax.")]
-    private int growthMax = 15;
+    [Tooltip("If true, growth starts immediately for testing")]
+    public bool debugMode = false;
 
-    [SerializeField, Tooltip("Stop growing once MaxHealth reaches growthMax.")]
-    private bool stopAtMax = true;
-
-    [Header("Debug")]
-    [SerializeField]
-    private bool debugMode = false;
-
-    // Max frames to wait for IsInitialized before giving up.
-    private const int INIT_TIMEOUT_FRAMES = 500;
+    [Tooltip("If true, show hover tooltip with growth progress. Disable for trees and visuals.")]
+    public bool showTooltip = false;
 
     private IResource resource;
-    private IBuilding building;
-    private IEntityHealth resourceHealth;
-    private float timer = 0f;
-    private bool initialized = false;
-    private bool wasBuilt = false;
+    private IResourceHealth resourceHealth;
+    private Coroutine growthCoroutine;
+    private bool growthComplete;
+    private float nextGrowthTickTime;  // Time.time when next tick occurs
+    private IGameManager gameMgr;
+    private IGlobalEventPublisher globalEvent;
+    private bool isMouseHovering = false;
 
-    /// <summary>
-    /// Called by BiomePlotModifier (or any external script) in Awake() to override
-    /// the inspector defaults before the growth coroutine reads them.
-    /// </summary>
-    public void SetGrowthParameters(int newGrowthMax, float newGrowthInterval)
+    public bool GrowthComplete => growthComplete;
+
+    public void OnEntityPreInit(IGameManager gameManager, IEntity entity)
     {
-        growthMax = Mathf.Max(1, newGrowthMax);
-        growthInterval = Mathf.Max(0.01f, newGrowthInterval);
+        this.gameMgr = gameManager;
+        growthCoroutine = StartCoroutine(Initialize());
     }
 
-    void Start()
+    private IEnumerator Initialize()
     {
-
-    }
-    public void OnEntityPreInit(IGameManager gameMgr,IEntity entity)
-    {
-        if(entity.IsInitialized)
-            StartCoroutine(Initialize());
-    }
-    private System.Collections.IEnumerator Initialize()
-    {
-        yield return null;  // wait one frame for engine's Awake/OnEnable to run
-
         resource = GetComponent<IResource>();
         if (resource == null)
         {
-            Debug.LogError($"[ResourceGrowth] {gameObject.name}: no IResource component found.");
-            enabled = false;
+            Debug.LogError($"[{gameObject.name}] ResourceGrowth: No IResource component found!");
             yield break;
         }
 
-        int waitFrames = 0;
+        // Wait for resource to finish its own initialization
         while (!resource.IsInitialized)
-        {
-            if (++waitFrames > INIT_TIMEOUT_FRAMES)
-            {
-                Debug.LogError($"[ResourceGrowth] {gameObject.name}: timed out waiting for IsInitialized " +
-                               $"after {INIT_TIMEOUT_FRAMES} frames. Was this entity spawned outside the RTS Engine?");
-                enabled = false;
-                yield break;
-            }
             yield return null;
-        }
 
         resourceHealth = resource.Health;
         if (resourceHealth == null)
         {
-            Debug.LogError($"[ResourceGrowth] {gameObject.name}: resource.Health returned null. " +
-                           $"Is there an IResourceHealth component on the prefab?");
-            enabled = false;
+            Debug.LogError($"[{gameObject.name}] ResourceGrowth: No IResourceHealth component found!");
             yield break;
         }
 
-        building = resource as IBuilding;
-
-        if (building == null)
+        if (showTooltip)
         {
-            // Pure resource (tree, ore vein, etc.) — no construction phase.
-            wasBuilt = true;
-            if (debugMode)
-                Debug.Log($"[ResourceGrowth] {gameObject.name}: not a building resource. " +
-                          $"Growth starts immediately at {resourceHealth.CurrHealth}/{resourceHealth.MaxHealth} (growthMax={growthMax}).");
+            globalEvent = gameMgr.GetService<IGlobalEventPublisher>();
+            globalEvent.EntityMouseEnterGlobal += HandleMouseEnter;
+            globalEvent.EntityMouseExitGlobal += HandleMouseExit;
         }
-        else if (building.IsBuilt)
-        {
-            // Building was already constructed before Initialize() ran.
-            // wasBuilt stays false so Update() fires the one-time setup.
-            if (debugMode)
-                Debug.Log($"[ResourceGrowth] {gameObject.name}: building already constructed at init. " +
-                          $"Setup will fire on first Update.");
-        }
-        else
-        {
-            building.BuildingBuilt += OnBuildingBuilt;
-            if (debugMode)
-                Debug.Log($"[ResourceGrowth] {gameObject.name}: waiting for construction to complete.");
-        }
-
-        initialized = true;
-    }
-
-    /// <summary>
-    /// Called synchronously by the engine when construction finishes (inside Builder.OnProgress()).
-    /// We only set CanIncrease=false here — worker stopping is left to MustStopProgress() which
-    /// fires cleanly at the top of the next TargetUpdate() tick.
-    /// </summary>
-    private void OnBuildingBuilt(IBuilding sender, EventArgs args)
-    {
-        building.BuildingBuilt -= OnBuildingBuilt;
-
-        if (wasBuilt) return; // guard against double-firing
-        wasBuilt = true;
-        timer = 0f;
-
-        // Disable construction targeting on this building so no builder can ever re-target it.
-        building.Health.CanIncrease = false;
-
-        if (debugMode)
-            Debug.Log($"[ResourceGrowth] {gameObject.name}: BuildingBuilt fired — " +
-                      $"BuildingHealth.CanIncrease disabled. Workers stop via MustStopProgress on next tick.");
 
         ApplyStartingAmount();
-    }
-
-    void Update()
-    {
-        if (!initialized) return;
-        if (resourceHealth.IsDead) return;
-
-        // Pre-built case: building was already IsBuilt when Initialize ran.
-        if (building != null && !wasBuilt)
-        {
-            if (!building.IsBuilt) return;
-
-            wasBuilt = true;
-            timer = 0f;
-            building.Health.CanIncrease = false;
-            ApplyStartingAmount();
-        }
-
-        if (stopAtMax && resourceHealth.MaxHealth >= growthMax) return;
-
-        // Scale by the engine's time modifier so growth respects game speed.
-        timer += Time.deltaTime * TimeModifier.CurrentModifier;
-        if (timer >= growthInterval)
-        {
-            timer = 0f;
-            Grow();
-        }
+        StartCoroutine(GrowthTimer());
     }
 
     private void ApplyStartingAmount()
     {
-        // startingAmount must be >= 1 to avoid reducing health to 0 (triggers Destroy in EntityHealth.AddLocal).
-        int clampedStart = Mathf.Max(1, startingAmount);
-        int delta = clampedStart - resourceHealth.CurrHealth;
-
-        if (delta != 0)
+        // Ensure max health capacity is at least growthMax
+        if (resourceHealth.MaxHealth < growthMax)
         {
-            if (delta < 0)
-                Debug.LogWarning($"[ResourceGrowth] {gameObject.name}: ResourceHealth was " +
-                                 $"{resourceHealth.CurrHealth} at construction end (expected {clampedStart}). " +
-                                 $"Forcing reset via AddLocal — hit VFX/audio may fire.");
-
-            resourceHealth.AddLocal(new HealthUpdateArgs(delta, null), force: true);
+            resourceHealth.SetMaxLocal(new HealthUpdateArgs(growthMax, resource));
+            Debug.Log($"[{gameObject.name}] ResourceGrowth: MaxHealth set to {growthMax}");
         }
 
-        if (debugMode)
-            Debug.Log($"[ResourceGrowth] {gameObject.name}: construction complete — " +
-                      $"resource at {resourceHealth.CurrHealth}/{resourceHealth.MaxHealth} " +
-                      $"(delta: {delta}). Growing +{amountPerTick} (max+curr) every {growthInterval}s until growthMax={growthMax}.");
-    }
-
-    private void OnDestroy()
-    {
-        if (!wasBuilt && building.IsValid())
-            building.BuildingBuilt -= OnBuildingBuilt;
-    }
-
-    private void Grow()
-    {
-        if (resourceHealth.MaxHealth >= growthMax) return;
-
-        int newMax = Mathf.Min(resourceHealth.MaxHealth + amountPerTick, growthMax);
-        int delta = newMax - resourceHealth.MaxHealth;
-
-        int beforeMax = resourceHealth.MaxHealth;
-        int beforeCurr = resourceHealth.CurrHealth;
-
-        // Raise the ceiling first so the subsequent Add() doesn't get clamped.
-        resourceHealth.SetMax(new HealthUpdateArgs(newMax, null));
-
-        // Grow current health by the same delta.
-        ErrorMessage result = resourceHealth.Add(new HealthUpdateArgs(delta, source: null));
-
-        if (debugMode)
+        // Resource starts at 1 HP - set it if it is not already
+        if (resourceHealth.CurrHealth < 1)
         {
-            if (result == ErrorMessage.none)
-                Debug.Log($"[ResourceGrowth] {gameObject.name}: " +
-                          $"max {beforeMax}→{resourceHealth.MaxHealth}, " +
-                          $"curr {beforeCurr}→{resourceHealth.CurrHealth} / {resourceHealth.MaxHealth}");
-            else
-                Debug.LogWarning($"[ResourceGrowth] {gameObject.name}: current-health grow failed ({result}). " +
-                                 $"MaxHealth was raised to {resourceHealth.MaxHealth}.");
+            resourceHealth.AddLocal(new HealthUpdateArgs(1 - resourceHealth.CurrHealth, resource));
+        }
+
+        // Resource is always collectable - no blocking
+        Debug.Log($"[{gameObject.name}] ResourceGrowth: Started at {resourceHealth.CurrHealth}/{resourceHealth.MaxHealth}. Grows +{amountPerTick} every {growthInterval}s up to {growthMax}. Always harvestable.");
+    }
+
+    private IEnumerator GrowthTimer()
+    {
+        while (!growthComplete)
+        {
+            nextGrowthTickTime = Time.time + growthInterval;
+            yield return new WaitForSeconds(growthInterval);
+            OnGrowthTick();
+        }
+    }
+
+    private void OnGrowthTick()
+    {
+        if (resourceHealth == null)
+            return;
+
+        if (resourceHealth.IsDead)
+        {
+            Debug.Log($"[{gameObject.name}] ResourceGrowth: Resource is dead, stopping growth.");
+            growthComplete = true;
+            return;
+        }
+
+        // Reset growthComplete if resource was harvested below growthMax
+        if (growthComplete && resourceHealth.CurrHealth < growthMax)
+        {
+            growthComplete = false;
+            Debug.Log($"[{gameObject.name}] ResourceGrowth: Harvest detected ({resourceHealth.CurrHealth}/{growthMax}). Resuming growth.");
+        }
+
+        if (growthComplete)
+            return;
+
+        if (resourceHealth.CurrHealth < growthMax)
+        {
+            int amountToAdd = Mathf.Min(amountPerTick, growthMax - resourceHealth.CurrHealth);
+            resourceHealth.AddLocal(new HealthUpdateArgs(amountToAdd, resource));
+            RaiseGrowthTooltip();
+            Debug.Log($"[{gameObject.name}] ResourceGrowth: +{amountToAdd} -> Curr={resourceHealth.CurrHealth}/{growthMax}");
+        }
+
+        if (resourceHealth.CurrHealth >= growthMax)
+        {
+            growthComplete = true;
+            Debug.Log($"[{gameObject.name}] ResourceGrowth: Reached max ({growthMax}). Growth complete.");
         }
     }
 
     public void Disable()
     {
+        if (growthCoroutine != null)
+        {
+            StopCoroutine(growthCoroutine);
+            growthCoroutine = null;
+        }
+    }
 
+    private void HandleMouseEnter(IEntity entity, EventArgs e)
+    {
+        isMouseHovering = true;
+        RaiseGrowthTooltip();
+    }
+
+    private void HandleMouseExit(IEntity entity, EventArgs e)
+    {
+        isMouseHovering = false;
+    }
+
+    private void OnDestroy()
+    {
+        if (growthCoroutine != null)
+            StopCoroutine(growthCoroutine);
+        
+        if (globalEvent != null)
+        {
+            globalEvent.EntityMouseEnterGlobal -= HandleMouseEnter;
+            globalEvent.EntityMouseExitGlobal -= HandleMouseExit;
+        }
+    }
+
+    /// <summary>Called by BiomePlotModifier to set biome-specific growth parameters.</summary>
+    public void SetGrowthParameters(float interval, int max)
+    {
+        growthInterval = interval;
+        growthMax = max;
+        // Sync ResourceHealth max capacity to match growth cap
+        if (resourceHealth != null)
+        {
+            resourceHealth.SetMaxLocal(new HealthUpdateArgs(growthMax, resource));
+        }
+        Debug.Log($"[{gameObject.name}] ResourceGrowth: Biome -> interval={interval}s, max={max}");
+    }
+
+    /// <summary>Get the underlying resource health component (for UI overlays).</summary>
+    public IResourceHealth GetResourceHealth() => resourceHealth;
+
+    /// <summary>Seconds remaining until the next growth tick. Returns 0 if growth is complete or not started.</summary>
+    public float GetNextGrowthTime()
+    {
+        if (growthComplete)
+            return 0f;
+        if (nextGrowthTickTime <= 0f)
+            return growthInterval;
+        float remaining = nextGrowthTickTime - Time.time;
+        return Mathf.Max(0f, remaining);
+    }
+
+    /// <summary>Raise a tooltip showing growth progress (only if showTooltip is enabled).</summary>
+    private void RaiseGrowthTooltip()
+    {
+        if (!showTooltip || globalEvent == null || resourceHealth == null)
+            return;
+
+        int curr = resourceHealth.CurrHealth;
+        int max = growthMax;
+        float next = GetNextGrowthTime();
+
+        string tooltip;
+        if (growthComplete)
+            tooltip = $"Growth complete: {curr}/{max} HP";
+        else
+            tooltip = $"Growing: {curr}/{max} HP ({next:F1}s until next)";
+
+        globalEvent.RaiseShowTooltipGlobal(this, new MessageEventArgs(MessageType.info, tooltip));
     }
 }

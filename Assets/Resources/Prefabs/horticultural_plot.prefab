@@ -402,6 +402,7 @@ GameObject:
   - component: {fileID: 6877542599184551349}
   - component: {fileID: 3398315310020075238}
   - component: {fileID: 7096242229618986876}
+  - component: {fileID: 1234567890987654321}
   m_Layer: 0
   m_Name: horticultural_plot
   m_TagString: Untagged
@@ -447,12 +448,9 @@ MonoBehaviour:
   _name: Horticultural Plot
   code: horticultural_plot
   category: civilian_building
-  description: 'Must be threshed before it can be used as grain by villagers.
-
-
-    There''s
-    evidence of humans practicing horticulture dating back 20,000 years ago near
-    the Sea of Galilee.'
+  description: Plant quickly and wait for it to grow naturally before harvesting. 
+    Wheat must be threshed into grain in a processing building before it can be used
+    as food.
   icon: {fileID: 21300000, guid: 1033e4266bd07ed4098f02a71617d35f, type: 3}
   radius: 0.59
   model: {fileID: 4239596649977152604}
@@ -488,7 +486,7 @@ MonoBehaviour:
   tabID:
     x: 0
     y: 0
-  maxHealth: 15
+  maxHealth: 2
   initialHealth: 1
   canIncrease: 1
   canDecrease: 1
@@ -508,7 +506,7 @@ MonoBehaviour:
       defaultValueRange:
         _min: 1
         _max: 2
-  destroyObject: 0
+  destroyObject: 1
   destroyObjectDelay: 0
   destroyAward: []
   destructionAudio:
@@ -577,7 +575,7 @@ MonoBehaviour:
             m_BoolArgument: 1
           m_CallState: 2
   repairCosts: []
-  buildTime: 5
+  buildTime: 0.6
 --- !u!114 &-3168288909391309477
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -613,7 +611,7 @@ MonoBehaviour:
       defaultValueRange:
         _min: 1
         _max: 2
-  destroyObject: 1
+  destroyObject: 0
   destroyObjectDelay: 0
   destroyAward: []
   destructionAudio:
@@ -700,18 +698,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f79120399d63b74c89f647edee9a012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TabID: 0
-  growSpeed: 150
-  ResourceObjects:
-  - {fileID: 9161462750612528283}
-  CanGrow: 0
-  IsGrowing: 0
-  HasGrownMax: 0
-  MinScale: 0.8
-  MaxScale: 3
+  growDelay: 5
   ResourceMax: 15
-  _startGrowthDelay: 10
-  _startDelay: 0
+  growDuration: 10
+  startScale: {x: 0.1, y: 0.1, z: 0.1}
+  endScale: {x: 1, y: 1, z: 1}
 --- !u!82 &444750116356534003
 AudioSource:
   m_ObjectHideFlags: 0
@@ -909,27 +900,50 @@ MonoBehaviour:
   grassland:
     growthMax: 15
     growthInterval: 1
+    growthDelay: 5
   jungle:
     growthMax: 12
     growthInterval: 1.5
+    growthDelay: 8
   steppe:
     growthMax: 10
     growthInterval: 2
+    growthDelay: 12
   desert:
     growthMax: 6
     growthInterval: 4
+    growthDelay: 20
   tundra:
     growthMax: 4
     growthInterval: 6
+    growthDelay: 30
   defaultProfile:
     growthMax: 8
     growthInterval: 3
+    growthDelay: 15
   rayOriginHeight: 50
   rayMaxDistance: 200
   terrainLayer:
     serializedVersion: 2
     m_Bits: 256
   debugMode: 1
+--- !u!114 &1234567890987654321
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7495770028921170910}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 540b20f40d999c0438a93f89bf1353bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  amountPerTick: 1
+  growthInterval: 30
+  growthMax: 15
+  debugMode: 0
+  showTooltip: 1
 --- !u!1 &8227445880667798175
 GameObject:
   m_ObjectHideFlags: 0
@@ -1285,12 +1299,6 @@ PrefabInstance:
 --- !u!4 &8390168145050715681 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: f39908ed61214694d9ca578345b001f9,
-    type: 3}
-  m_PrefabInstance: {fileID: 8351191056350880202}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &9161462750612528283 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: f39908ed61214694d9ca578345b001f9,
     type: 3}
   m_PrefabInstance: {fileID: 8351191056350880202}
   m_PrefabAsset: {fileID: 0}
