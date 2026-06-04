@@ -88,7 +88,7 @@ public class BiomePlotModifier : MonoBehaviour
 
         ResourceGrowth growth = GetComponent<ResourceGrowth>();
         if (growth != null)
-            growth.SetGrowthParameters(profile.growthMax, profile.growthInterval);
+            growth.SetGrowthParameters(profile.growthMax, (int)profile.growthInterval);
         else if (debugMode)
             Debug.LogWarning($"[BiomePlotModifier] {gameObject.name}: no ResourceGrowth component found — HP not modified.");
 
