@@ -2986,6 +2986,9 @@ GameObject:
   - component: {fileID: 2972880210541673491}
   - component: {fileID: 8637594351740366191}
   - component: {fileID: 3339138910310272920}
+  - component: {fileID: 3058126053843835984}
+  - component: {fileID: 3562125878108144698}
+  - component: {fileID: 6208402705566262228}
   m_Layer: 0
   m_Name: watchtower
   m_TagString: Untagged
@@ -3291,6 +3294,120 @@ MonoBehaviour:
     colorPropertyName: _Color
     transparency: 0
     darkness: 0
+--- !u!114 &3058126053843835984
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8990506748476383512}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c8c92e8943a9914ba89720ba5fcf806, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  viewRadius: 15
+  softenDistance: 3
+  innerSoftenAngle: 5
+  unobscuredRadius: 1
+  unobscuredSoftenDistance: 0.25
+  visionHeight: 3
+  visionHeightSoftenDistance: 1.5
+  viewAngle: 360
+  opacity: 1
+  EyeOffset: 0
+  ShaderEyeOffset: 0
+  StartRevealerAsStatic: 0
+  revealHiderInFadeOutZonePercentage: 0.5
+  MaxHidersSampledPerFrame: 50
+  SetHiderRayOriginToHidersHeight: 0
+  SetHiderRayDestinationToRevealersHeight: 1
+  useOcclusion: 1
+  addCorners: 1
+  ObstacleMask:
+    serializedVersion: 2
+    m_Bits: 0
+  OcclusionQuality: 5
+  raycastResolution: 0.5
+  NumExtraIterations: 4
+  numExtraRaysOnIteration: 3
+  ResolveEdge: 1
+  MaxEdgeResolveIterations: 10
+  MaxAcceptableEdgeAngleDifference: 0.005
+  edgeDstThreshold: 0.1
+  doubleHitMaxAngleDelta: 15
+  DebugMode: 0
+  DrawInitialRays: 0
+  SegmentTest: -1
+  DrawExpectedNextPoints: 0
+  DrawIteritiveRays: 0
+  DrawEdgeResolveRays: 0
+  DrawExtraCastLines: 0
+  DrawHiderSamples: 0
+  DebugLogHiderBlockerName: 0
+--- !u!114 &3562125878108144698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8990506748476383512}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06c78af948052824d93c22c84c08dd65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SamplePoints: []
+  PermanentlyReveal: 0
+--- !u!114 &6208402705566262228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8990506748476383512}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2d5b2b9e8e22ff419cad16d1a486995, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: watchtower_PixelPerfectFogOfWarComponent_96
+  isActive: 1
+  OverrideModel: 0
+  Renderers:
+  - {fileID: 4143501255436295521}
+  - {fileID: 8365220203695932226}
+  - {fileID: 5762015510666877941}
+  - {fileID: 5325590373417245376}
+  - {fileID: 9149287924044597900}
+  - {fileID: 7495448938161126623}
+  - {fileID: 3475809045762737413}
+  - {fileID: 4729979261081623268}
+  - {fileID: 1009485535736207862}
+  - {fileID: 9172210005266451301}
+  - {fileID: 6406753323816122832}
+  - {fileID: 2676924794697237958}
+  - {fileID: 5097943058556188232}
+  - {fileID: 2344559388301948969}
+  - {fileID: 2172147664441750783}
+  - {fileID: 8642379083516055194}
+  - {fileID: 3848755249356827330}
+  - {fileID: 4439935838951608424}
+  - {fileID: 1222066030204085514}
+  - {fileID: 556837084460877616}
+  - {fileID: 911332966290300586}
+  - {fileID: 5948204054935333855}
+  - {fileID: 5681550669791599355}
+  - {fileID: 6232511794606153475}
+  - {fileID: 7851315249378902756}
+  - {fileID: 895800258856406852}
+  - {fileID: 3733392344280497081}
+  - {fileID: 8153459232250419517}
+  - {fileID: 1799265423562030427}
+  - {fileID: 2400002393462405126}
+  ObjectsToDisable: []
+  _hideInFog: 1
+  IsCurrentlyHidden: 0
 --- !u!1 &9030789562751914887
 GameObject:
   m_ObjectHideFlags: 0
@@ -3478,6 +3595,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1616b9efc3504504e88b44c592d2814b, type: 3}
+--- !u!23 &1799265423562030427 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2300000, guid: 1616b9efc3504504e88b44c592d2814b,
+    type: 3}
+  m_PrefabInstance: {fileID: 1799265423564055867}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1799265423563931579 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: 1616b9efc3504504e88b44c592d2814b,

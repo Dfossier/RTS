@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 using RTSEngine.Entities;
+using RTSEngine.Health;
 using RTSEngine.EntityComponent;
 using RTSEngine.Event;
 using RTSEngine.Game;
@@ -243,8 +244,9 @@ namespace RTSEngine.UI
             }
 
             ShowHealthUI(entity);
-            entity.Health.EntityHealthUpdated += HandleEntityHealthUpdated;
-            entity.Health.EntityMaxHealthUpdated += HandleEntityHealthUpdated;
+            IEntityHealth healthToTrack = entity is IResourceBuilding rb ? (IEntityHealth)((IResource)rb).Health : entity.Health;
+            healthToTrack.EntityHealthUpdated += HandleEntityHealthUpdated;
+            healthToTrack.EntityMaxHealthUpdated += HandleEntityHealthUpdated;
 
             ShowDropOffResources(entity);
 
@@ -285,17 +287,19 @@ namespace RTSEngine.UI
         #region Handling Single Unit Health
         public void ShowHealthUI(IEntity entity)
         {
+            IEntityHealth displayHealth = entity is IResourceBuilding rb ? (IEntityHealth)((IResource)rb).Health : entity.Health;
+
             if(healthUIText) //show the faction entity health:
             {
                 healthUIText.gameObject.SetActive(true);
-                healthUIText.text = entity.Health.CurrHealth.ToString() + "/" + entity.Health.MaxHealth.ToString();
+                healthUIText.text = displayHealth.CurrHealth.ToString() + "/" + displayHealth.MaxHealth.ToString();
             }
 
             //health bar:
             healthBar.Toggle(true);
 
             //Update the health bar:
-            healthBar.Update(entity.Health.CurrHealth / (float)entity.Health.MaxHealth);
+            healthBar.Update(displayHealth.CurrHealth / (float)displayHealth.MaxHealth);
         }
 
         //hides the health related UI elements:
@@ -313,22 +317,26 @@ namespace RTSEngine.UI
                 || !dropOffResourcePanel.entityPicker.IsValidTarget(entity))
                 return;
 
+            // First, hide all resource icons
+            HideDropOffResources();
+
             // Resource collector handling
-            if(entity.IsUnit())
+            if (entity.IsUnit())
             {
                 IDropOffSource dropOffComp = (entity as IUnit).DropOffSource;
                 if(dropOffComp.IsValid())
                 {
                     foreach(var elem in dropOffComp.CollectedResources)
                     {
-                        if(dropOffResourceTasks.TryGetValue(elem.Key, out DropOffResourceTaskUI resourceTaskUI))
+                        // MODIFICATION: Only show resources with amount > 0
+                        if (elem.Value > 0 && dropOffResourceTasks.TryGetValue(elem.Key, out DropOffResourceTaskUI resourceTaskUI))
                         {
                             resourceTaskUI.Reload(new DropOffResourceTaskUIAttributes
                             {
                                 dropOffSource = dropOffComp,
                                 resourceType = elem.Key,
                                 maxCapacityColor = dropOffResourcePanel.maxCapacityColor
-                            }) ;
+                            });
                         }
                     }
                 }
@@ -364,8 +372,9 @@ namespace RTSEngine.UI
                     currWorkerMgr.WorkerRemoved -= HandleWorkerRemoved;
                 }
 
-                currEntity.Health.EntityHealthUpdated -= HandleEntityHealthUpdated;
-                currEntity.Health.EntityMaxHealthUpdated -= HandleEntityHealthUpdated;
+                IEntityHealth healthToUntrack = currEntity is IResourceBuilding rb2 ? (IEntityHealth)((IResource)rb2).Health : currEntity.Health;
+                healthToUntrack.EntityHealthUpdated -= HandleEntityHealthUpdated;
+                healthToUntrack.EntityMaxHealthUpdated -= HandleEntityHealthUpdated;
             }
             
             if(currSquad.IsValid())

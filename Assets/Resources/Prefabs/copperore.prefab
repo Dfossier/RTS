@@ -858,6 +858,9 @@ GameObject:
   - component: {fileID: 1006968661177261004}
   - component: {fileID: 4111825704538722687}
   - component: {fileID: 2856357269175389006}
+  - component: {fileID: 2390361918191620028}
+  - component: {fileID: 3545191616534249487}
+  - component: {fileID: 4206906104117954791}
   m_Layer: 0
   m_Name: copperore
   m_TagString: Untagged
@@ -998,6 +1001,53 @@ NavMeshObstacle:
   m_CarveOnlyStationary: 1
   m_Center: {x: 0, y: 0.5, z: 0}
   m_TimeToStationary: 0.5
+--- !u!114 &2390361918191620028
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7152700139190724706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06c78af948052824d93c22c84c08dd65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SamplePoints: []
+  PermanentlyReveal: 0
+--- !u!114 &3545191616534249487
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7152700139190724706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bd2966c16df4fa4cba52ea99b2698d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObjectsToHide:
+  - {fileID: 4308885173163168538}
+  - {fileID: 6898545680423072460}
+  - {fileID: 8030130208938150981}
+  - {fileID: 3242508852412753946}
+  - {fileID: 737916150302882788}
+  - {fileID: 3669985511817065595}
+--- !u!114 &4206906104117954791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7152700139190724706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6dfbeda9b3b3aa04bbb897826b875157, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObjectsToHide:
+  - {fileID: 6502282201667486528}
 --- !u!1 &7320553069071584130
 GameObject:
   m_ObjectHideFlags: 0

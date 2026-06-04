@@ -17,9 +17,9 @@ MonoBehaviour:
     enabled: 1
     displayType: 2
     icon: {fileID: 21300000, guid: dbdad8c973f51e944ae97f59124817d6, type: 3}
-    panelCategory: 0
-    forceSlot: 0
-    slotIndex: 0
+    panelCategory: 1
+    forceSlot: 1
+    slotIndex: 1
     tooltipEnabled: 1
     description: Create Hunting Camp.
     hideTooltipOnClick: 1

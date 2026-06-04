@@ -17,9 +17,9 @@ MonoBehaviour:
     enabled: 1
     displayType: 2
     icon: {fileID: 21300000, guid: a93ee83b7e55b1743ab00a6b3c415d03, type: 3}
-    panelCategory: 1
+    panelCategory: 0
     forceSlot: 1
-    slotIndex: 3
+    slotIndex: 0
     tooltipEnabled: 1
     description: Create Campfire.
     hideTooltipOnClick: 1

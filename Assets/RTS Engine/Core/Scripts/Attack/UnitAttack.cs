@@ -123,7 +123,8 @@ namespace RTSEngine.EntityComponent
             lastAttackMoveTarget = unit.MovementComponent.Target;
 
             // Disable idle only target search so that the attack unit can move and search for potential attack targets.
-            targetFinder.IdleOnly = false;
+            if (targetFinder.IsValid())
+                targetFinder.IdleOnly = false;
 
             IsAttackMoveActive = true;
         }
@@ -141,7 +142,8 @@ namespace RTSEngine.EntityComponent
 
         private void DisableAttackMove()
         {
-            targetFinder.IdleOnly = TargetFinderData.idleOnly;
+            if (targetFinder.IsValid())
+                targetFinder.IdleOnly = TargetFinderData.idleOnly;
             IsAttackMoveActive = false;
         }
         #endregion

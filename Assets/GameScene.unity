@@ -827,6 +827,55 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 45943928}
   m_CullTransparentMesh: 0
+--- !u!1 &53034780
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 53034781}
+  - component: {fileID: 53034782}
+  m_Layer: 0
+  m_Name: StartingUnits
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &53034781
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 53034780}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 406131683}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &53034782
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 53034780}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c40c37427657034418e2e6b277180388, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  startingUnits:
+  - {fileID: 114993838964213816, guid: 70b2cb94f8a6e9544b1c604369e7e462, type: 3}
+  - {fileID: 114993838964213816, guid: 70b2cb94f8a6e9544b1c604369e7e462, type: 3}
+  - {fileID: 114993838964213816, guid: 70b2cb94f8a6e9544b1c604369e7e462, type: 3}
+  spawnRadius: 8
 --- !u!1 &53638283
 GameObject:
   m_ObjectHideFlags: 0
@@ -1426,8 +1475,15 @@ MonoBehaviour:
       type: 3}
     allowedResourceTypes:
     - {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
+    - {fileID: 11400000, guid: e279bbd3b414b6b4bb8d64afd1344c38, type: 2}
+    - {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
+    - {fileID: 11400000, guid: 416634a5450e1ad48a9693a0f9debded, type: 2}
+    - {fileID: 11400000, guid: a388932a9a066e642a1796e10d1a4da4, type: 2}
     - {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
-    - {fileID: 11400000, guid: bc712db0d42339240b16b338029bd113, type: 2}
+    - {fileID: 11400000, guid: 64034668ccc0909478a1829bc32d9cb1, type: 2}
+    - {fileID: 11400000, guid: 4d4e87d30dcf4234a9bb2512fd824432, type: 2}
+    - {fileID: 11400000, guid: 8dbe5bab169e794498ffa79feb9eff89, type: 2}
+    - {fileID: 11400000, guid: 6a155955f3fb44a4c9619755a7e0c78c, type: 2}
     maxCapacityColor: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
 --- !u!114 &79232719
 MonoBehaviour:
@@ -3481,6 +3537,7 @@ Transform:
   - {fileID: 728423627}
   - {fileID: 858094506}
   - {fileID: 1537887057}
+  - {fileID: 53034781}
   m_Father: {fileID: 2016554394}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &408354229
@@ -4076,6 +4133,7 @@ GameObject:
   - component: {fileID: 485977907}
   - component: {fileID: 485977909}
   - component: {fileID: 485977908}
+  - component: {fileID: 485977910}
   m_Layer: 0
   m_Name: Determinisim
   m_TagString: Untagged
@@ -4132,9 +4190,41 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f5ac57ca3322014aaf57814fc8f8dba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultModifier: 1
+  defaultModifier: 0.5
   currentModifier: 0
   globalTimersCount: 0
+--- !u!114 &485977910
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 485977906}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a09f24f172181cf4fb8c01b2033546a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  presets:
+  - label: .25x
+    modifier: 0.25
+    hotkey: 49
+  - label: .5x
+    modifier: 0.5
+    hotkey: 50
+  - label: 1x
+    modifier: 1
+    hotkey: 51
+  - label: 2x
+    modifier: 2
+    hotkey: 52
+  - label: 3x
+    modifier: 3
+    hotkey: 53
+  startPresetIndex: 0
+  decreaseKey: 45
+  increaseKey: 61
+  logChanges: 1
 --- !u!1 &488477567
 GameObject:
   m_ObjectHideFlags: 0
@@ -8584,7 +8674,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dfd1b20c2d9ba6744ae33334c7c89363, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectionOptions: []
+  selectionOptions:
+  - entityType: 1
+    allowMultiple: 1
+    exclusive: 0
+  - entityType: 6
+    allowMultiple: 0
+    exclusive: 1
 --- !u!1 &950531258
 GameObject:
   m_ObjectHideFlags: 0
@@ -12697,6 +12793,7 @@ GameObject:
   - component: {fileID: 1530421147}
   - component: {fileID: 1530421149}
   - component: {fileID: 1530421148}
+  - component: {fileID: 1530421150}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -12779,6 +12876,18 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!114 &1530421150
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1530421146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41eea5c3a239e31459a4f1b34093eca5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1535910938
 GameObject:
   m_ObjectHideFlags: 0
@@ -14978,6 +15087,12 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 557446507}
     m_Modifications:
+    - target: {fileID: 8118995188449850452, guid: cd648c6efb4fae940be84df2374ebfea,
+        type: 3}
+      propertyPath: description
+      value: A campfire is all the shelter hunter gatherers had for many nights. 
+        Prepare food and process materials.
+      objectReference: {fileID: 0}
     - target: {fileID: 8118997873883803810, guid: cd648c6efb4fae940be84df2374ebfea,
         type: 3}
       propertyPath: tabID.y
@@ -16001,6 +16116,7 @@ GameObject:
   - component: {fileID: 1927079257}
   - component: {fileID: 1927079256}
   - component: {fileID: 1927079255}
+  - component: {fileID: 1927079258}
   m_Layer: 18
   m_Name: MinimapCursor
   m_TagString: Untagged
@@ -16088,6 +16204,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1927079253}
   m_CullTransparentMesh: 0
+--- !u!114 &1927079258
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1927079253}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84918f08afb628e448d7dbfd6d03d4e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  IconScale: 0
+  IconColor: {r: 1, g: 1, b: 1, a: 1}
+  IconTexture: {fileID: 0}
 --- !u!1 &1931677584
 GameObject:
   m_ObjectHideFlags: 0
@@ -16223,6 +16354,128 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1931677584}
   m_CullTransparentMesh: 1
+--- !u!1 &1931757664
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1931757666}
+  - component: {fileID: 1931757665}
+  - component: {fileID: 1931757667}
+  m_Layer: 0
+  m_Name: FOW
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1931757665
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1931757664}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b1afdc8801548c4cab37872782c6e11, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  FogType: 1
+  FogFade: 3
+  FogFadePower: 1
+  BlendType: 1
+  UseDithering: 0
+  DitherSize: 20
+  SightExtraAmount: 0.01
+  EdgeSoftenDistance: 0.3
+  MaxFogDistance: 1000
+  FogAppearance: 3
+  UnknownColor: {r: 0.40392157, g: 0.40392157, b: 0.40392157, a: 0.83137256}
+  SaturationStrength: 0
+  BlurStrength: 1
+  BlurDistanceScreenPercentMin: 0.1
+  BlurDistanceScreenPercentMax: 1
+  BlurSamples: 6
+  FogTexture: {fileID: 0}
+  UseTriplanar: 1
+  FogTextureTiling: {x: 0.1, y: 0.1}
+  FogScrollSpeed: {x: 1, y: 1}
+  OutlineThickness: 0.1
+  PixelateFog: 0
+  WorldSpacePixelate: 0
+  PixelDensity: 2
+  RoundRevealerPosition: 0
+  PixelGridOffset: {x: 0, y: 0}
+  UseWorldBounds: 0
+  WorldBoundsSoftenDistance: 1
+  WorldBoundsInfluence: 1
+  InvertFowEffect: 0
+  AllowBleeding: 0
+  FOWSamplingMode: 0
+  HidersUseFogTexture: 1
+  HiderSeenThreshold: 0.5
+  AsyncReadbackFogDataToCpu: 0
+  UseConstantBlur: 1
+  ConstantTextureBlurQuality: 2
+  ConstantTextureBlurAmount: 0.75
+  UseMiniMap: 0
+  FowResX: 256
+  FowResY: 256
+  UseRegrow: 0
+  RevealerFadeIn: 0
+  RevealerFadeInSpeed: 0.5
+  RevealerFadeOut: 0
+  RevealerFadeOutSpeed: 0.5
+  InitialFogExplorationValue: 0
+  MaxFogRegrowAmount: 0.5
+  WorldBounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0.5, y: 0.5, z: 0.5}
+  UpdateMethod: 1
+  RevealerUpdateMode: 1
+  MaxNumRevealersPerFrame: 3
+  UseSpatialAcceleration: 1
+  SpatialHashGridSize: 32
+  NumSpatialHashBuckets: 1024
+  MaxPossibleRevealers: 256
+  MaxPossibleSegmentsPerRevealer: 128
+  MaxPossibleHiders: 512
+  is2D: 0
+  GamePlaneOrientation: 0
+  FogOfWarMaterial: {fileID: 0}
+  FowTextureMaterial: {fileID: 0}
+--- !u!4 &1931757666
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1931757664}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1931757667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1931757664}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a1e071ec4ad1c7479850366101241a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DisableFogOfWar: 0
 --- !u!1001 &1936996934
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18093,3 +18346,4 @@ SceneRoots:
   - {fileID: 1739175787}
   - {fileID: 644528749}
   - {fileID: 1081087401}
+  - {fileID: 1931757666}

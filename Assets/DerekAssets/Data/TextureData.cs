@@ -21,8 +21,19 @@ public class TextureData : UpdatableData
 
     public void ApplyToMaterial(Material material, HeightMap? heightMap = null)
     {
+        if (material == null)
+        {
+            Debug.LogError("ApplyToMaterial: material is null!");
+            return;
+        }
 
+        if (layers == null || layers.Length == 0)
+        {
+            Debug.LogError("ApplyToMaterial: layers is null or empty!");
+            return;
+        }
 
+        //Debug.Log($"ApplyToMaterial: Applying {layers.Length} layers to material {material.name}");
 
         material.SetInt("layerCount", layers.Length);
         material.SetColorArray("baseColours", layers.Select(x => x.tint).ToArray());
@@ -31,7 +42,7 @@ public class TextureData : UpdatableData
         material.SetFloatArray("baseColourStrength", layers.Select(x => x.tintStrength).ToArray());
         material.SetFloatArray("baseTextureScales", layers.Select(x => x.textureScale).ToArray());
 
-        //modified 
+        //modified
         material.SetFloatArray("baseStartHeats", layers.Select(x => x.startHeat).ToArray());
         material.SetFloatArray("baseStartMoistures", layers.Select(x => x.startMoisture).ToArray());
 
@@ -48,6 +59,7 @@ public class TextureData : UpdatableData
 
         Texture2DArray texturesArray = GenerateTextureArray(layers.Select(x => x.texture).ToArray());
         material.SetTexture("baseTextures", texturesArray);
+        //Debug.Log($"ApplyToMaterial: Applied texture array with {layers.Length} textures");
 
         UpdateMeshHeights(material, savedMinHeight, savedMaxHeight);
     }

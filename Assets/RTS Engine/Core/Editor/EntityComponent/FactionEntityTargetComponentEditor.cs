@@ -133,6 +133,15 @@ namespace RTSEngine.EditorOnly.EntityComponent
         }
 
 
+        protected override void OnGeneralInspectorGUI()
+        {
+            base.OnGeneralInspectorGUI();
+
+            EditorGUILayout.Space();
+
+            EditorGUILayout.PropertyField(SO.FindProperty("conversionCost"));
+        }
+
         protected override void OnHandlingProgressInspectorGUI()
         {
             EditorGUILayout.PropertyField(SO.FindProperty("progressDuration"));

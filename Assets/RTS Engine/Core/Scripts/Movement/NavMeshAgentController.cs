@@ -143,7 +143,8 @@ namespace RTSEngine.Movement
         {
             this.LastSource = source;
 
-            navAgent.CalculatePath(destination, navPath);
+            if(navAgent.isOnNavMesh)
+                navAgent.CalculatePath(destination, navPath);
 
             if (navPath != null && navPath.status == NavMeshPathStatus.PathComplete)
                 mvtComponent.OnPathPrepared(LastSource);

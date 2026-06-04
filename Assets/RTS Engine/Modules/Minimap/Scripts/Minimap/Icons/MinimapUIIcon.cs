@@ -9,6 +9,7 @@ using RTSEngine.Event;
 using RTSEngine.Minimap.Cameras;
 using RTSEngine.Utilities;
 using RTSEngine.Model;
+using FOW;
 
 namespace RTSEngine.Minimap.Icons
 {

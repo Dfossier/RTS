@@ -837,6 +837,9 @@ GameObject:
   - component: {fileID: 8586600377100682366}
   - component: {fileID: 4680272654203460553}
   - component: {fileID: 4681722151614086361}
+  - component: {fileID: 627969006890723503}
+  - component: {fileID: 7732326780924545802}
+  - component: {fileID: 1919710258215835481}
   m_Layer: 0
   m_Name: wolf
   m_TagString: Untagged
@@ -1168,6 +1171,93 @@ MonoBehaviour:
   unitAttack: {fileID: 983017295978237737}
   ownerTarget: {fileID: 0}
   followDistance: 3
+  animStateDebug: 0
+--- !u!114 &627969006890723503
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8474547388112628522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06c78af948052824d93c22c84c08dd65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SamplePoints: []
+  PermanentlyReveal: 0
+--- !u!114 &7732326780924545802
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8474547388112628522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c8c92e8943a9914ba89720ba5fcf806, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  viewRadius: 15
+  softenDistance: 3
+  innerSoftenAngle: 5
+  unobscuredRadius: 1
+  unobscuredSoftenDistance: 0.25
+  visionHeight: 3
+  visionHeightSoftenDistance: 1.5
+  viewAngle: 360
+  opacity: 1
+  EyeOffset: 0
+  ShaderEyeOffset: 0
+  StartRevealerAsStatic: 0
+  revealHiderInFadeOutZonePercentage: 0.5
+  MaxHidersSampledPerFrame: 50
+  SetHiderRayOriginToHidersHeight: 0
+  SetHiderRayDestinationToRevealersHeight: 1
+  useOcclusion: 1
+  addCorners: 1
+  ObstacleMask:
+    serializedVersion: 2
+    m_Bits: 0
+  OcclusionQuality: 5
+  raycastResolution: 0.5
+  NumExtraIterations: 4
+  numExtraRaysOnIteration: 3
+  ResolveEdge: 1
+  MaxEdgeResolveIterations: 10
+  MaxAcceptableEdgeAngleDifference: 0.005
+  edgeDstThreshold: 0.1
+  doubleHitMaxAngleDelta: 15
+  DebugMode: 0
+  DrawInitialRays: 0
+  SegmentTest: -1
+  DrawExpectedNextPoints: 0
+  DrawIteritiveRays: 0
+  DrawEdgeResolveRays: 0
+  DrawExtraCastLines: 0
+  DrawHiderSamples: 0
+  DebugLogHiderBlockerName: 0
+--- !u!114 &1919710258215835481
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8474547388112628522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2d5b2b9e8e22ff419cad16d1a486995, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: wolf_PixelPerfectFogOfWarComponent_255
+  isActive: 1
+  OverrideModel: 1
+  Renderers:
+  - {fileID: 8487504396147747308}
+  - {fileID: 5893015335401332391}
+  ObjectsToDisable: []
+  _hideInFog: 1
+  IsCurrentlyHidden: 0
 --- !u!1001 &5777851576688817451
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1238,6 +1328,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 22100000, guid: 73a60d91ce078ec4fa0c425e5ad4b4cf,
         type: 2}
+    - target: {fileID: 95109918701140282, guid: 5701a584e276bba438e4a5f5f02780a4,
+        type: 3}
+      propertyPath: m_CullingMode
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1258,6 +1353,12 @@ Transform:
 --- !u!95 &5872386678432959505 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 95109918701140282, guid: 5701a584e276bba438e4a5f5f02780a4,
+    type: 3}
+  m_PrefabInstance: {fileID: 5777851576688817451}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &5893015335401332391 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 137147978362203020, guid: 5701a584e276bba438e4a5f5f02780a4,
     type: 3}
   m_PrefabInstance: {fileID: 5777851576688817451}
   m_PrefabAsset: {fileID: 0}

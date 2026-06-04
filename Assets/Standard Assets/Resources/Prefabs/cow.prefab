@@ -149,6 +149,8 @@ GameObject:
   m_Component:
   - component: {fileID: 84814865925706518}
   - component: {fileID: 3832757814611512224}
+  - component: {fileID: 3050395273586681842}
+  - component: {fileID: 19680841634377249}
   m_Layer: 0
   m_Name: unit_components
   m_TagString: Untagged
@@ -216,6 +218,38 @@ MonoBehaviour:
   showTargetGizmo: 1
   ejectionTaskUI: {fileID: 11400000, guid: a845524f06d96d441b27ee40198cefe8, type: 2}
   allowDifferentFactions: 1
+--- !u!114 &3050395273586681842
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3185423413461101792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b70a05e14e072574fa5d4773e9ade9f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: drop_off_target
+  allowedResourceTypes:
+    type: 0
+    options: []
+  requireDropOffPosition: 0
+  dropOffPosition: {fileID: 0}
+  forcedTerrainAreas:
+  - {fileID: 11400000, guid: 37d2dffab9a31a84c81d764228531ba7, type: 2}
+--- !u!114 &19680841634377249
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3185423413461101792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcddd95ec8de9fb4582b238b510c8736, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4518372527462307801
 GameObject:
   m_ObjectHideFlags: 0
@@ -325,7 +359,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   selectionColliders:
   - {fileID: 5943371113120393191}
-  isActive: 0
+  isActive: 1
   selectOwnerOnly: 0
   selectionAudio:
     fetchType: 0
@@ -352,6 +386,9 @@ GameObject:
   - component: {fileID: 855475600490157270}
   - component: {fileID: 852368720263623622}
   - component: {fileID: 1352784428781047891}
+  - component: {fileID: 1969262716195260166}
+  - component: {fileID: 6935333647302094494}
+  - component: {fileID: 3322673188874248599}
   m_Layer: 0
   m_Name: cow
   m_TagString: Untagged
@@ -685,6 +722,7 @@ MonoBehaviour:
   unitAttack: {fileID: 0}
   ownerTarget: {fileID: 0}
   followDistance: 3
+  animStateDebug: 0
 --- !u!114 &1352784428781047891
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -698,6 +736,92 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Owner: {fileID: 0}
+--- !u!114 &1969262716195260166
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4519162506602980405}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06c78af948052824d93c22c84c08dd65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SamplePoints: []
+  PermanentlyReveal: 0
+--- !u!114 &6935333647302094494
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4519162506602980405}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c8c92e8943a9914ba89720ba5fcf806, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  viewRadius: 15
+  softenDistance: 3
+  innerSoftenAngle: 5
+  unobscuredRadius: 1
+  unobscuredSoftenDistance: 0.25
+  visionHeight: 3
+  visionHeightSoftenDistance: 1.5
+  viewAngle: 360
+  opacity: 1
+  EyeOffset: 0
+  ShaderEyeOffset: 0
+  StartRevealerAsStatic: 0
+  revealHiderInFadeOutZonePercentage: 0.5
+  MaxHidersSampledPerFrame: 50
+  SetHiderRayOriginToHidersHeight: 0
+  SetHiderRayDestinationToRevealersHeight: 1
+  useOcclusion: 1
+  addCorners: 1
+  ObstacleMask:
+    serializedVersion: 2
+    m_Bits: 0
+  OcclusionQuality: 5
+  raycastResolution: 0.5
+  NumExtraIterations: 4
+  numExtraRaysOnIteration: 3
+  ResolveEdge: 1
+  MaxEdgeResolveIterations: 10
+  MaxAcceptableEdgeAngleDifference: 0.005
+  edgeDstThreshold: 0.1
+  doubleHitMaxAngleDelta: 15
+  DebugMode: 0
+  DrawInitialRays: 0
+  SegmentTest: -1
+  DrawExpectedNextPoints: 0
+  DrawIteritiveRays: 0
+  DrawEdgeResolveRays: 0
+  DrawExtraCastLines: 0
+  DrawHiderSamples: 0
+  DebugLogHiderBlockerName: 0
+--- !u!114 &3322673188874248599
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4519162506602980405}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2d5b2b9e8e22ff419cad16d1a486995, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: cow_PixelPerfectFogOfWarComponent_79
+  isActive: 1
+  OverrideModel: 1
+  Renderers:
+  - {fileID: 4532105495721060083}
+  - {fileID: 6564970019374748612}
+  ObjectsToDisable: []
+  _hideInFog: 1
+  IsCurrentlyHidden: 0
 --- !u!1 &4519316922819765361
 GameObject:
   m_ObjectHideFlags: 0
@@ -1248,6 +1372,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 95420351698573946, guid: 17c92e8b373815b42a027aed891bc237,
+        type: 3}
+      propertyPath: m_CullingMode
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1262,6 +1391,12 @@ Transform:
 --- !u!1 &6555108727041330098 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1284065736887346, guid: 17c92e8b373815b42a027aed891bc237,
+    type: 3}
+  m_PrefabInstance: {fileID: 6556365236197197696}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &6564970019374748612 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 137243252560155716, guid: 17c92e8b373815b42a027aed891bc237,
     type: 3}
   m_PrefabInstance: {fileID: 6556365236197197696}
   m_PrefabAsset: {fileID: 0}

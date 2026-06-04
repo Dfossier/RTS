@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(find:*)",
+      "Bash(grep -r \"m_Name: food\\\\|m_Name: meat\\\\|m_Name: static_resource\\\\|m_Name: Food\" \"/mnt/c/users/dfoss/desktop/rts_engine_2_beta-master/Assets/RTS Engine\" --include=\"*.asset\" -l 2>/dev/null | head -10)",
+      "Bash(grep -r \"CampFire\\\\|campfire\" /mnt/c/users/dfoss/desktop/rts_engine_2_beta-master/Assets/RTSE_ScenePreparationManager-main --include=\"*.cs\" 2>/dev/null | head -20)",
+      "Bash(grep -n \"64034668ccc0909478a1829bc32d9cb1\\\\|a3e40a20a0b603d4793ed1985b005aed\" \"/mnt/c/users/dfoss/desktop/rts_engine_2_beta-master/Assets\" -r --include=\"*.asset\" --include=\"*.meta\" -l 2>/dev/null | head -5)",
+      "Bash(grep -rn \"knowledge\" \"/mnt/c/users/dfoss/desktop/rts_engine_2_beta-master/Assets\" --include=\"*.asset\" --include=\"*.meta\" -l 2>/dev/null | head -10)",
+      "Bash(git push origin DerekChanges)",
+      "Bash(grep -r \"740dc3a95f58a494a9bf1c0632d56f74\\\\|cb56912e7ea8b9c438fb681ee810adaf\" /mnt/c/users/dfoss/desktop/rts_engine_2_beta-master/Assets/RTS\\\\ Engine/Core/Scripts --include=\"*.meta\" -l 2>/dev/null | head -5)",
+      "Bash(cd \"/mnt/c/users/dfoss/desktop/rts_engine_2_beta-master\" && grep -r \"Display\\\\|Show\\\\|Text\\\\|UI\" Assets/RTS\\\\ Engine/Core/Scripts/Selection/*.cs | head -20)",
+      "Bash(cd \"/mnt/c/users/dfoss/desktop/rts_engine_2_beta-master\" && grep -r \"resource\\\\|Resource\" Assets/RTS\\\\ Engine/Core/Scripts/UI/*.cs | head -20)",
+      "Bash(cd \"/mnt/c/users/dfoss/desktop/rts_engine_2_beta-master\" && find . -path \"*/Demo*\" -name \"*.cs\" -type f | xargs ls -lt | head -15)",
+      "Bash(ls /mnt/c/users/dfoss/desktop/rts_engine_2_beta-master/Assets/Resources/Prefabs/*.prefab | head -10)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

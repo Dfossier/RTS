@@ -399,6 +399,9 @@ GameObject:
   - component: {fileID: 7686239489646723646}
   - component: {fileID: 6733183489487592841}
   - component: {fileID: 6535592913380756910}
+  - component: {fileID: 7125463263861297708}
+  - component: {fileID: 1856610333046376945}
+  - component: {fileID: 6500850691094656422}
   m_Layer: 0
   m_Name: horse
   m_TagString: Untagged
@@ -601,6 +604,7 @@ MonoBehaviour:
   unitAttack: {fileID: 0}
   ownerTarget: {fileID: 0}
   followDistance: 3
+  animStateDebug: 0
 --- !u!82 &7582849089770859910
 AudioSource:
   m_ObjectHideFlags: 0
@@ -745,6 +749,92 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Owner: {fileID: 0}
+--- !u!114 &7125463263861297708
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7501055689196940650}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06c78af948052824d93c22c84c08dd65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SamplePoints: []
+  PermanentlyReveal: 0
+--- !u!114 &1856610333046376945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7501055689196940650}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c8c92e8943a9914ba89720ba5fcf806, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  viewRadius: 15
+  softenDistance: 3
+  innerSoftenAngle: 5
+  unobscuredRadius: 1
+  unobscuredSoftenDistance: 0.25
+  visionHeight: 3
+  visionHeightSoftenDistance: 1.5
+  viewAngle: 360
+  opacity: 1
+  EyeOffset: 0
+  ShaderEyeOffset: 0
+  StartRevealerAsStatic: 0
+  revealHiderInFadeOutZonePercentage: 0.5
+  MaxHidersSampledPerFrame: 50
+  SetHiderRayOriginToHidersHeight: 0
+  SetHiderRayDestinationToRevealersHeight: 1
+  useOcclusion: 1
+  addCorners: 1
+  ObstacleMask:
+    serializedVersion: 2
+    m_Bits: 0
+  OcclusionQuality: 5
+  raycastResolution: 0.5
+  NumExtraIterations: 4
+  numExtraRaysOnIteration: 3
+  ResolveEdge: 1
+  MaxEdgeResolveIterations: 10
+  MaxAcceptableEdgeAngleDifference: 0.005
+  edgeDstThreshold: 0.1
+  doubleHitMaxAngleDelta: 15
+  DebugMode: 0
+  DrawInitialRays: 0
+  SegmentTest: -1
+  DrawExpectedNextPoints: 0
+  DrawIteritiveRays: 0
+  DrawEdgeResolveRays: 0
+  DrawExtraCastLines: 0
+  DrawHiderSamples: 0
+  DebugLogHiderBlockerName: 0
+--- !u!114 &6500850691094656422
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7501055689196940650}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2d5b2b9e8e22ff419cad16d1a486995, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: horse_PixelPerfectFogOfWarComponent_137
+  isActive: 1
+  OverrideModel: 1
+  Renderers:
+  - {fileID: 7515124440759840684}
+  - {fileID: 2424602721787364906}
+  ObjectsToDisable: []
+  _hideInFog: 1
+  IsCurrentlyHidden: 0
 --- !u!1 &7501175084258782510
 GameObject:
   m_ObjectHideFlags: 0
@@ -1271,6 +1361,12 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1930454789156772733}
   m_SourcePrefab: {fileID: 100100000, guid: 294e729dd5aac414f80b1926e024f524, type: 3}
+--- !u!137 &2424602721787364906 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 7844914519364447275, guid: 294e729dd5aac414f80b1926e024f524,
+    type: 3}
+  m_PrefabInstance: {fileID: 5583152252841978369}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &4736166906344265552 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 294e729dd5aac414f80b1926e024f524,

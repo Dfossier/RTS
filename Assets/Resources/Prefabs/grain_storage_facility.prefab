@@ -575,6 +575,9 @@ GameObject:
   - component: {fileID: 6244889107029293774}
   - component: {fileID: 5666575482720402699}
   - component: {fileID: 8087998975559214452}
+  - component: {fileID: 6912946530278702647}
+  - component: {fileID: 7260233825242937708}
+  - component: {fileID: 4174006064931679018}
   m_Layer: 0
   m_Name: grain_storage_facility
   m_TagString: Untagged
@@ -871,6 +874,123 @@ MonoBehaviour:
     colorPropertyName: _Color
     transparency: 0
     darkness: 0
+--- !u!114 &6912946530278702647
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1768643121196649675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c8c92e8943a9914ba89720ba5fcf806, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  viewRadius: 15
+  softenDistance: 3
+  innerSoftenAngle: 5
+  unobscuredRadius: 1
+  unobscuredSoftenDistance: 0.25
+  visionHeight: 3
+  visionHeightSoftenDistance: 1.5
+  viewAngle: 360
+  opacity: 1
+  EyeOffset: 0
+  ShaderEyeOffset: 0
+  StartRevealerAsStatic: 0
+  revealHiderInFadeOutZonePercentage: 0.5
+  MaxHidersSampledPerFrame: 50
+  SetHiderRayOriginToHidersHeight: 0
+  SetHiderRayDestinationToRevealersHeight: 1
+  useOcclusion: 1
+  addCorners: 1
+  ObstacleMask:
+    serializedVersion: 2
+    m_Bits: 0
+  OcclusionQuality: 5
+  raycastResolution: 0.5
+  NumExtraIterations: 4
+  numExtraRaysOnIteration: 3
+  ResolveEdge: 1
+  MaxEdgeResolveIterations: 10
+  MaxAcceptableEdgeAngleDifference: 0.005
+  edgeDstThreshold: 0.1
+  doubleHitMaxAngleDelta: 15
+  DebugMode: 0
+  DrawInitialRays: 0
+  SegmentTest: -1
+  DrawExpectedNextPoints: 0
+  DrawIteritiveRays: 0
+  DrawEdgeResolveRays: 0
+  DrawExtraCastLines: 0
+  DrawHiderSamples: 0
+  DebugLogHiderBlockerName: 0
+--- !u!114 &7260233825242937708
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1768643121196649675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06c78af948052824d93c22c84c08dd65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SamplePoints: []
+  PermanentlyReveal: 0
+--- !u!114 &4174006064931679018
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1768643121196649675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2d5b2b9e8e22ff419cad16d1a486995, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: grain_storage_facility_PixelPerfectFogOfWarComponent_28
+  isActive: 1
+  OverrideModel: 0
+  Renderers:
+  - {fileID: 8094980725409661217}
+  - {fileID: 2708185052667696595}
+  - {fileID: 5807433387333288057}
+  - {fileID: 3206372935205995412}
+  - {fileID: 5282299822868865661}
+  - {fileID: 7864983206096173893}
+  - {fileID: 7646755357253496022}
+  - {fileID: 6250432466251099901}
+  - {fileID: 6031856135458053931}
+  - {fileID: 3380705541296626217}
+  - {fileID: 838557966663982778}
+  - {fileID: 6936214894754224903}
+  - {fileID: 8173587517687059895}
+  - {fileID: 4501345931271482592}
+  - {fileID: 6483433075128466301}
+  - {fileID: 383939342903283074}
+  - {fileID: 7595253477224363167}
+  - {fileID: 703380111661788442}
+  - {fileID: 2253661125521178165}
+  - {fileID: 3300019634748435994}
+  - {fileID: 4318599726193536357}
+  - {fileID: 180492823334679748}
+  - {fileID: 2801006868650456095}
+  - {fileID: 7618594406406554173}
+  - {fileID: 4022259113380845682}
+  - {fileID: 5313637669778339923}
+  - {fileID: 5460803476788382073}
+  - {fileID: 5834578143975630478}
+  - {fileID: 7493845078084745770}
+  - {fileID: 273422040564073359}
+  - {fileID: 9005842730755089220}
+  - {fileID: 328755050091568571}
+  - {fileID: 7892730854321821366}
+  ObjectsToDisable: []
+  _hideInFog: 1
+  IsCurrentlyHidden: 0
 --- !u!1 &1911953136677275146
 GameObject:
   m_ObjectHideFlags: 0
@@ -1872,6 +1992,8 @@ MonoBehaviour:
   tabID:
     x: 0
     y: 0
+  requireGarrisonedWorkers: 0
+  workerSpeedMultiplier: 0.5
   period: 10
   resources:
   - type: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
@@ -3502,6 +3624,12 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 3206372935203970036}
   m_PrefabAsset: {fileID: 0}
+--- !u!23 &3206372935205995412 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2300000, guid: e0c027115b4070e4a89e0a6c5ee4e8f8,
+    type: 3}
+  m_PrefabInstance: {fileID: 3206372935203970036}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &5282299822866840093
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3574,6 +3702,12 @@ PrefabInstance:
 --- !u!4 &5282299822866440349 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: c18f757561d1f97428170659b0607105,
+    type: 3}
+  m_PrefabInstance: {fileID: 5282299822866840093}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &5282299822868865661 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2300000, guid: c18f757561d1f97428170659b0607105,
     type: 3}
   m_PrefabInstance: {fileID: 5282299822866840093}
   m_PrefabAsset: {fileID: 0}
@@ -3652,6 +3786,12 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 5807433387331131417}
   m_PrefabAsset: {fileID: 0}
+--- !u!23 &5807433387333288057 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2300000, guid: 840c87932261d104b8b750b66a19d361,
+    type: 3}
+  m_PrefabInstance: {fileID: 5807433387331131417}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7864983206098199333
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3721,6 +3861,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c18f757561d1f97428170659b0607105, type: 3}
+--- !u!23 &7864983206096173893 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2300000, guid: c18f757561d1f97428170659b0607105,
+    type: 3}
+  m_PrefabInstance: {fileID: 7864983206098199333}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &7864983206098074021 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: c18f757561d1f97428170659b0607105,

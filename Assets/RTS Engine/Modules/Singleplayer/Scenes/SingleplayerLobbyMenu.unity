@@ -3634,21 +3634,21 @@ MonoBehaviour:
     options:
     - name: Standard
       resources:
-      - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
+      - type: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
         value:
-          amount: 200
-          capacity: 0
-      - type: {fileID: 11400000, guid: 6a155955f3fb44a4c9619755a7e0c78c, type: 2}
+          amount: 45
+          capacity: 200
+      - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
         value:
-          amount: 0
-          capacity: 0
+          amount: 15
+          capacity: 200
     - name: More
       resources:
-      - type: {fileID: 11400000, guid: 7fad61ec7c519fc48bda4c4cab2cb727, type: 2}
+      - type: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
         value:
           amount: 400
           capacity: 0
-      - type: {fileID: 11400000, guid: 6a155955f3fb44a4c9619755a7e0c78c, type: 2}
+      - type: {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
         value:
           amount: 400
           capacity: 0
@@ -6301,6 +6301,16 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7876786658767182219}
     m_Modifications:
+    - target: {fileID: 2091939578, guid: 37dca16dfdfba0542878c63c5708d586, type: 3}
+      propertyPath: m_text
+      value: 'Neolithic Transition
+
+
+        As we build towards the Bronze Age Collapse
+        and Battle of the Old Gods, we begin at the end of the stone age.  Early
+        horticulture leads to farming villages, while hunting can lead to herding
+        animals and trading across distance.  The first choice is yours.'
+      objectReference: {fileID: 0}
     - target: {fileID: 4271643627688977778, guid: 37dca16dfdfba0542878c63c5708d586,
         type: 3}
       propertyPath: m_Name

@@ -148,7 +148,7 @@ public class RTSEScenePrepManager : MonoBehaviour, IPreRunGameService
                                                                 isBuilt = true,
                                                                 setInitialHealth = true,
                                                                 initialHealth = thisFactionData.FactionBuildings.ElementAtOrDefault(bldngMarker.buildingIndexToSpawn).StartingHealth,
-                                                                giveInitResources = true,
+                                                                giveInitResources = false,
                                                                 playerCommand = false
                                                             }
                                                         );
@@ -184,7 +184,7 @@ public class RTSEScenePrepManager : MonoBehaviour, IPreRunGameService
                                                 Debug.Log("Scene Prep: unitMarker = " + unitMarker.unitIndexToSpawn);
                                                 if (ShowDebug)
                                                     Debug.Log("Scene Prep: Looping Through thisPlayersStart.BuildingsParent -> child.gameObject.TryGetComponent(out FactionUnitMarker unitMarker) ");
-                                                if (thisFactionData.FactionBuildings.ElementAtOrDefault(unitMarker.unitIndexToSpawn).IsValid())
+                                                if (thisFactionData.FactionUnits.ElementAtOrDefault(unitMarker.unitIndexToSpawn) != null && thisFactionData.FactionUnits.ElementAtOrDefault(unitMarker.unitIndexToSpawn).Unit != null)
                                                 {
                                                     // Here we create an instance for this iteration, you can control all it's functions and props before spawning it
                                                     IUnit spawnMe = thisFactionData.FactionUnits.ElementAtOrDefault(unitMarker.unitIndexToSpawn).Unit;

@@ -15,7 +15,9 @@ namespace RTSEngine.EntityComponent
         #region Class Attributes
         [SerializeField, Tooltip("When assigned a target, this is the stopping distance that the converter will have when moving towards the target"), Min(0.0f)]
         private float stoppingDistance = 5.0f;
-        private int requiredFoodAmount = 0;
+
+        [SerializeField, Tooltip("Resources required to convert each target (e.g., food cost per animal). Leave empty for free conversion.")]
+        private ResourceInput[] conversionCost = new ResourceInput[0];
 
         [SerializeField, Tooltip("Define the faction entities that can be converted by this converter.")]
         private AdvancedFactionEntityTargetPicker targetPicker = new AdvancedFactionEntityTargetPicker();
@@ -27,7 +29,7 @@ namespace RTSEngine.EntityComponent
             return Target.instance.Health.IsDead
                 || RTSHelper.IsSameFaction(Target.instance, factionEntity)
                 || (InProgress && !IsTargetInRange(factionEntity.transform.position, Target))
-                || !HaveEnoughFood(out _);
+                || !HasRequiredResources();
         }
 
         protected override bool CanEnableProgress()
@@ -58,61 +60,25 @@ namespace RTSEngine.EntityComponent
             Stop(); //cancel conversion job.
         }
 
-        private bool HaveEnoughFood(out ResourceTypeInfo foodRef)
+        private bool HasRequiredResources()
         {
-            if (resourceMgr.TryGetResourceTypeWithKey("food", out ResourceTypeInfo food))
-            {
-                foodRef = food;
-            }
-            else
-            {
-                foodRef = null;
-                return false;
-            }
+            // If no conversion cost is defined, conversion is free
+            if (conversionCost == null || conversionCost.Length == 0)
+                return true;
 
-            int foodAmount = resourceMgr
-                .FactionResources[factionEntity.FactionID]
-                .ResourceHandlers[foodRef]
-                .Amount;
-
-            if (foodAmount < requiredFoodAmount)
-                return false;
-
-            return true;
+            // Check if faction has all required resources
+            return resourceMgr.HasResources(conversionCost, factionEntity.FactionID);
         }
 
 
         private bool CustomAnimalHerdingLogic()
         {
-            ResourceTypeInfo foodRef;
-
-            if (!HaveEnoughFood(out foodRef))
+            // Check if we have the required resources for conversion
+            if (!HasRequiredResources())
             {
+                Debug.Log("Not enough resources to convert!");
                 return false;
             }
-
-            if (resourceMgr.TryGetResourceTypeWithKey("food", out ResourceTypeInfo food))
-            {
-                // Success: you can use "food"
-                Debug.Log("Found resource type: " + food.Key);
-                foodRef = food;
-            }
-            else
-            {
-                // Failure: you cannot use "food"
-                Debug.Log("Resource type not found.");
-                return false;
-            }
-
-            int foodAmount = resourceMgr.FactionResources[factionEntity.FactionID].ResourceHandlers[foodRef].Amount;
-
-            Debug.Log("Current food amount: " + foodAmount);
-            if (foodAmount < requiredFoodAmount)
-            {
-                Debug.Log("Food is low!");
-                return false;
-            }
-
 
             string prefabName = Target.instance.gameObject.name.Replace("(Clone)", "").Trim();
             string[] animals = { "cow", "deer", "horse" };
@@ -125,19 +91,28 @@ namespace RTSEngine.EntityComponent
                 AnimalsOwnerController animal = Target.instance.GetComponent<AnimalsOwnerController>();
                 animal.Owner = factionEntity.gameObject;
 
-                resourceMgr.UpdateResource(
-                    factionEntity.FactionID,
-                    new ResourceInput
+                // Deduct the conversion cost from the faction's resources
+                if (conversionCost != null && conversionCost.Length > 0)
+                {
+                    foreach (var cost in conversionCost)
                     {
-                        type = foodRef,
-                        value = new ResourceTypeValue
-                        {
-                            amount = -requiredFoodAmount,
-                            capacity = 0
-                        }
-                    },
-                    add: true
-                );
+                        resourceMgr.UpdateResource(
+                            factionEntity.FactionID,
+                            new ResourceInput
+                            {
+                                type = cost.type,
+                                value = new ResourceTypeValue
+                                {
+                                    amount = -cost.value.amount,
+                                    capacity = 0
+                                }
+                            },
+                            add: true
+                        );
+                    }
+                    Debug.Log("Conversion cost deducted from faction resources.");
+                }
+
                 return true;
             }
             return false;

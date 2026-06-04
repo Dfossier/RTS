@@ -48,6 +48,16 @@ namespace RTSEngine.EditorOnly.EntityComponent
             EditorGUILayout.Space();
 
             EditorGUILayout.PropertyField(SO.FindProperty("period"));
+
+            EditorGUILayout.Space();
+
+            EditorGUILayout.PropertyField(SO.FindProperty("requireGarrisonedWorkers"));
+            if (SO.FindProperty("requireGarrisonedWorkers").boolValue == true)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(SO.FindProperty("workerSpeedMultiplier"));
+                EditorGUI.indentLevel--;
+            }
         }
 
         protected virtual void OnResourceGenerationInspectorGUI()

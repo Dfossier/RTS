@@ -199,6 +199,8 @@ namespace RTSEngine.EntityComponent
                 return ErrorMessage.targetDead;
             else if (potentialTarget.instance.Health.HasMaxHealth)
                 return ErrorMessage.targetHealthtMaxReached;
+            else if (!potentialTarget.instance.Health.CanIncrease)
+                return ErrorMessage.invalid;
             else if (!factionEntity.CanMove() && !IsTargetInRange(Entity.transform.position, potentialTarget))
                 return ErrorMessage.targetOutOfRange;
             else if (Target.instance != potentialTarget.instance && potentialTarget.instance.WorkerMgr.HasMaxAmount)

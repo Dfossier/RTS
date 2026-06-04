@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 
+
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -34,9 +35,21 @@ namespace RTSEngine.EntityComponent
         //the FactionEntity instance to which this component is attached to.
         public IFactionEntity FactionEntity { private set; get; }
 
-        [SerializeField, Tooltip("Duration (in seconds) required to generate resources.")]
+        // Worker-dependent resource conversion
+        private UnitCarrier unitCarrier;
+
+        [SerializeField, Tooltip("Require workers to be garrisoned for resource conversion?"), Header("Worker-Dependent Resource Conversion"), Space()]
+        private bool requireGarrisonedWorkers = false;
+
+        [SerializeField, Tooltip("How much faster generation becomes per garrisoned worker (multiplier). Each worker adds this value to speed. Example: 0.5 means 1 worker = 1.5x speed, 2 workers = 2.0x speed.")]
+        private float workerSpeedMultiplier = 0.5f;
+
+        [SerializeField, Tooltip("Duration (in seconds) required to generate resources."), Space()]
         private float period = 1.0f;
         private TimeModifiedTimer timer;
+
+        // Public property to expose timer progress for UI indicators (0 = just generated, 1 = about to generate)
+        public float TimerProgress => timer != null ? 1f - (timer.CurrValue / period) : 0f;
 
         [SerializeField, Tooltip("Resources to generate every period."), Space(10)]
         private ResourceInput[] resources = new ResourceInput[0];
@@ -101,9 +114,21 @@ namespace RTSEngine.EntityComponent
         {
             this.resourceMgr = gameMgr.GetService<IResourceManager>();
             this.globalEvent = gameMgr.GetService<IGlobalEventPublisher>();
-            this.audioMgr = gameMgr.GetService<IGameAudioManager>(); 
+            this.audioMgr = gameMgr.GetService<IGameAudioManager>();
 
             this.FactionEntity = Entity as IFactionEntity;
+
+            // Try to get UnitCarrier component if requiring garrisoned workers
+            if (requireGarrisonedWorkers)
+            {
+                // Try GetComponentInChildren to search the entire hierarchy
+                unitCarrier = Entity.GetComponentInChildren<UnitCarrier>();
+
+                if (unitCarrier == null)
+                {
+                    logger.LogWarning($"[ResourceGenerator] '{FactionEntity.Code}' requires garrisoned workers but has no UnitCarrier component! Resource generation will be disabled.");
+                }
+            }
 
             // Assign an empty list of the generated resources
             generatedResources = new ModifiableResourceTypeValue[resources.Length];
@@ -164,19 +189,65 @@ namespace RTSEngine.EntityComponent
         {
             // Only allow the master instance to run the timers for generating resources
             if (!IsInitialized
-                || !FactionEntity.CanLaunchTask 
-                || !IsActive 
+                || !FactionEntity.CanLaunchTask
+                || !IsActive
                 || (stopGeneratingOnThresholdMet && isThresholdMet))
+            {
                 return;
+            }
 
-            // Turn into Action
-            // Generating Resources:
-            if (timer.ModifiedDecrease())
-                // Directly generate resources locally on all client instances if it is a multiplayer game
-                // Because sending every resource generation increase over the network is expensive and in this case, useless
-                // since the collection will only be performed by the master instance
-                // This also ensures that the resource generation is not halted by delay due to sending data over the network
-                GeneratePeriodResourcesActionLocal(playerCommand: false); 
+            // Check if we require garrisoned workers
+            if (requireGarrisonedWorkers)
+            {
+                // Count actual garrisoned units (non-null slots)
+                int workerCount = 0;
+                if (unitCarrier != null)
+                {
+                    foreach (var unit in unitCarrier.CarrierSlots)
+                    {
+                        if (unit != null)
+                            workerCount++;
+                    }
+                }
+
+                // If no carrier or no workers garrisoned, stop generation
+                if (unitCarrier == null || workerCount == 0)
+                {
+                    // No workers = no resource conversion
+                    return;
+                }
+
+                // Calculate speed multiplier based on worker count
+                // Formula: baseSpeed + (workerCount * workerSpeedMultiplier)
+                // Example with workerSpeedMultiplier = 0.5:
+                //   1 worker = 1.5x speed
+                //   2 workers = 2.0x speed
+                //   3 workers = 2.5x speed, etc.
+                float speedBoost = 1.0f + (workerCount * workerSpeedMultiplier);
+
+                // Manually decrease timer with worker speed boost
+                // We need to apply both the time modifier and our worker speed boost
+                float decreaseAmount = Time.deltaTime * TimeModifier.CurrentModifier * speedBoost;
+                timer.Reload(timer.CurrValue - decreaseAmount);
+
+                // Check if timer completed
+                if (timer.CurrValue <= 0.0f)
+                {
+                    GeneratePeriodResourcesActionLocal(playerCommand: false);
+                }
+            }
+            else
+            {
+                // Original behavior for non-worker-dependent buildings
+                // Turn into Action
+                // Generating Resources:
+                if (timer.ModifiedDecrease())
+                    // Directly generate resources locally on all client instances if it is a multiplayer game
+                    // Because sending every resource generation increase over the network is expensive and in this case, useless
+                    // since the collection will only be performed by the master instance
+                    // This also ensures that the resource generation is not halted by delay due to sending data over the network
+                    GeneratePeriodResourcesActionLocal(playerCommand: false);
+            }
         }
 
         private ErrorMessage GeneratePeriodResourcesAction(bool playerCommand)
@@ -191,6 +262,7 @@ namespace RTSEngine.EntityComponent
         /// </summary>
         private ErrorMessage GeneratePeriodResourcesActionLocal(bool playerCommand)
         {
+            // Check if required resources are available
             if (!resourceMgr.HasResources(requiredResources, FactionEntity.FactionID))
             {
                 onRequirementMissing.Invoke();
@@ -221,9 +293,10 @@ namespace RTSEngine.EntityComponent
 
                 globalEvent.RaiseEntityComponentTaskUIReloadRequestGlobal(this);
             }
-                
+
             // Consume the required resources per period:
-            resourceMgr.UpdateResource(FactionEntity.FactionID, requiredResources, add:false);
+            if (requiredResources != null && requiredResources.Length > 0)
+                resourceMgr.UpdateResource(FactionEntity.FactionID, requiredResources, add:false);
 
             timer.Reload();
 
@@ -246,7 +319,7 @@ namespace RTSEngine.EntityComponent
         private ErrorMessage CollectResourcesActionLocal(bool playerCommand)
         {
             // We no longer meet the threshold.
-            isThresholdMet = false; 
+            isThresholdMet = false;
 
             for (int i = 0; i < generatedResources.Length; i++)
             {
@@ -259,7 +332,6 @@ namespace RTSEngine.EntityComponent
                             capacity = generatedResources[i].Capacity
                         }
                     };
-
 
                 resourceMgr.UpdateResource(
                     FactionEntity.FactionID,

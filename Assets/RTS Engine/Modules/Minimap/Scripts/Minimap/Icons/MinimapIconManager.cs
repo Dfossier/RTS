@@ -7,6 +7,7 @@ using RTSEngine.Entities;
 using RTSEngine.Event;
 using RTSEngine.Logging;
 using RTSEngine.Utilities;
+using FOW;
 
 
 namespace RTSEngine.Minimap.Icons
@@ -122,6 +123,31 @@ namespace RTSEngine.Minimap.Icons
 
             nextIcon.OnSpawn(input);
             activeIcons.Add(source.Key, nextIcon);
+
+            // get the source fow settings and apply the minimap icon to hide or show if the source is hidden or shown
+            var go = nextIcon.gameObject;
+
+            if (source.GetComponent<PixelPerfectFogOfWarComponent>() is PixelPerfectFogOfWarComponent fow)
+            {
+                fow.ObjectsToDisable.Add(go);
+
+                if (fow.ObjectsToDisable.Count > 1)
+                    go.SetActive(fow.ObjectsToDisable[0].activeSelf);
+            }
+            else if (source.GetComponent<HiderDisableObjects>() is HiderDisableObjects h)
+            {
+                if (h.ObjectsToHide == null) h.ObjectsToHide = new GameObject[0];
+
+                Array.Resize(ref h.ObjectsToHide, h.ObjectsToHide.Length + 1);
+                h.ObjectsToHide[^1] = go;
+
+                if (h.ObjectsToHide.Length > 1)
+                    go.SetActive(h.ObjectsToHide[0].activeSelf);
+            }
+            else // don't have any component
+            {
+                Debug.Log("No component found on " + source.gameObject.name);
+            }
 
             return nextIcon;
         }
