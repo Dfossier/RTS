@@ -17,6 +17,9 @@ public class DerekTerrainManager : MonoBehaviour
 
     public GameObject[] npcFactionsList;
 
+    [Tooltip("Spawns the neutral trade buildings at the map edges. Optional; auto-finds the manager itself if left wired.")]
+    public TradeBuildingSpawner tradeBuildingSpawner;
+
     public void Start()
     {
         InitializeDerekTerrain();
@@ -29,6 +32,14 @@ public class DerekTerrainManager : MonoBehaviour
         SetPlayerFactionPosition();
         LoadNPCsAndSetPosition();
         GameManager.SetActive(true);
+
+        // Kick off the neutral trade buildings. The spawner waits internally until the GameManager's
+        // services are ready, then spawns once at the map edges.
+        if (tradeBuildingSpawner != null)
+        {
+            tradeBuildingSpawner.terrainManager = this;
+            tradeBuildingSpawner.enabled = true;
+        }
     }
 
     private void ReParentingObjects()
@@ -56,28 +67,56 @@ public class DerekTerrainManager : MonoBehaviour
 
     private void SetPlayerFactionPosition()
     {
-        Transform playerSpawnpoint = GameObject.Find("debugRandomFactionSpawnpoint").transform;
+        GameObject spawnpointObj = GameObject.Find("debugRandomFactionSpawnpoint");
         GameObject playerFaction = GameObject.Find("playerFaction");
 
-        // Vector3 localPosition = playerFaction.transform.parent.InverseTransformPoint(playerSpawnpoint.position);
-
-        playerFaction.transform.position = RandomNavmeshLocation(10f, playerSpawnpoint.position);
-
-        // Loop through each child
-        foreach (Transform child in playerFaction.transform)
+        if (spawnpointObj == null || playerFaction == null)
         {
-            Vector3 randomNearbyPosition = RandomNavmeshLocation(5f, playerFaction.transform.position);
-            if (!IsNavMeshRegionBigEnough(randomNearbyPosition, 4, 5))
-            {
-                randomNearbyPosition = RandomNavmeshLocation(5f, playerFaction.transform.position);
-            }
-            child.position = randomNearbyPosition;
+            Debug.LogError("[DerekTerrainManager] 'debugRandomFactionSpawnpoint' or 'playerFaction' not found - cannot position the player faction.");
+            return;
         }
 
-        // playerFaction.transform.position = playerSpawnpoint.position;
+        // RandomFactionSpawnpoint already validated this spot (a large, connected NavMesh region).
+        // Use it directly - just snap to the NavMesh. Do NOT re-randomise with a big offset, which
+        // used to shove the faction into water or, on a failed sample, all the way to world origin.
+        Vector3 basePos = SnapToNavMesh(spawnpointObj.transform.position, 8f, fallback: spawnpointObj.transform.position);
+        playerFaction.transform.position = basePos;
 
-        Debug.Log(playerSpawnpoint);
-        Debug.Log(playerFaction.transform.position);
+        // Reposition any direct children (starting buildings/units) onto solid, roomy ground nearby.
+        // Each lands in a NavMesh region big enough to be real land, never at the origin.
+        foreach (Transform child in playerFaction.transform)
+            child.position = FindValidNearbyPosition(basePos, spreadRadius: 6f, minRegion: 20, attempts: 25, fallback: basePos);
+    }
+
+    /// <summary>
+    /// Snaps a point to the nearest NavMesh position. Returns <paramref name="fallback"/> (never the
+    /// origin) if no NavMesh is found even after widening the search.
+    /// </summary>
+    private Vector3 SnapToNavMesh(Vector3 pos, float sampleRadius, Vector3 fallback)
+    {
+        if (NavMesh.SamplePosition(pos, out NavMeshHit hit, sampleRadius, NavMesh.AllAreas))
+            return hit.position;
+        if (NavMesh.SamplePosition(pos, out hit, sampleRadius * 8f, NavMesh.AllAreas))
+            return hit.position;
+        return fallback;
+    }
+
+    /// <summary>
+    /// Finds a NavMesh point near <paramref name="center"/> that sits in a region of at least
+    /// <paramref name="minRegion"/> connected cells (i.e. real, open land - not a water-edge sliver).
+    /// Falls back to a plain NavMesh snap of the center if no roomy spot is found.
+    /// </summary>
+    private Vector3 FindValidNearbyPosition(Vector3 center, float spreadRadius, int minRegion, int attempts, Vector3 fallback)
+    {
+        for (int i = 0; i < attempts; i++)
+        {
+            Vector3 candidate = RandomNavmeshLocation(spreadRadius, center);
+            if (candidate == Vector3.zero)
+                continue; // RandomNavmeshLocation returns zero when the NavMesh sample fails
+            if (IsNavMeshRegionBigEnough(candidate, 4f, minRegion))
+                return candidate;
+        }
+        return SnapToNavMesh(center, spreadRadius, fallback);
     }
 
     private void LoadNPCsAndSetPosition()
@@ -99,17 +138,16 @@ public class DerekTerrainManager : MonoBehaviour
 
         for (int i = 0; i < npcFactionsList.Count(); i++)
         {
-            npcFactionsList[i].transform.position = RandomNavmeshLocation(10f, factionsController.NPCsSpawnpoint[i]);
+            // Use the validated NPC spawn point directly (snap to NavMesh); don't re-randomise into
+            // water or, on a failed sample, to world origin.
+            Vector3 basePos = SnapToNavMesh(factionsController.NPCsSpawnpoint[i], 8f, fallback: factionsController.NPCsSpawnpoint[i]);
+            npcFactionsList[i].transform.position = basePos;
 
+            // Each child is a starting entity (incl. the campfire, which is parented under a faction
+            // container). Place it on a roomy NavMesh region so buildings don't land in forbidden
+            // terrain (the old code used a tiny minSize=5 and could drop children at the origin).
             foreach (Transform child in npcFactionsList[i].transform)
-            {
-                Vector3 randomNearbyPosition = RandomNavmeshLocation(5f, npcFactionsList[i].transform.position);
-                if (!IsNavMeshRegionBigEnough(randomNearbyPosition, 4, 5))
-                {
-                    randomNearbyPosition = RandomNavmeshLocation(5f, npcFactionsList[i].transform.position);
-                }
-                child.position = randomNearbyPosition;
-            }
+                child.position = FindValidNearbyPosition(basePos, spreadRadius: 6f, minRegion: 20, attempts: 25, fallback: basePos);
         }
     }
 

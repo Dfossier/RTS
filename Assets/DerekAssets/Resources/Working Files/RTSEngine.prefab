@@ -106153,6 +106153,21 @@ MonoBehaviour:
     allowedUIFactionTypes:
       type: 0
       options: []
+  - type: {fileID: 11400000, guid: 7c1d9e3a4b5f6082c9d1e2f3a4b5c6d7, type: 2}
+    displayCollectorCount: 0
+    allowedUIFactionTypes:
+      type: 0
+      options: []
+  - type: {fileID: 11400000, guid: 8d2e0f4b5c6a7193dae2f3a4b5c6d7e8, type: 2}
+    displayCollectorCount: 0
+    allowedUIFactionTypes:
+      type: 0
+      options: []
+  - type: {fileID: 11400000, guid: 69fe26083e4b11f458aab558250d44c6, type: 2}
+    displayCollectorCount: 0
+    allowedUIFactionTypes:
+      type: 0
+      options: []
   panel: {fileID: 7626121395703199235}
   resourceDescriptionAsTooltip: 1
   maxCapacityColor: {r: 1, g: 0, b: 0, a: 1}
@@ -165105,6 +165120,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b16294d219bf6db449279be57eae3702, type: 2}
   - {fileID: 11400000, guid: 289f2d92dd5497e4e99f9d0a656207e0, type: 2}
   - {fileID: 11400000, guid: a3e40a20a0b603d4793ed1985b005aed, type: 2}
+  - {fileID: 11400000, guid: 7c1d9e3a4b5f6082c9d1e2f3a4b5c6d7, type: 2}
+  - {fileID: 11400000, guid: 8d2e0f4b5c6a7193dae2f3a4b5c6d7e8, type: 2}
+  - {fileID: 11400000, guid: 69fe26083e4b11f458aab558250d44c6, type: 2}
   TotalResourcesCount: 0
   ResourcesCounter: 0
   BatchedDevisor: 0

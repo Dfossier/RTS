@@ -78,6 +78,14 @@ public class TerrainGenerator : MonoBehaviour
     float meshWorldSize;
     int chunksVisibleInViewDst;
 
+    // --- Public map-size accessors (used by TradeBuildingSpawner to find the map edges) ---
+    // Note: meshWorldSize is computed in Start(), so these are only valid after the terrain has started.
+    public float MeshWorldSize => meshWorldSize;
+    public int LevelWidthInTiles => levelWidthInTiles;
+    public int LevelDepthInTiles => levelDepthInTiles;
+    /// <summary> Full map size in world units. X = width, Z = depth. Valid after Start(). </summary>
+    public Vector3 MapWorldSize => new Vector3(levelWidthInTiles * meshWorldSize, 0f, levelDepthInTiles * meshWorldSize);
+
     [HideInInspector]
     public int chunkCount = 0;
 
