@@ -24,15 +24,15 @@ public class PlaceOnNavmesh : MonoBehaviour
 
             foreach (Building building in factionEntities.transform)
             {
-                if (placeAttempts <= 100)
+                placeAttempts = 0;
+                while (placeAttempts <= 100)
                 {
                     UnityEngine.AI.NavMeshHit hit;
 
                     if (UnityEngine.AI.NavMesh.SamplePosition(building.transform.position, out hit, 5.0f, UnityEngine.AI.NavMesh.AllAreas))
                     {
                         building.transform.position = hit.position;
-                        placeAttempts = 0;
-                        //break;
+                        break;
                     }
                     else
                     {
@@ -44,23 +44,22 @@ public class PlaceOnNavmesh : MonoBehaviour
                         placeAttempts++;
                     }
                 }
-                else
-                {
+
+                if (placeAttempts > 100)
                     Debug.Log("Could not place " + building);
-                }
             }
 
             foreach (Unit unit in factionEntities.transform)
             {
-                if (placeAttempts <= 100)
+                placeAttempts = 0;
+                while (placeAttempts <= 100)
                 {
                     UnityEngine.AI.NavMeshHit hit;
 
                     if (UnityEngine.AI.NavMesh.SamplePosition(unit.transform.position, out hit, 5.0f, UnityEngine.AI.NavMesh.AllAreas))
                     {
                         unit.transform.position = hit.position;
-                        placeAttempts = 0;
-                        //break;
+                        break;
                     }
                     else
                     {
@@ -72,24 +71,23 @@ public class PlaceOnNavmesh : MonoBehaviour
                         placeAttempts++;
                     }
                 }
-                else
-                {
+
+                if (placeAttempts > 100)
                     Debug.Log("Could not place " + unit);
-                }
             }
 
         
         foreach (GameObject tobeplaced in placeonnavmeshlist)
         {
-            if (placeAttempts <= 100)
+            placeAttempts = 0;
+            while (placeAttempts <= 100)
             {
                 UnityEngine.AI.NavMeshHit hit;
 
                 if (UnityEngine.AI.NavMesh.SamplePosition(tobeplaced.transform.position, out hit, 5.0f, UnityEngine.AI.NavMesh.AllAreas))
                 {
                     tobeplaced.transform.position = hit.position;
-                    placeAttempts = 0;
-                    //break;
+                    break;
                 }
                 else
                 {
@@ -101,10 +99,9 @@ public class PlaceOnNavmesh : MonoBehaviour
                     placeAttempts++;
                 }
             }
-            else
-            {
+
+            if (placeAttempts > 100)
                 Debug.Log("Could not place " + tobeplaced);
-            }
 
         }
     }

@@ -1206,7 +1206,7 @@ MonoBehaviour:
   isActive: 1
   tabID:
     x: 0
-    y: 0
+    y: 1
   requireGarrisonedWorkers: 1
   workerSpeedMultiplier: 1
   period: 5
@@ -3168,7 +3168,10 @@ MonoBehaviour:
   inactiveIcon: {fileID: 21300000, guid: a84d5543acb224b45aac9d9540baf49c, type: 3}
   activeColor: {r: 0, g: 1, b: 0, a: 1}
   inactiveColor: {r: 1, g: 0, b: 0, a: 1}
-  effectMode: 0
+  effectMode: 3
+  conversionLabel: "Wheat \u2192 Grain"
+  activeBackground: {r: 0.3, g: 0.8, b: 0.3, a: 1}
+  inactiveBackground: {r: 0.4, g: 0.4, b: 0.4, a: 1}
   startEnabled: 1
   activeIconTint: {r: 0.5, g: 1, b: 0.5, a: 1}
 --- !u!114 &8732802274385878892
@@ -3187,14 +3190,17 @@ MonoBehaviour:
   isActive: 1
   tabID:
     x: 0
-    y: 0
+    y: 1
   targetGenerator: {fileID: 2243424550474248140}
   toggleTask: {fileID: 11400000, guid: 2dea2673b46be2e488e7b85b0cfd2f0b, type: 2}
   activeIcon: {fileID: 0}
   inactiveIcon: {fileID: 0}
   activeColor: {r: 0, g: 1, b: 0, a: 1}
   inactiveColor: {r: 1, g: 0, b: 0, a: 1}
-  effectMode: 1
+  effectMode: 3
+  conversionLabel: "Livestock \u2192 Logs"
+  activeBackground: {r: 0.3, g: 0.8, b: 0.3, a: 1}
+  inactiveBackground: {r: 0.4, g: 0.4, b: 0.4, a: 1}
   startEnabled: 1
   activeIconTint: {r: 0.5, g: 1, b: 0.5, a: 1}
 --- !u!114 &4055745902542314958

@@ -72,7 +72,10 @@ namespace RTSEngine.UI
                 locked = attributes.locked,
                 lockedData = attributes.lockedData,
 
-                tooltipText = attributes.tooltipText
+                tooltipText = attributes.tooltipText,
+
+                overrideBackgroundColor = attributes.overrideBackgroundColor,
+                backgroundColor = attributes.backgroundColor
             });
         }
 

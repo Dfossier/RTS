@@ -1,13 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using RTSEngine.Game;
-using RTSEngine.ResourceExtension;
 using RTSEngine.Entities;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.SceneManagement;
 
 public class DerekTerrainManager : MonoBehaviour
 {
@@ -40,11 +36,6 @@ public class DerekTerrainManager : MonoBehaviour
         // change parent of all resources from derek's ResourceEntities to RTS ResourceEntities
         Transform mapgen = GameObject.Find("Map Generator").transform;
 
-        Transform DerekReEntities = mapgen.Find("ResourceEntities").transform;
-
-        // create a temporary list to avoid modifying the collection while iterating
-        List<Transform> children = new List<Transform>();
-
         if(mapgen.TryGetComponent(out TerrainGenerator generator))
         {
             TGenerator = generator;
@@ -61,31 +52,6 @@ public class DerekTerrainManager : MonoBehaviour
             }
         }
 
-        /*
-        foreach (Transform child in DerekReEntities)
-        {
-            // Debug.Log("Adding " + child.name);
-            children.Add(child);
-        }
-
-        // reparent all children
-        foreach (Transform child in children)
-        {
-            // Debug.Log("Reparenting " + child.name);
-            child.SetParent(rtsReEntities.transform, true);
-            // Destroy(DerekReEntities.gameObject);
-            /*
-            var childIndex = 0;
-            foreach (Transform child2 in child)
-            {
-                childIndex++;
-                Debug.Log("Reparenting " + child2.name);
-                child2.SetParent(rtsReEntities.transform, true);
-                child2.name = child2.name + childIndex.ToString();
-            }
-            
-        }
-        */
     }
 
     private void SetPlayerFactionPosition()

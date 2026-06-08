@@ -178,6 +178,11 @@ namespace RTSEngine.EntityComponent
         private void OnDestroy()
         {
             // If the converter (herder) dies, all animals following it must return to neutral.
+            // Guard against teardown / uninitialized state where factionEntity is null.
+            if (!factionEntity.IsValid())
+                return;
+
+            GameObject ownerObj = factionEntity.gameObject;
 
             AnimalsOwnerController[] allAnimals = FindObjectsOfType<AnimalsOwnerController>();
 
@@ -185,9 +190,9 @@ namespace RTSEngine.EntityComponent
             {
                 foreach (var animal in allAnimals)
                 {
-                    if(!animal.IsValid()) break;
+                    if(!animal.IsValid()) continue;
                     // Was this animal owned by this converter?
-                    if (animal.Owner == factionEntity.gameObject)
+                    if (animal.Owner == ownerObj)
                     {
                         // Remove the ownership reference
                         animal.Owner = null;

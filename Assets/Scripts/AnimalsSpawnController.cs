@@ -18,6 +18,7 @@ public class AnimalsSpawnController : MonoBehaviour
     public int initialSpawnCount = 10;
     public int maxAnimalCount = 20;
     public float spawnInterval = 12f; // 4 minutes for 10 animals => 240/10 = 24s
+    public float cleanupInterval = 5f; // prune destroyed animals from the lists every 5s
 
     private List<GameObject> cows = new List<GameObject>();
     private List<GameObject> deers = new List<GameObject>();
@@ -25,6 +26,8 @@ public class AnimalsSpawnController : MonoBehaviour
     private List<GameObject> horses = new List<GameObject>();
 
     private float spawnTimer = 0f;
+    private float cleanupTimer = 0f;
+    private Transform mapCenter;
 
     public GameObject rtsController;
 
@@ -39,6 +42,7 @@ public class AnimalsSpawnController : MonoBehaviour
 
     void Start()
     {
+        mapCenter = GameObject.Find("middleOfTheMap").transform;
         // CheckAndInitialSpawn();
     }
 
@@ -58,12 +62,17 @@ public class AnimalsSpawnController : MonoBehaviour
             spawnTimer = 0f;
         }
 
-        CleanupLists();
+        cleanupTimer += Time.deltaTime;
+        if (cleanupTimer >= cleanupInterval)
+        {
+            CleanupLists();
+            cleanupTimer = 0f;
+        }
     }
 
     void CheckAndInitialSpawn()
     {
-        if (cows.Count == 0 && deers.Count == 0 && wolves.Count == 0)
+        if (cows.Count == 0 && deers.Count == 0 && wolves.Count == 0 && horses.Count == 0)
         {
             for (int i = 0; i < initialSpawnCount; i++)
             {
@@ -115,7 +124,7 @@ public class AnimalsSpawnController : MonoBehaviour
     {
         for (int attempt = 0; attempt < 30; attempt++)
         {
-            Vector3 basePos = GameObject.Find("middleOfTheMap").transform.position;
+            Vector3 basePos = mapCenter.position;
 
             // Bias north if preferCold (horses)
             Vector3 randomPoint = basePos + new Vector3(
@@ -145,7 +154,6 @@ public class AnimalsSpawnController : MonoBehaviour
                         Color heatColor = heatMapTexture.GetPixelBilinear(uv.x, uv.y);
                         float temperature = heatColor.r;
 
-                        Debug.Log($"Horse temp at {hit.point}: {temperature:F2}");
                         /*
                         // TEMP: Allow *any* temperature (0–1)
                         if (NavMesh.SamplePosition(hit.point, out NavMeshHit navHit, 5f, NavMesh.AllAreas))

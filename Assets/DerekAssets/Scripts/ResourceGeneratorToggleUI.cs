@@ -32,9 +32,10 @@ public class ResourceGeneratorToggleUI : EntityComponentBase
 
     public enum VisualEffectMode
     {
-        IconSwap,       // Changes icon sprite
-        ColorTint,      // Changes icon color
-        LockedState     // Uses locked/unlocked visual (grayed out when off)
+        IconSwap,           // Changes icon sprite
+        ColorTint,          // Changes icon color
+        LockedState,        // Uses locked/unlocked visual (grayed out when off)
+        BackgroundColor     // Tints the button background (always-visible ON/OFF indicator)
     }
 
     [Header("Generator Reference")]
@@ -58,8 +59,18 @@ public class ResourceGeneratorToggleUI : EntityComponentBase
     private Color inactiveColor = Color.red;
 
     [Header("Visual Effect Mode")]
-    [SerializeField, Tooltip("How to show on/off state: Icon swap, Color tint, or Locked state")]
+    [SerializeField, Tooltip("How to show on/off state: Icon swap, Color tint, Locked state, or Background color")]
     private VisualEffectMode effectMode = VisualEffectMode.ColorTint;
+
+    [Header("Background Color Mode")]
+    [SerializeField, Tooltip("Label for what this toggle converts, shown in the hover text. e.g. 'Wheat → Grain' or 'Livestock → Logs'")]
+    private string conversionLabel = "Conversion";
+
+    [SerializeField, Tooltip("Button background color when this conversion is ACTIVE (used by BackgroundColor mode)")]
+    private Color activeBackground = new Color(0.3f, 0.8f, 0.3f, 1f); // green
+
+    [SerializeField, Tooltip("Button background color when this conversion is STOPPED (used by BackgroundColor mode)")]
+    private Color inactiveBackground = new Color(0.4f, 0.4f, 0.4f, 1f); // dim gray
 
     [Header("Settings")]
     [SerializeField, Tooltip("Start with generation enabled?")]
@@ -144,6 +155,8 @@ public class ResourceGeneratorToggleUI : EntityComponentBase
         EntityComponentTaskUIData taskData = toggleTask.Data;
         bool locked = false;
         EntityComponentLockedTaskUIData lockedData = default;
+        bool overrideBackground = false;
+        Color backgroundColor = Color.white;
 
         // Apply visual effect based on mode
         switch (effectMode)
@@ -172,13 +185,26 @@ public class ResourceGeneratorToggleUI : EntityComponentBase
                 };
                 taskData.description = isActive ? "Stop Generation (ON)" : "Start Generation (OFF)";
                 break;
+
+            case VisualEffectMode.BackgroundColor:
+                // Always-visible state via button background; conversion-specific hover text.
+                overrideBackground = true;
+                backgroundColor = isActive ? activeBackground : inactiveBackground;
+                // Enlarge + bold the arrow via rich text (tooltip is TextMeshPro with rich text enabled),
+                // since the display font renders a plain "→" small and thin.
+                string styledLabel = conversionLabel.Replace("→", "<size=170%><b>→</b></size>");
+                taskData.description =
+                    $"{styledLabel} — {(isActive ? "ON" : "OFF")}\nClick to {(isActive ? "stop" : "start")} this conversion.";
+                break;
         }
 
         taskUIAttributes.Add(new EntityComponentTaskUIAttributes
         {
             data = taskData,
             locked = locked,
-            lockedData = lockedData
+            lockedData = lockedData,
+            overrideBackgroundColor = overrideBackground,
+            backgroundColor = backgroundColor
         });
 
         return true;

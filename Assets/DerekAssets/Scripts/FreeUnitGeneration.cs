@@ -30,8 +30,6 @@ public class FreeUnitGeneration : MonoBehaviour
     [SerializeField]
     private float unitHeat = .2f;
 
-    private int unitAttempts;
-
     private Unit iUnitPrefab;
 
     private float uNeighborRadius;
@@ -63,7 +61,7 @@ public class FreeUnitGeneration : MonoBehaviour
         {
             for (int zIndex = 4; zIndex < (tilesWidth * (verticesWidth) - 1); zIndex++)
             {
-                if (unitCount > 10) { break; }
+                if (unitCount > 10) { return; }
 
                 // convert from Level Coordinate System to Tile Coordinate System and retrieve the corresponding TileData
                 TileCoordinate tileCoordinate = terrainData.ConvertToTileCoordinate(xIndex, zIndex);
@@ -125,6 +123,7 @@ public class FreeUnitGeneration : MonoBehaviour
 
                         Debug.Log("unitPrefab = " + unitPrefabs[uBiomeIndex] + " unitPosition = " + unitPosition);
                     //find a position on the navmesh
+                        int unitAttempts = 0;
                         while (unitAttempts <= 5)
                         {
                             NavMeshHit hit;
@@ -173,7 +172,6 @@ public class FreeUnitGeneration : MonoBehaviour
                         unitGameObject.transform.parent = unitList.transform;
                         unitCount++;
                         Debug.Log("Unit count = " + unitCount);
-                        unitAttempts = 0;
 
                     //Debug.Log("X: " + xIndex + " Z: " + zIndex + " water: " + treeHeightMap.moisture[(verticesWidth - 1 - tileCoordinate.coordinateXIndex), (verticesWidth - 1 - tileCoordinate.coordinateZIndex)]);
 

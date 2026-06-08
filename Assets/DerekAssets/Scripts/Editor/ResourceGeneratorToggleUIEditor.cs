@@ -93,6 +93,17 @@ namespace RTSEngine.EditorOnly.EntityComponent
                         "No additional setup required!",
                         MessageType.Info);
                     break;
+
+                case 3: // BackgroundColor
+                    EditorGUILayout.HelpBox("Background Color: Button BACKGROUND is tinted to show on/off at a glance.\n" +
+                        "• Conversion Label: Shown in hover text, e.g. 'Wheat → Grain' or 'Livestock → Logs'\n" +
+                        "• Active Background: Tint when generation is ON (default: green)\n" +
+                        "• Inactive Background: Tint when generation is OFF (default: dim gray)",
+                        MessageType.Info);
+                    EditorGUILayout.PropertyField(SO.FindProperty("conversionLabel"));
+                    EditorGUILayout.PropertyField(SO.FindProperty("activeBackground"));
+                    EditorGUILayout.PropertyField(SO.FindProperty("inactiveBackground"));
+                    break;
             }
         }
     }

@@ -96,13 +96,6 @@ public class PixelPerfectFogOfWarComponent
             _hideInFog = false;
         }
     }
-    private void LateUpdate()
-    {
-        if (Input.GetKeyDown(KeyCode.F1))
-        {
-            _reEvaluateVisibility();
-        }
-    }
     private void OnDestroy()
     {
         if (Entity == null) { return; }

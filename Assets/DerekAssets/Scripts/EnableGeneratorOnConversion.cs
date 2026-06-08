@@ -1,5 +1,6 @@
 using RTSEngine.EntityComponent;
 using RTSEngine.Entities;
+using RTSEngine.Event;
 using UnityEngine;
 
 /// <summary>
@@ -25,83 +26,75 @@ public class EnableGeneratorOnConversion : MonoBehaviour
         resourceGenerator = GetComponent<IResourceGenerator>();
         resourceCollector = GetComponent<IResourceCollector>();
 
-        // Safety check: If this is a free unit (no faction), ensure the components are disabled
-        if (unit != null && unit.IsFree)
-        {
-            if (resourceGenerator != null)
-            {
-                var generatorComponent = resourceGenerator as MonoBehaviour;
-                if (generatorComponent != null)
-                {
-                    generatorComponent.enabled = false;
-                    Debug.Log($"[EnableGeneratorOnConversion] ResourceGenerator disabled for free unit '{unit.Code}' - will enable on conversion");
-                }
-            }
+        if (unit == null)
+            return;
 
-            if (resourceCollector != null)
-            {
-                var collectorComponent = resourceCollector as MonoBehaviour;
-                if (collectorComponent != null)
-                {
-                    collectorComponent.enabled = false;
-                    Debug.Log($"[EnableGeneratorOnConversion] ResourceCollector disabled for free unit '{unit.Code}' - will enable on conversion");
-                }
-            }
+        if (unit.IsFree)
+        {
+            // Free/neutral unit: keep the resource components disabled and wait for a faction conversion.
+            // Subscribe to the engine's faction-change event instead of polling IsFree every frame.
+            DisableResourceComponents();
+            unit.FactionUpdateComplete += OnFactionUpdateComplete;
         }
-
-        // If the unit already has a faction (not free), enable the components immediately
-        if (unit != null && !unit.IsFree)
+        else
         {
-            if (resourceGenerator != null)
-            {
-                var generatorComponent = resourceGenerator as MonoBehaviour;
-                if (generatorComponent != null && !generatorComponent.enabled)
-                {
-                    generatorComponent.enabled = true;
-                    hasBeenConverted = true;
-                    Debug.Log($"[EnableGeneratorOnConversion] ResourceGenerator enabled for '{unit.Code}' - already owned by Faction {unit.FactionID}");
-                }
-            }
-
-            if (resourceCollector != null)
-            {
-                var collectorComponent = resourceCollector as MonoBehaviour;
-                if (collectorComponent != null && !collectorComponent.enabled)
-                {
-                    collectorComponent.enabled = true;
-                    hasBeenConverted = true;
-                    Debug.Log($"[EnableGeneratorOnConversion] ResourceCollector enabled for '{unit.Code}' - already owned by Faction {unit.FactionID}");
-                }
-            }
+            // Unit already belongs to a faction: enable the resource components immediately.
+            EnableResourceComponents($"already owned by Faction {unit.FactionID}");
         }
     }
 
-    void Update()
+    void OnDestroy()
     {
-        // Once converted (no longer free), enable the resource components
-        if (!hasBeenConverted && unit != null && !unit.IsFree)
+        // The engine event holds a reference to this handler, so always unsubscribe.
+        if (unit != null)
+            unit.FactionUpdateComplete -= OnFactionUpdateComplete;
+    }
+
+    // Raised by the RTS Engine when this unit's faction changes (IsFree/FactionID are already updated at this point).
+    private void OnFactionUpdateComplete(IEntity sender, FactionUpdateArgs args)
+    {
+        if (hasBeenConverted || unit == null || unit.IsFree)
+            return;
+
+        EnableResourceComponents($"converted to Faction {unit.FactionID}");
+
+        // One-shot: once the components are enabled there's nothing left to listen for.
+        unit.FactionUpdateComplete -= OnFactionUpdateComplete;
+    }
+
+    private void EnableResourceComponents(string reason)
+    {
+        hasBeenConverted = true;
+
+        var generatorComponent = resourceGenerator as MonoBehaviour;
+        if (generatorComponent != null && !generatorComponent.enabled)
         {
-            hasBeenConverted = true;
+            generatorComponent.enabled = true;
+            Debug.Log($"[EnableGeneratorOnConversion] ResourceGenerator enabled for '{unit.Code}' - {reason}");
+        }
 
-            if (resourceGenerator != null)
-            {
-                var generatorComponent = resourceGenerator as MonoBehaviour;
-                if (generatorComponent != null)
-                {
-                    generatorComponent.enabled = true;
-                    Debug.Log($"[EnableGeneratorOnConversion] ResourceGenerator enabled for '{unit.Code}' - converted to Faction {unit.FactionID}");
-                }
-            }
+        var collectorComponent = resourceCollector as MonoBehaviour;
+        if (collectorComponent != null && !collectorComponent.enabled)
+        {
+            collectorComponent.enabled = true;
+            Debug.Log($"[EnableGeneratorOnConversion] ResourceCollector enabled for '{unit.Code}' - {reason}");
+        }
+    }
 
-            if (resourceCollector != null)
-            {
-                var collectorComponent = resourceCollector as MonoBehaviour;
-                if (collectorComponent != null)
-                {
-                    collectorComponent.enabled = true;
-                    Debug.Log($"[EnableGeneratorOnConversion] ResourceCollector enabled for '{unit.Code}' - converted to Faction {unit.FactionID}");
-                }
-            }
+    private void DisableResourceComponents()
+    {
+        var generatorComponent = resourceGenerator as MonoBehaviour;
+        if (generatorComponent != null)
+        {
+            generatorComponent.enabled = false;
+            Debug.Log($"[EnableGeneratorOnConversion] ResourceGenerator disabled for free unit '{unit.Code}' - will enable on conversion");
+        }
+
+        var collectorComponent = resourceCollector as MonoBehaviour;
+        if (collectorComponent != null)
+        {
+            collectorComponent.enabled = false;
+            Debug.Log($"[EnableGeneratorOnConversion] ResourceCollector disabled for free unit '{unit.Code}' - will enable on conversion");
         }
     }
 }

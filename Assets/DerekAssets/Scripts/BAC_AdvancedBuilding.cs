@@ -20,7 +20,6 @@ public class BAC_AdvancedBuilding : MonoBehaviour, IEntityPostInitializable
     public IBuilding Building { get; private set; }
 
     public bool SpawnUnitsOnComplete = false;
-    private bool StartUnitsSpawned = false;
     [SerializeField] private bool UnitsSpawned = false;
     public List<SpawnStartUnit> StartUnits = new();
 
@@ -60,7 +59,7 @@ public class BAC_AdvancedBuilding : MonoBehaviour, IEntityPostInitializable
 
         if (Building.Health.CurrHealth > Building.Health.MaxHealth / 2)
         {
-            if(!StartUnitsSpawned && StartSpawn && !UnitsSpawned)
+            if(StartSpawn && !UnitsSpawned)
             {
                 SpawnStrtingUnits();
             }
@@ -81,10 +80,14 @@ public class BAC_AdvancedBuilding : MonoBehaviour, IEntityPostInitializable
                     {
                         if (ResMgr != null)
                         {
-                            ResourceInput resourceInput = new ResourceInput();
-                            resourceInput.type = UnitCreator.Tasks[startUnit.CreatorTaskIndex].RequiredResources[0].type;
-                            resourceInput.value = UnitCreator.Tasks[startUnit.CreatorTaskIndex].RequiredResources[0].value;
-                            ResMgr.UpdateResource(Building.FactionID, resourceInput, true);
+                            var requiredResources = UnitCreator.Tasks[startUnit.CreatorTaskIndex].RequiredResources;
+                            if (requiredResources != null && requiredResources.Count > 0)
+                            {
+                                ResourceInput resourceInput = new ResourceInput();
+                                resourceInput.type = requiredResources[0].type;
+                                resourceInput.value = requiredResources[0].value;
+                                ResMgr.UpdateResource(Building.FactionID, resourceInput, true);
+                            }
                         }
                         Debug.Log($"Villager {startUnit.CreatorTaskIndex} created");
                         UnitCreator.LaunchTaskAction(startUnit.CreatorTaskIndex, false);

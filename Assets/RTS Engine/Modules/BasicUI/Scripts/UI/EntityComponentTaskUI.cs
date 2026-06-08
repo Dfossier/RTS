@@ -49,6 +49,31 @@ namespace RTSEngine.UI
         #region Handling Attributes Reload
         protected override void OnReload()
         {
+            // Tint the button background for at-a-glance state indicators (e.g. ResourceGeneratorToggleUI ON/OFF).
+            // The button uses a Color Tint transition, so we must drive its ColorBlock (not button.image.color,
+            // which the transition would immediately overwrite). Reset to defaults when not overriding, since
+            // task buttons are pooled and reused across tasks.
+            if (button.IsValid())
+            {
+                ColorBlock colors = button.colors;
+                if (Attributes.overrideBackgroundColor)
+                {
+                    Color c = Attributes.backgroundColor;
+                    colors.normalColor = c;
+                    colors.selectedColor = c;
+                    colors.highlightedColor = Color.Lerp(c, Color.white, 0.25f);
+                    colors.pressedColor = Color.Lerp(c, Color.black, 0.15f);
+                }
+                else
+                {
+                    colors.normalColor = Color.white;
+                    colors.selectedColor = new Color(0.96f, 0.96f, 0.96f, 1f);
+                    colors.highlightedColor = new Color(0.96f, 0.96f, 0.96f, 1f);
+                    colors.pressedColor = new Color(0.78f, 0.78f, 0.78f, 1f);
+                }
+                button.colors = colors;
+            }
+
             if (controlLabel.IsValid())
             {
                 if (Attributes.data.controlType.IsValid())

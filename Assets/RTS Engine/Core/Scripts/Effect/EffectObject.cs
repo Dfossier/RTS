@@ -108,7 +108,9 @@ namespace RTSEngine.Effect
 
         protected sealed override void OnPoolableObjectDestroy()
         {
-            globalEvent.RaiseEffectObjectDestroyedGlobal(this);
+            // Guard against teardown / uninitialized pooled objects where the service was never assigned.
+            if (globalEvent.IsValid())
+                globalEvent.RaiseEffectObjectDestroyedGlobal(this);
 
             OnEffectObjectDestroy();
         }

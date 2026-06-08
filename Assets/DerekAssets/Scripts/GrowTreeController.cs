@@ -91,18 +91,13 @@ public class GrowTreeController : MonoBehaviour, IEntityPreInitializable
     private void Update()
     {
         if (Instance == null) return;
-        if(!building.IsBuilt) return;
+        if(building == null || !building.IsBuilt) return;
 
         if (_startDelay)
         {
-            float mplier = 0;
-            mplier = growSpeed / 60;
-            float calc = 100 / mplier;
             if (currentDelay < _startGrowthDelay)
             {
                 currentDelay += Time.deltaTime;
-                Debug.Log($"delay timer: {currentDelay}");
-
             }else
             {
                 CanGrow = true;

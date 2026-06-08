@@ -2,6 +2,7 @@
 using RTSEngine.EntityComponent;
 using RTSEngine.ResourceExtension;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace RTSEngine.UI
 {
@@ -23,5 +24,10 @@ namespace RTSEngine.UI
         public EntityComponentLockedTaskUIData lockedData;
 
         public string tooltipText;
+
+        // When set, the task button's background image is tinted with backgroundColor (instead of leaving it white).
+        // Used for at-a-glance state indicators (e.g. ResourceGeneratorToggleUI ON/OFF). See EntityComponentTaskUI.OnReload.
+        public bool overrideBackgroundColor;
+        public Color backgroundColor;
     }
 }

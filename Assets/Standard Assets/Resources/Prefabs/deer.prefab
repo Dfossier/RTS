@@ -1088,6 +1088,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6305886758604675657}
   - component: {fileID: 7178422108506129151}
+  - component: {fileID: 5452966998618851496}
   m_Layer: 0
   m_Name: unit_components
   m_TagString: Untagged
@@ -1155,6 +1156,26 @@ MonoBehaviour:
   showTargetGizmo: 1
   ejectionTaskUI: {fileID: 11400000, guid: a845524f06d96d441b27ee40198cefe8, type: 2}
   allowDifferentFactions: 1
+--- !u!114 &5452966998618851496
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8834573200430704063}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b70a05e14e072574fa5d4773e9ade9f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  code: drop_off_target
+  allowedResourceTypes:
+    type: 0
+    options: []
+  requireDropOffPosition: 0
+  dropOffPosition: {fileID: 0}
+  forcedTerrainAreas:
+  - {fileID: 11400000, guid: 37d2dffab9a31a84c81d764228531ba7, type: 2}
 --- !u!1 &8972271288035568548
 GameObject:
   m_ObjectHideFlags: 0
