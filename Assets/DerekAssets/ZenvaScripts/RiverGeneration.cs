@@ -565,9 +565,6 @@ public class RiverGeneration : MonoBehaviour
             // Two CCW triangles (viewed from above).
             triangles.Add(idx[0]); triangles.Add(idx[2]); triangles.Add(idx[1]);
             triangles.Add(idx[0]); triangles.Add(idx[3]); triangles.Add(idx[2]);
-
-            CreateObstacleAtCell(riverObject.transform,
-                new Vector3(cx * 2 + 1f, waterY, cz * 2 + 1f), 2f);
         }
 
         Mesh mesh = new Mesh();
@@ -581,22 +578,25 @@ public class RiverGeneration : MonoBehaviour
         riverObject.AddComponent<MeshCollider>();
         riverObject.layer = LayerMask.NameToLayer("Obstacle");
 
+        // One obstacle per path step (not per filled cell) to keep GameObject count sane.
+        float obstacleSize = riverWidth * 1.5f;
+        foreach (Vector2 center in riverPathCenters)
+        {
+            Vector3 mp = WorldToMeshPosition(center, terrainData);
+            GameObject obs = new GameObject("RiverObstacle");
+            obs.transform.parent = riverObject.transform;
+            obs.transform.position = new Vector3(mp.x, waterY, mp.z);
+            obs.layer = LayerMask.NameToLayer("Obstacle");
+            NavMeshObstacle navObs = obs.AddComponent<NavMeshObstacle>();
+            navObs.shape = NavMeshObstacleShape.Box;
+            navObs.carving = true;
+            navObs.size = new Vector3(obstacleSize, 2f, obstacleSize);
+        }
+
         if (enableDebugLogging)
             Debug.Log($"[RIVER] Blob mesh: {filledCells.Count} cells, {vertices.Count} vertices, {triangles.Count / 3} triangles");
 
         return riverObject;
-    }
-
-    private void CreateObstacleAtCell(Transform parent, Vector3 center, float size)
-    {
-        GameObject obj = new GameObject("RiverCell");
-        obj.transform.parent = parent;
-        obj.transform.position = center;
-        NavMeshObstacle obstacle = obj.AddComponent<NavMeshObstacle>();
-        obstacle.shape = NavMeshObstacleShape.Box;
-        obstacle.carving = true;
-        obstacle.size = new Vector3(size, 2f, size);
-        obj.layer = LayerMask.NameToLayer("Obstacle");
     }
 
     private float GetTerrainHeightAtPoint(Vector2 coordinate, TerrainData terrainData)
