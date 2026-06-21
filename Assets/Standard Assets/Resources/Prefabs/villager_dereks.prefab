@@ -762,11 +762,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb986734d7c0b9c4b9288720ed50ab74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator: {fileID: 2218493118572878111}
+  animator: {fileID: 9050132769123456787}
   animatorOverrideController:
     fetchType: 0
     items:
-    - {fileID: 22100000, guid: 5096a1f7ac2859b4698271e4db7e03c3, type: 2}
+    - {fileID: 22100000, guid: 7a8b9c0d1e2f345678901234abcdef56, type: 2}
   damageAnimationEnabled: 0
   damageAnimationDuration: 0.2
 --- !u!82 &82643091493194070
@@ -4179,6 +4179,12 @@ PrefabInstance:
 --- !u!4 &9050132769123456788 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4882481920500871233, guid: 7d67ac5cfda0b944580afbed7561ec82,
+    type: 3}
+  m_PrefabInstance: {fileID: 9050132769123456789}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &9050132769123456787 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 1522818814117767739, guid: 7d67ac5cfda0b944580afbed7561ec82,
     type: 3}
   m_PrefabInstance: {fileID: 9050132769123456789}
   m_PrefabAsset: {fileID: 0}
