@@ -505,72 +505,135 @@ public class RiverGeneration : MonoBehaviour
         if (riverMaterial != null)
             meshRenderer.material = riverMaterial;
 
-        // Flat water level: average terrain height along path + riverYOffset.
-        float totalY = 0f;
-        foreach (Vector2 c in riverPathCenters)
-            totalY += WorldToMeshPosition(c, terrainData).y;
-        float waterY = totalY / riverPathCenters.Count + riverYOffset;
-
-        // Radius in 2-unit grid cells that reproduces riverWidth (half-width / cell size).
         int radiusCells = Mathf.Max(1, Mathf.RoundToInt(riverWidth / 2f / 2f));
-        int radiusSq = radiusCells * radiusCells;
+        int radiusSq    = radiusCells * radiusCells;
 
-        // Fill a set of grid cells covering every path step expanded to river width.
-        HashSet<(int, int)> filledCells = new HashSet<(int, int)>();
-        foreach (Vector2 center in riverPathCenters)
+        // Pre-compute mesh positions so we don't call WorldToMeshPosition twice per step.
+        var pathMeshPos = new List<Vector3>(riverPathCenters.Count);
+        foreach (Vector2 c in riverPathCenters)
+            pathMeshPos.Add(WorldToMeshPosition(c, terrainData));
+
+        // Fill cells in path order (source → mouth). First-claim wins, which naturally
+        // gives high-elevation cells their source height and low-elevation cells their
+        // mouth height, producing a downhill slope across the water surface.
+        var filledCells  = new HashSet<(int, int)>();
+        var cellHeights  = new Dictionary<(int, int), float>();
+
+        for (int pi = 0; pi < riverPathCenters.Count; pi++)
         {
-            Vector3 mp = WorldToMeshPosition(center, terrainData);
+            Vector3 mp = pathMeshPos[pi];
             int cx = Mathf.RoundToInt(mp.x / 2f);
             int cz = Mathf.RoundToInt(mp.z / 2f);
+            float h = mp.y + riverYOffset;
 
             for (int dx = -radiusCells; dx <= radiusCells; dx++)
             {
                 for (int dz = -radiusCells; dz <= radiusCells; dz++)
                 {
                     if (dx * dx + dz * dz <= radiusSq)
-                        filledCells.Add((cx + dx, cz + dz));
+                    {
+                        var key = (cx + dx, cz + dz);
+                        if (!cellHeights.ContainsKey(key))
+                        {
+                            filledCells.Add(key);
+                            cellHeights[key] = h;
+                        }
+                    }
                 }
             }
         }
 
-        // Build shared-vertex mesh: each cell is a 2x2 quad; adjacent cells share edges.
-        Dictionary<(int, int), int> vertexMap = new Dictionary<(int, int), int>();
-        List<Vector3> vertices = new List<Vector3>();
-        List<int> triangles = new List<int>();
-        List<Vector2> uvs = new List<Vector2>();
-
+        // Accumulate height contributions from each filled cell to its 4 corners so
+        // shared vertices get the average height of their surrounding cells — this
+        // smooths the slope transitions across the surface.
+        var vertexHeightAccum = new Dictionary<(int, int), (float sum, int count)>();
         foreach (var (cx, cz) in filledCells)
         {
-            (int vx, int vz)[] corners = {
-                (cx * 2,     cz * 2),
-                (cx * 2 + 2, cz * 2),
-                (cx * 2 + 2, cz * 2 + 2),
-                (cx * 2,     cz * 2 + 2)
-            };
-
-            int[] idx = new int[4];
-            for (int i = 0; i < 4; i++)
+            float h = cellHeights[(cx, cz)];
+            foreach (var key in new (int, int)[] {
+                (cx * 2, cz * 2), (cx * 2 + 2, cz * 2),
+                (cx * 2 + 2, cz * 2 + 2), (cx * 2, cz * 2 + 2) })
             {
-                var key = (corners[i].vx, corners[i].vz);
-                if (!vertexMap.TryGetValue(key, out int vi))
-                {
-                    vi = vertices.Count;
-                    vertexMap[key] = vi;
-                    vertices.Add(new Vector3(corners[i].vx, waterY, corners[i].vz));
-                    uvs.Add(new Vector2(corners[i].vx / riverWidth, corners[i].vz / riverWidth));
-                }
-                idx[i] = vi;
+                if (vertexHeightAccum.TryGetValue(key, out var acc))
+                    vertexHeightAccum[key] = (acc.sum + h, acc.count + 1);
+                else
+                    vertexHeightAccum[key] = (h, 1);
+            }
+        }
+
+        var vertexMap = new Dictionary<(int, int), int>();
+        var vertices  = new List<Vector3>();
+        var triangles = new List<int>();
+        var uvs       = new List<Vector2>();
+
+        // Local helper: look up or create a vertex at grid position (vx, vz).
+        int GetOrAddVertex((int, int) key)
+        {
+            if (vertexMap.TryGetValue(key, out int vi)) return vi;
+            vi = vertices.Count;
+            vertexMap[key] = vi;
+            var (sum, count) = vertexHeightAccum.TryGetValue(key, out var acc)
+                ? acc : (riverYOffset, 1);
+            vertices.Add(new Vector3(key.Item1, sum / count, key.Item2));
+            uvs.Add(new Vector2(key.Item1 / riverWidth, key.Item2 / riverWidth));
+            return vi;
+        }
+
+        // Emit one quad per filled cell (two CW-from-above triangles).
+        foreach (var (cx, cz) in filledCells)
+        {
+            int i0 = GetOrAddVertex((cx * 2,     cz * 2));
+            int i1 = GetOrAddVertex((cx * 2 + 2, cz * 2));
+            int i2 = GetOrAddVertex((cx * 2 + 2, cz * 2 + 2));
+            int i3 = GetOrAddVertex((cx * 2,     cz * 2 + 2));
+
+            triangles.Add(i0); triangles.Add(i2); triangles.Add(i1);
+            triangles.Add(i0); triangles.Add(i3); triangles.Add(i2);
+        }
+
+        // Diagonal smoothing: fill staircase notches at the boundary.
+        // A notch exists where two cells are diagonally adjacent but neither orthogonal
+        // neighbor between them is filled. Two bridging triangles cut each notch to 45°.
+        // Only checking NE (1,1) and SE (1,-1) per cell avoids processing each pair twice.
+        foreach (var (cx, cz) in filledCells)
+        {
+            // NE diagonal: shared corner is TR of (cx,cz) = (cx*2+2, cz*2+2)
+            if ( filledCells.Contains((cx + 1, cz + 1)) &&
+                !filledCells.Contains((cx + 1, cz)) &&
+                !filledCells.Contains((cx,     cz + 1)))
+            {
+                int vx = cx * 2 + 2, vz = cz * 2 + 2;
+                // SE notch — covers the (cx+1, cz) gap
+                triangles.Add(GetOrAddVertex((vx,     vz)));
+                triangles.Add(GetOrAddVertex((vx + 2, vz)));
+                triangles.Add(GetOrAddVertex((vx,     vz - 2)));
+                // NW notch — covers the (cx, cz+1) gap
+                triangles.Add(GetOrAddVertex((vx,     vz)));
+                triangles.Add(GetOrAddVertex((vx - 2, vz)));
+                triangles.Add(GetOrAddVertex((vx,     vz + 2)));
             }
 
-            // Two CCW triangles (viewed from above).
-            triangles.Add(idx[0]); triangles.Add(idx[2]); triangles.Add(idx[1]);
-            triangles.Add(idx[0]); triangles.Add(idx[3]); triangles.Add(idx[2]);
+            // SE diagonal: shared corner is BR of (cx,cz) = (cx*2+2, cz*2)
+            if ( filledCells.Contains((cx + 1, cz - 1)) &&
+                !filledCells.Contains((cx + 1, cz)) &&
+                !filledCells.Contains((cx,     cz - 1)))
+            {
+                int vx = cx * 2 + 2, vz = cz * 2;
+                // NE notch — covers the (cx+1, cz) gap
+                triangles.Add(GetOrAddVertex((vx,     vz)));
+                triangles.Add(GetOrAddVertex((vx,     vz + 2)));
+                triangles.Add(GetOrAddVertex((vx + 2, vz)));
+                // SW notch — covers the (cx, cz-1) gap
+                triangles.Add(GetOrAddVertex((vx,     vz)));
+                triangles.Add(GetOrAddVertex((vx,     vz - 2)));
+                triangles.Add(GetOrAddVertex((vx - 2, vz)));
+            }
         }
 
         Mesh mesh = new Mesh();
-        mesh.vertices = vertices.ToArray();
+        mesh.vertices  = vertices.ToArray();
         mesh.triangles = triangles.ToArray();
-        mesh.uv = uvs.ToArray();
+        mesh.uv        = uvs.ToArray();
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
 
@@ -578,14 +641,14 @@ public class RiverGeneration : MonoBehaviour
         riverObject.AddComponent<MeshCollider>();
         riverObject.layer = LayerMask.NameToLayer("Obstacle");
 
-        // One obstacle per path step (not per filled cell) to keep GameObject count sane.
+        // One obstacle per path step; height follows the terrain slope.
         float obstacleSize = riverWidth * 1.5f;
-        foreach (Vector2 center in riverPathCenters)
+        for (int pi = 0; pi < riverPathCenters.Count; pi++)
         {
-            Vector3 mp = WorldToMeshPosition(center, terrainData);
+            Vector3 mp = pathMeshPos[pi];
             GameObject obs = new GameObject("RiverObstacle");
             obs.transform.parent = riverObject.transform;
-            obs.transform.position = new Vector3(mp.x, waterY, mp.z);
+            obs.transform.position = new Vector3(mp.x, mp.y + riverYOffset, mp.z);
             obs.layer = LayerMask.NameToLayer("Obstacle");
             NavMeshObstacle navObs = obs.AddComponent<NavMeshObstacle>();
             navObs.shape = NavMeshObstacleShape.Box;
