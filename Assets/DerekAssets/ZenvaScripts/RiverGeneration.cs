@@ -84,7 +84,7 @@ public class RiverGeneration : MonoBehaviour
             BuildRiverPathAndCreateMesh(riverOrigin, verticesWidth, terrainData);
         }
 
-        riverList.transform.Translate(new Vector3(0.0f, 0.2f, 0.0f));
+        riverList.transform.Translate(new Vector3(0.0f, -0.5f, 0.0f));
 
         if (enableDebugLogging)
             Debug.Log("[RIVER] All rivers generated successfully");
