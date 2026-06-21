@@ -516,15 +516,20 @@ public class RiverGeneration : MonoBehaviour
         // Fill cells in path order (source → mouth). First-claim wins, which naturally
         // gives high-elevation cells their source height and low-elevation cells their
         // mouth height, producing a downhill slope across the water surface.
+        // The Y offset tapers from full → 0 over the last 25% of the path so the
+        // river settles to terrain level at the mouth instead of hovering above it.
         var filledCells  = new HashSet<(int, int)>();
         var cellHeights  = new Dictionary<(int, int), float>();
+        int lastStep = Mathf.Max(1, riverPathCenters.Count - 1);
 
         for (int pi = 0; pi < riverPathCenters.Count; pi++)
         {
             Vector3 mp = pathMeshPos[pi];
             int cx = Mathf.RoundToInt(mp.x / 2f);
             int cz = Mathf.RoundToInt(mp.z / 2f);
-            float h = mp.y + riverYOffset;
+            float t      = (float)pi / lastStep;
+            float taper  = Mathf.Clamp01((t - 0.75f) / 0.25f); // 0 for first 75%, ramps 0→1 in last 25%
+            float h      = mp.y + Mathf.Lerp(riverYOffset, 0f, taper);
 
             for (int dx = -radiusCells; dx <= radiusCells; dx++)
             {
@@ -542,6 +547,20 @@ public class RiverGeneration : MonoBehaviour
                 }
             }
         }
+
+        // Erode cells with 0-1 orthogonal neighbours — these are the "tooth" cells at the
+        // tips of the staircase boundary that create the sawtooth silhouette. Removing them
+        // smooths the disc edge to an octagonal shape without narrowing the main body.
+        var toErode = new List<(int, int)>();
+        foreach (var (cx, cz) in filledCells)
+        {
+            int n = (filledCells.Contains((cx + 1, cz)) ? 1 : 0)
+                  + (filledCells.Contains((cx - 1, cz)) ? 1 : 0)
+                  + (filledCells.Contains((cx, cz + 1)) ? 1 : 0)
+                  + (filledCells.Contains((cx, cz - 1)) ? 1 : 0);
+            if (n <= 1) toErode.Add((cx, cz));
+        }
+        foreach (var cell in toErode) { filledCells.Remove(cell); cellHeights.Remove(cell); }
 
         // Accumulate height contributions from each filled cell to its 4 corners so
         // shared vertices get the average height of their surrounding cells — this
