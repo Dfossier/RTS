@@ -529,7 +529,7 @@ public class RiverGeneration : MonoBehaviour
             int cz = Mathf.RoundToInt(mp.z / 2f);
             float t      = (float)pi / lastStep;
             float taper  = Mathf.Clamp01((t - 0.75f) / 0.25f); // 0 for first 75%, ramps 0→1 in last 25%
-            float h      = mp.y + Mathf.Lerp(riverYOffset, 0f, taper);
+            float h      = mp.y + Mathf.Lerp(riverYOffset * 0.5f, 0f, taper);
 
             for (int dx = -radiusCells; dx <= radiusCells; dx++)
             {
@@ -548,38 +548,39 @@ public class RiverGeneration : MonoBehaviour
             }
         }
 
-        // Dilate: fill concave staircase corners without shrinking the river.
-        // An empty cell is a concave corner if it has a filled neighbour on at least one
-        // horizontal axis AND at least one vertical axis — the exact shape of a notch.
-        // We seed candidates from the diagonal neighbours of existing cells to avoid
-        // scanning the whole map. Height is averaged from orthogonal filled neighbours.
-        var seen    = new HashSet<(int, int)>();
-        var toFill  = new List<(int, int)>();
+        // Dilate twice: first pass fills concave staircase corners; second pass catches
+        // any new corners the first pass exposes, progressively rounding the boundary.
         (int, int)[] diags = { (1, 1), (1, -1), (-1, 1), (-1, -1) };
         (int, int)[] ortho = { (1, 0), (-1, 0), (0, 1), (0, -1) };
 
-        foreach (var (cx, cz) in filledCells)
+        for (int pass = 0; pass < 2; pass++)
         {
-            foreach (var (ddx, ddz) in diags)
-            {
-                var cand = (cx + ddx, cz + ddz);
-                if (filledCells.Contains(cand) || !seen.Add(cand)) continue;
+            var seen   = new HashSet<(int, int)>();
+            var toFill = new List<(int, int)>();
 
-                bool hasX = filledCells.Contains((cand.Item1 + 1, cand.Item2))
-                         || filledCells.Contains((cand.Item1 - 1, cand.Item2));
-                bool hasZ = filledCells.Contains((cand.Item1, cand.Item2 + 1))
-                         || filledCells.Contains((cand.Item1, cand.Item2 - 1));
-                if (hasX && hasZ) toFill.Add(cand);
+            foreach (var (cx, cz) in filledCells)
+            {
+                foreach (var (ddx, ddz) in diags)
+                {
+                    var cand = (cx + ddx, cz + ddz);
+                    if (filledCells.Contains(cand) || !seen.Add(cand)) continue;
+
+                    bool hasX = filledCells.Contains((cand.Item1 + 1, cand.Item2))
+                             || filledCells.Contains((cand.Item1 - 1, cand.Item2));
+                    bool hasZ = filledCells.Contains((cand.Item1, cand.Item2 + 1))
+                             || filledCells.Contains((cand.Item1, cand.Item2 - 1));
+                    if (hasX && hasZ) toFill.Add(cand);
+                }
             }
-        }
-        foreach (var (cx, cz) in toFill)
-        {
-            float totalH = 0f; int cnt = 0;
-            foreach (var (ddx, ddz) in ortho)
-                if (cellHeights.TryGetValue((cx + ddx, cz + ddz), out float nh))
-                { totalH += nh; cnt++; }
-            filledCells.Add((cx, cz));
-            cellHeights[(cx, cz)] = cnt > 0 ? totalH / cnt : riverYOffset;
+            foreach (var (cx, cz) in toFill)
+            {
+                float totalH = 0f; int cnt = 0;
+                foreach (var (ddx, ddz) in ortho)
+                    if (cellHeights.TryGetValue((cx + ddx, cz + ddz), out float nh))
+                    { totalH += nh; cnt++; }
+                filledCells.Add((cx, cz));
+                cellHeights[(cx, cz)] = cnt > 0 ? totalH / cnt : riverYOffset;
+            }
         }
 
         // Accumulate height contributions from each filled cell to its 4 corners so
