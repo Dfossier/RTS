@@ -490,159 +490,86 @@ public class RiverGeneration : MonoBehaviour
         return new Vector3(meshX, height, meshZ);
     }
 
-    // Create a proper river spine with correctly handled turns
-    private List<Vector3> CreateRiverSpine(List<Vector2> riverPathCenters, TerrainData terrainData)
-    {
-        if (riverPathCenters.Count < 2)
-            return new List<Vector3>();
-
-        List<Vector3> spine = new List<Vector3>();
-
-        // Convert all path centers to mesh positions - keep it simple first
-        foreach (Vector2 center in riverPathCenters)
-        {
-            Vector3 meshPos = WorldToMeshPosition(center, terrainData);
-            spine.Add(meshPos);
-        }
-
-        return spine;
-    }
-
-    // Generate river cross-section points for proper mesh generation
-    private struct RiverCrossSection
-    {
-        public Vector3 center;
-        public Vector3 leftBank;
-        public Vector3 rightBank;
-        public Vector3 direction;
-        public Vector3 normal;
-    }
-
-    private List<RiverCrossSection> GenerateRiverCrossSections(List<Vector3> spine)
-    {
-        List<RiverCrossSection> sections = new List<RiverCrossSection>();
-
-        if (spine.Count < 2)
-            return sections;
-
-        for (int i = 0; i < spine.Count; i++)
-        {
-            Vector3 direction;
-
-            // Calculate direction based on position in spine
-            if (i == 0)
-            {
-                // First point: use direction to next point
-                direction = (spine[i + 1] - spine[i]).normalized;
-            }
-            else if (i == spine.Count - 1)
-            {
-                // Last point: use direction from previous point
-                direction = (spine[i] - spine[i - 1]).normalized;
-            }
-            else
-            {
-                // Middle points: average of incoming and outgoing directions for smooth turns
-                Vector3 incoming = (spine[i] - spine[i - 1]).normalized;
-                Vector3 outgoing = (spine[i + 1] - spine[i]).normalized;
-                direction = (incoming + outgoing).normalized;
-            }
-
-            // Calculate perpendicular vector (river width direction)
-            Vector3 up = Vector3.up;
-            Vector3 right = Vector3.Cross(direction, up).normalized;
-
-            // Create cross-section
-            RiverCrossSection section = new RiverCrossSection();
-            section.center = spine[i];
-            section.direction = direction;
-            section.normal = right;
-            section.leftBank = spine[i] - right * (riverWidth / 2);
-            section.rightBank = spine[i] + right * (riverWidth / 2);
-
-            // Apply Y offset
-            section.center.y += riverYOffset;
-            section.leftBank.y += riverYOffset;
-            section.rightBank.y += riverYOffset;
-
-            sections.Add(section);
-        }
-
-        return sections;
-    }
-
+    // Build a grid-cell blob mesh so that looping paths form a natural lake rather than a
+    // self-intersecting strip. Each path step expands outward by riverWidth/2 to fill a
+    // disc of 2-unit cells. Adjacent cells share vertices (deduplication via dictionary),
+    // producing a single connected water surface with no folded triangles.
     private GameObject CreateRiverMeshFromCenters(List<Vector2> riverPathCenters, HashSet<Vector2> visitedCoordinates, TerrainData terrainData)
     {
-        if (riverPathCenters.Count < 2)
+        if (riverPathCenters.Count < 1)
             return null;
 
         GameObject riverObject = new GameObject("River");
         MeshFilter meshFilter = riverObject.AddComponent<MeshFilter>();
         MeshRenderer meshRenderer = riverObject.AddComponent<MeshRenderer>();
-
         if (riverMaterial != null)
             meshRenderer.material = riverMaterial;
 
-        // Create river spine and cross-sections
-        List<Vector3> spine = CreateRiverSpine(riverPathCenters, terrainData);
-        List<RiverCrossSection> sections = GenerateRiverCrossSections(spine);
+        // Flat water level: average terrain height along path + riverYOffset.
+        float totalY = 0f;
+        foreach (Vector2 c in riverPathCenters)
+            totalY += WorldToMeshPosition(c, terrainData).y;
+        float waterY = totalY / riverPathCenters.Count + riverYOffset;
 
-        if (sections.Count < 2)
+        // Radius in 2-unit grid cells that reproduces riverWidth (half-width / cell size).
+        int radiusCells = Mathf.Max(1, Mathf.RoundToInt(riverWidth / 2f / 2f));
+        int radiusSq = radiusCells * radiusCells;
+
+        // Fill a set of grid cells covering every path step expanded to river width.
+        HashSet<(int, int)> filledCells = new HashSet<(int, int)>();
+        foreach (Vector2 center in riverPathCenters)
         {
-            Debug.LogWarning("[RIVER] Insufficient river sections");
-            return null;
+            Vector3 mp = WorldToMeshPosition(center, terrainData);
+            int cx = Mathf.RoundToInt(mp.x / 2f);
+            int cz = Mathf.RoundToInt(mp.z / 2f);
+
+            for (int dx = -radiusCells; dx <= radiusCells; dx++)
+            {
+                for (int dz = -radiusCells; dz <= radiusCells; dz++)
+                {
+                    if (dx * dx + dz * dz <= radiusSq)
+                        filledCells.Add((cx + dx, cz + dz));
+                }
+            }
         }
 
+        // Build shared-vertex mesh: each cell is a 2x2 quad; adjacent cells share edges.
+        Dictionary<(int, int), int> vertexMap = new Dictionary<(int, int), int>();
         List<Vector3> vertices = new List<Vector3>();
         List<int> triangles = new List<int>();
         List<Vector2> uvs = new List<Vector2>();
 
-        // Generate mesh from cross-sections
-        for (int i = 0; i < sections.Count; i++)
+        foreach (var (cx, cz) in filledCells)
         {
-            RiverCrossSection section = sections[i];
+            (int vx, int vz)[] corners = {
+                (cx * 2,     cz * 2),
+                (cx * 2 + 2, cz * 2),
+                (cx * 2 + 2, cz * 2 + 2),
+                (cx * 2,     cz * 2 + 2)
+            };
 
-            // Add vertices for this cross-section (left bank, center, right bank)
-            vertices.Add(section.leftBank);
-            vertices.Add(section.center);
-            vertices.Add(section.rightBank);
-
-            // Add UVs
-            float v = (float)i / (sections.Count - 1);
-            uvs.Add(new Vector2(0, v));    // Left bank
-            uvs.Add(new Vector2(0.5f, v)); // Center
-            uvs.Add(new Vector2(1, v));    // Right bank
-
-            // Generate triangles and segment obstacles
-            if (i < sections.Count - 1)
+            int[] idx = new int[4];
+            for (int i = 0; i < 4; i++)
             {
-                int baseIndex = i * 3;
-                int nextBaseIndex = (i + 1) * 3;
-
-                // Left triangle strip
-                triangles.Add(baseIndex);         // Current left
-                triangles.Add(baseIndex + 1);     // Current center
-                triangles.Add(nextBaseIndex);     // Next left
-
-                triangles.Add(nextBaseIndex);     // Next left
-                triangles.Add(baseIndex + 1);     // Current center
-                triangles.Add(nextBaseIndex + 1); // Next center
-
-                // Right triangle strip
-                triangles.Add(baseIndex + 1);     // Current center
-                triangles.Add(baseIndex + 2);     // Current right
-                triangles.Add(nextBaseIndex + 1); // Next center
-
-                triangles.Add(nextBaseIndex + 1); // Next center
-                triangles.Add(baseIndex + 2);     // Current right
-                triangles.Add(nextBaseIndex + 2); // Next right
-
-                // Create NavMeshObstacle for this segment
-                CreateObstacleForSegment(riverObject.transform, section, sections[i + 1]);
+                var key = (corners[i].vx, corners[i].vz);
+                if (!vertexMap.TryGetValue(key, out int vi))
+                {
+                    vi = vertices.Count;
+                    vertexMap[key] = vi;
+                    vertices.Add(new Vector3(corners[i].vx, waterY, corners[i].vz));
+                    uvs.Add(new Vector2(corners[i].vx / riverWidth, corners[i].vz / riverWidth));
+                }
+                idx[i] = vi;
             }
+
+            // Two CCW triangles (viewed from above).
+            triangles.Add(idx[0]); triangles.Add(idx[2]); triangles.Add(idx[1]);
+            triangles.Add(idx[0]); triangles.Add(idx[3]); triangles.Add(idx[2]);
+
+            CreateObstacleAtCell(riverObject.transform,
+                new Vector3(cx * 2 + 1f, waterY, cz * 2 + 1f), 2f);
         }
 
-        // Create and assign mesh
         Mesh mesh = new Mesh();
         mesh.vertices = vertices.ToArray();
         mesh.triangles = triangles.ToArray();
@@ -655,42 +582,21 @@ public class RiverGeneration : MonoBehaviour
         riverObject.layer = LayerMask.NameToLayer("Obstacle");
 
         if (enableDebugLogging)
-        {
-            Debug.Log($"[RIVER] Created river mesh with {vertices.Count} vertices, {triangles.Count / 3} triangles from {sections.Count} cross-sections");
-        }
+            Debug.Log($"[RIVER] Blob mesh: {filledCells.Count} cells, {vertices.Count} vertices, {triangles.Count / 3} triangles");
 
         return riverObject;
     }
 
-    private void CreateObstacleForSegment(Transform parent, RiverCrossSection a, RiverCrossSection b)
+    private void CreateObstacleAtCell(Transform parent, Vector3 center, float size)
     {
-        Vector3 centerA = a.center;
-        Vector3 centerB = b.center;
-
-        Vector3 segmentDirection = (centerB - centerA).normalized;
-        float segmentLength = Vector3.Distance(centerA, centerB);
-
-        float segmentWidth = Vector3.Distance(a.leftBank, a.rightBank) * 1.5f;
-
-        Vector3 segmentCenter = (centerA + centerB) / 2f;
-
-        GameObject obstacleObj = new GameObject("RiverObstacleSegment");
-        obstacleObj.transform.parent = parent;
-        obstacleObj.transform.position = segmentCenter;
-
-        // Orient the box along the river
-        obstacleObj.transform.rotation = Quaternion.LookRotation(segmentDirection, Vector3.up);
-
-        // Add obstacle
-        NavMeshObstacle obstacle = obstacleObj.AddComponent<NavMeshObstacle>();
+        GameObject obj = new GameObject("RiverCell");
+        obj.transform.parent = parent;
+        obj.transform.position = center;
+        NavMeshObstacle obstacle = obj.AddComponent<NavMeshObstacle>();
         obstacle.shape = NavMeshObstacleShape.Box;
         obstacle.carving = true;
-
-        // Set size: width (X), height (Y), length (Z)
-        obstacle.size = new Vector3(segmentWidth, 2f, segmentLength);
-
-        // Optional: match river layer
-        obstacleObj.layer = LayerMask.NameToLayer("Obstacle");
+        obstacle.size = new Vector3(size, 2f, size);
+        obj.layer = LayerMask.NameToLayer("Obstacle");
     }
 
     private float GetTerrainHeightAtPoint(Vector2 coordinate, TerrainData terrainData)
