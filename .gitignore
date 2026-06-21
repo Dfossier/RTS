@@ -81,3 +81,14 @@ desktop.ini
 .vscode/
 .vsconfig
 Assets/DerekAssets/Terrain Assets/Terrain_HeightmapFlat.asset
+
+# Superpowers brainstorming sessions
+.superpowers/
+
+# Backup files
+*.bak
+*.bak.meta
+*.bak2
+*.bak2.meta
+*.bak3
+*.bak3.meta

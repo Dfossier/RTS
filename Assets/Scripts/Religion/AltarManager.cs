@@ -2,11 +2,10 @@ using System;
 using UnityEngine;
 using RTSEngine.Entities;
 using RTSEngine.Game;
-using RTSEngine.Health;
 using RTSEngine.ResourceExtension;
 using RTSEngine.Upgrades;
 
-public class AltarManager : MonoBehaviour
+public class AltarManager : MonoBehaviour, IEntityPreInitializable
 {
     public enum AltarPlacement { Plains, Hilltop, River, Any }
 
@@ -30,22 +29,18 @@ public class AltarManager : MonoBehaviour
     private bool deityChosen = false;
     private AltarPlacement placement;
 
-    void Start()
+    public void OnEntityPreInit(IGameManager gameMgr, IEntity entity)
     {
-        altar = GetComponent<IBuilding>();
+        this.gameMgr = gameMgr;
+        altar = entity as IBuilding;
         if (altar == null) return;
-
-        gameMgr = altar.GameMgr;
-
-        if (altar.Health is IBuildingHealth buildingHealth)
-            buildingHealth.BuildingBuilt += OnAltarBuilt;
+        altar.BuildingBuilt += OnAltarBuilt;
     }
 
-    void OnDestroy()
+    public void Disable()
     {
-        if (altar?.Health is IBuildingHealth buildingHealth)
-            buildingHealth.BuildingBuilt -= OnAltarBuilt;
-
+        if (altar != null)
+            altar.BuildingBuilt -= OnAltarBuilt;
         CancelInvoke(nameof(CheckDivineFavor));
     }
 

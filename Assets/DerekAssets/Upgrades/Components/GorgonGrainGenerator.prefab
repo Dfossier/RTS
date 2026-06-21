@@ -1,0 +1,92 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &100000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 400000}
+  - component: {fileID: 1140000001}
+  m_Layer: 0
+  m_Name: GorgonGrainGenerator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &400000
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100000}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1140000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edddac3108d6221418e8a42fc680a8e2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  code: grain_storage_facility_ResourceGenerator_164
+  isActive: 1
+  tabID:
+    x: 0
+    y: 0
+  requireGarrisonedWorkers: 0
+  workerSpeedMultiplier: 0.5
+  period: 8.5
+  resources:
+  - type: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
+    value:
+      amount: 1
+      capacity: 0
+    nonConsumable: 0
+  requiredResources:
+  - type: {fileID: 11400000, guid: e279bbd3b414b6b4bb8d64afd1344c38, type: 2}
+    value:
+      amount: 4
+      capacity: 0
+    nonConsumable: 0
+  collectionThreshold:
+  - type: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
+    value:
+      amount: 10
+      capacity: 0
+    nonConsumable: 0
+  stopGeneratingOnThresholdMet: 0
+  autoCollect: 1
+  collectionAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  collectionTaskUI: {fileID: 0}
+  onThresholdMet:
+    m_PersistentCalls:
+      m_Calls: []
+  onCollected:
+    m_PersistentCalls:
+      m_Calls: []
+  onRequirementMissing:
+    m_PersistentCalls:
+      m_Calls: []

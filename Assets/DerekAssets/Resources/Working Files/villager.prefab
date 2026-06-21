@@ -353,6 +353,19 @@ MonoBehaviour:
     missingRequirementData:
       icon: {fileID: 0}
       color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
+  - prefabObject: {fileID: 1768643121196649675, guid: e7e670eb11c4439b8edce44e8971483c,
+      type: 3}
+    requiredResources:
+    - type: {fileID: 11400000, guid: 4d4e87d30dcf4234a9bb2512fd824432, type: 2}
+      value:
+        amount: 60
+        capacity: 0
+      nonConsumable: 0
+    factionEntityRequirements: []
+    asset: {fileID: 11400000, guid: d42ce86e97fe41d9ae952ffb49694c94, type: 2}
+    missingRequirementData:
+      icon: {fileID: 0}
+      color: {r: 1, g: 0.29803923, b: 0.29803923, a: 1}
   constructionAudio:
     fetchType: 0
     items:
