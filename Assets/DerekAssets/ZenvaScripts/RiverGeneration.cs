@@ -548,19 +548,39 @@ public class RiverGeneration : MonoBehaviour
             }
         }
 
-        // Erode cells with 0-1 orthogonal neighbours — these are the "tooth" cells at the
-        // tips of the staircase boundary that create the sawtooth silhouette. Removing them
-        // smooths the disc edge to an octagonal shape without narrowing the main body.
-        var toErode = new List<(int, int)>();
+        // Dilate: fill concave staircase corners without shrinking the river.
+        // An empty cell is a concave corner if it has a filled neighbour on at least one
+        // horizontal axis AND at least one vertical axis — the exact shape of a notch.
+        // We seed candidates from the diagonal neighbours of existing cells to avoid
+        // scanning the whole map. Height is averaged from orthogonal filled neighbours.
+        var seen    = new HashSet<(int, int)>();
+        var toFill  = new List<(int, int)>();
+        (int, int)[] diags = { (1, 1), (1, -1), (-1, 1), (-1, -1) };
+        (int, int)[] ortho = { (1, 0), (-1, 0), (0, 1), (0, -1) };
+
         foreach (var (cx, cz) in filledCells)
         {
-            int n = (filledCells.Contains((cx + 1, cz)) ? 1 : 0)
-                  + (filledCells.Contains((cx - 1, cz)) ? 1 : 0)
-                  + (filledCells.Contains((cx, cz + 1)) ? 1 : 0)
-                  + (filledCells.Contains((cx, cz - 1)) ? 1 : 0);
-            if (n <= 1) toErode.Add((cx, cz));
+            foreach (var (ddx, ddz) in diags)
+            {
+                var cand = (cx + ddx, cz + ddz);
+                if (filledCells.Contains(cand) || !seen.Add(cand)) continue;
+
+                bool hasX = filledCells.Contains((cand.Item1 + 1, cand.Item2))
+                         || filledCells.Contains((cand.Item1 - 1, cand.Item2));
+                bool hasZ = filledCells.Contains((cand.Item1, cand.Item2 + 1))
+                         || filledCells.Contains((cand.Item1, cand.Item2 - 1));
+                if (hasX && hasZ) toFill.Add(cand);
+            }
         }
-        foreach (var cell in toErode) { filledCells.Remove(cell); cellHeights.Remove(cell); }
+        foreach (var (cx, cz) in toFill)
+        {
+            float totalH = 0f; int cnt = 0;
+            foreach (var (ddx, ddz) in ortho)
+                if (cellHeights.TryGetValue((cx + ddx, cz + ddz), out float nh))
+                { totalH += nh; cnt++; }
+            filledCells.Add((cx, cz));
+            cellHeights[(cx, cz)] = cnt > 0 ? totalH / cnt : riverYOffset;
+        }
 
         // Accumulate height contributions from each filled cell to its 4 corners so
         // shared vertices get the average height of their surrounding cells — this
