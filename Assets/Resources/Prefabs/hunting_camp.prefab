@@ -195,6 +195,8 @@ GameObject:
   - component: {fileID: 5521082052543348413}
   - component: {fileID: 5313442585694384608}
   - component: {fileID: 327941175521039992}
+  - component: {fileID: 7777777777777777771}
+  - component: {fileID: 7777777777777777772}
   m_Layer: 0
   m_Name: hunting_camp
   m_TagString: Untagged
@@ -1121,6 +1123,7 @@ GameObject:
   - component: {fileID: 6101854843742906124}
   - component: {fileID: 8608265536788079310}
   - component: {fileID: 7084026099064959089}
+  - component: {fileID: 6666666666666666663}
   m_Layer: 0
   m_Name: building_components
   m_TagString: Untagged
@@ -4280,3 +4283,124 @@ MeshRenderer:
     type: 3}
   m_PrefabInstance: {fileID: 7813440352972323729}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6666666666666666663
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2338211702197755658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c6ba43bf9895db4fae646c44ad26ae3, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  code: animal_carrier
+  isActive: 1
+  tabID:
+    x: 0
+    y: 0
+  targetPicker:
+    type: 0
+    options:
+      codes: []
+      categories:
+      - animal
+    targetUnits: 1
+    targetBuildings: 0
+  capacity: 20
+  customUnitSlots:
+    defaultAmount: 1
+    amounts: []
+  addablePositions: []
+  forcedTerrainAreas: []
+  addUnitAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  carrierPositions: []
+  freeCarrierPositionIndexes:
+  ejectablePositions: []
+  canEjectSingleUnit: 0
+  ejectSingleUnitTaskUI: {fileID: 0}
+  canEjectAllUnits: 1
+  ejectAllUnitsTaskUI: {fileID: 11400000, guid: c7557c4dbb929d74eb659d79342d0a4c,
+    type: 2}
+  ejectUnitAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  ejectToRallypoint: 0
+  ejectOnDestroy: 1
+  allowMovementToExitCarrier: 0
+  callUnitsRange: 0
+  callIdleOnly: 0
+  callAttackUnits: 0
+  callUnitsTaskUI: {fileID: 0}
+  callUnitsAudio:
+    fetchType: 0
+    items: []
+    cooldown:
+      enabled: 1
+      defaultValueRange:
+        _min: 1
+        _max: 2
+  freeFactionBehaviour:
+    allowFreeFaction: 0
+    allowLocalPlayer: 1
+    allowRest: 1
+    updateFactionOnOccupy: 0
+    freeOnEjection: 1
+    canBeAttackedOnFreeFaction: 0
+    canBeAttackedOnValidFaction: 1
+  showStoredUnitsGizmos: 1
+  storedUnitsFoldout: 0
+--- !u!114 &7777777777777777771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 831296138674022046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 976ebcf693c3e0d49a4f3e81bfef2899, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  sourceEntity: {fileID: 831296138674022046}
+  sourceInstanceOnly: 0
+  updateSpawnedInstances: 1
+  upgradeEffect:
+    input: {fileID: 0}
+  upgrades:
+  - upgradeTarget: {fileID: 2000000000000000001, guid: b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7,
+      type: 3}
+    entityComponentMatcher: []
+    triggerUpgrades: []
+--- !u!114 &7777777777777777772
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 831296138674022046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  animalGarrisonThreshold: 15
+  grainThreshold: 500
+  divineFavorThreshold: 500
+  animalCarrier: {fileID: 6666666666666666663}
+  grainType: {fileID: 11400000, guid: c0ced80dc07a894428ddaeb3e67467ca, type: 2}
+  divineFavorType: {fileID: 11400000, guid: cfc4336f73484a6a81fe042ae52a7578, type: 2}
+  villageUpgrade: {fileID: 7777777777777777771}
