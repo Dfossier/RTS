@@ -2132,7 +2132,7 @@ PrefabInstance:
     - target: {fileID: 999685855010784168, guid: 24afef5a143e52844a18d4e29070f11f,
         type: 3}
       propertyPath: riverYOffset
-      value: 1.5
+      value: 1.4
       objectReference: {fileID: 0}
     - target: {fileID: 999685855010784168, guid: 24afef5a143e52844a18d4e29070f11f,
         type: 3}
@@ -2248,7 +2248,7 @@ PrefabInstance:
     - target: {fileID: 1446221885898601281, guid: 24afef5a143e52844a18d4e29070f11f,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1446221886061646605, guid: 24afef5a143e52844a18d4e29070f11f,
         type: 3}

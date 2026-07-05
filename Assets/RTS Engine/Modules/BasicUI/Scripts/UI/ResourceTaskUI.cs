@@ -88,6 +88,12 @@ namespace RTSEngine.UI
 
         private void UpdateAmountText()
         {
+            bool hasAmount = Attributes.resourceHandler.Amount > 0;
+            gameObject.SetActive(hasAmount);
+
+            if (!hasAmount)
+                return;
+
             if (amountTextUI.IsValid())
                 amountTextUI.text = Attributes.resourceHandler.Type.HasCapacity
                     ? $"{Attributes.resourceHandler.Amount}/{Attributes.resourceHandler.Capacity}"

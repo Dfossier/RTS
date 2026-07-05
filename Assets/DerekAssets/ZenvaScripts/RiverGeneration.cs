@@ -84,7 +84,7 @@ public class RiverGeneration : MonoBehaviour
             BuildRiverPathAndCreateMesh(riverOrigin, verticesWidth, terrainData);
         }
 
-        riverList.transform.Translate(new Vector3(0.0f, -0.5f, 0.0f));
+        riverList.transform.Translate(new Vector3(0.0f, 0.0f, 0.0f));
 
         if (enableDebugLogging)
             Debug.Log("[RIVER] All rivers generated successfully");
@@ -527,9 +527,9 @@ public class RiverGeneration : MonoBehaviour
             Vector3 mp = pathMeshPos[pi];
             int cx = Mathf.RoundToInt(mp.x / 2f);
             int cz = Mathf.RoundToInt(mp.z / 2f);
-            float t      = (float)pi / lastStep;
-            float taper  = Mathf.Clamp01((t - 0.75f) / 0.25f); // 0 for first 75%, ramps 0→1 in last 25%
-            float h      = mp.y + Mathf.Lerp(riverYOffset * 0.5f, 0f, taper);
+            float t       = (float)pi / lastStep;
+            float descent = Mathf.Lerp(0f, -0.1f, Mathf.Clamp01((t - 0.5f) / 0.5f));
+            float h       = mp.y + riverYOffset + descent;
 
             for (int dx = -radiusCells; dx <= radiusCells; dx++)
             {

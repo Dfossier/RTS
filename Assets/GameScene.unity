@@ -14,19 +14,19 @@ OcclusionCullingSettings:
 RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 9
-  m_Fog: 1
-  m_FogColor: {r: 0.690, g: 0.784, b: 0.847, a: 1}
+  m_Fog: 0
+  m_FogColor: {r: 0.45982918, g: 0.6839801, b: 0.99264705, a: 1}
   m_FogMode: 3
   m_FogDensity: 0.01
-  m_LinearFogStart: 80
-  m_LinearFogEnd: 200
-  m_AmbientSkyColor: {r: 0.690, g: 0.784, b: 0.847, a: 1}
-  m_AmbientEquatorColor: {r: 0.847, g: 0.784, b: 0.627, a: 1}
-  m_AmbientGroundColor: {r: 0.227, g: 0.165, b: 0.094, a: 1}
+  m_LinearFogStart: 0
+  m_LinearFogEnd: 300
+  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+  m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
+  m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 1
+  m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: 1700716a8dd8948cf8c66ea34a2786d5, type: 2}
+  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -8684,8 +8684,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 253.6, y: 87.48}
-  m_SizeDelta: {x: -508.49646, y: 169.9555}
+  m_AnchoredPosition: {x: 79, y: 87.48}
+  m_SizeDelta: {x: -528, y: 169.9555}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &864901634
 MonoBehaviour:
@@ -13557,8 +13557,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 253.6, y: 87.48}
-  m_SizeDelta: {x: -508.49646, y: 169.9555}
+  m_AnchoredPosition: {x: 79, y: 87.48}
+  m_SizeDelta: {x: -528, y: 169.9555}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1487603439
 MonoBehaviour:
@@ -17343,9 +17343,9 @@ RectTransform:
   - {fileID: 580845363}
   m_Father: {fileID: 91036637}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 422.86996, y: 87.48}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -95, y: 87.48}
   m_SizeDelta: {x: 169.95459, y: 169.9552}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1923480084
@@ -20228,7 +20228,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 0.87843138, b: 0.62745098, a: 1}
-  m_Intensity: 1.2
+  m_Intensity: 0.75
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -20237,7 +20237,7 @@ Light:
     m_Type: 2
     m_Resolution: 2
     m_CustomResolution: -1
-    m_Strength: 1
+    m_Strength: 0.6
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
@@ -20322,7 +20322,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 0.62745098, g: 0.72156863, b: 0.81568628, a: 1}
-  m_Intensity: 0.25
+  m_Intensity: 0.55
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
