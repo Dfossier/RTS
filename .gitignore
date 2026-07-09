@@ -91,3 +91,19 @@ Assets/DerekAssets/Terrain Assets/Terrain_HeightmapFlat.asset
 *.bak2.meta
 *.bak3
 *.bak3.meta
+
+# Third-party asset packs — large, re-download from source
+Assets/Animal pack deluxe/
+Assets/Animal pack deluxe.meta
+Assets/DerekAssets/Animal pack deluxe/
+Assets/DerekAssets/Animal pack deluxe.meta
+Assets/DerekAssets/Backrock Studios/
+Assets/DerekAssets/Backrock Studios.meta
+Assets/DerekAssets/Boneskin settlement pack/
+Assets/DerekAssets/Boneskin settlement pack.meta
+Assets/DerekAssets/Campfire Pack/
+Assets/DerekAssets/Campfire Pack.meta
+Assets/DerekAssets/Low_poly/
+Assets/DerekAssets/Low_poly.meta
+Assets/Pillar/
+Assets/Pillar.meta
