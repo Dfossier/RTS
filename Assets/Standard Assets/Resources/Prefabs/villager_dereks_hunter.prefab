@@ -351,7 +351,7 @@ Animator:
   m_GameObject: {fileID: 1601587465662514}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 22100000, guid: 5096a1f7ac2859b4698271e4db7e03c3, type: 2}
+  m_Controller: {fileID: 22100000, guid: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b1, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -760,7 +760,7 @@ MonoBehaviour:
   animatorOverrideController:
     fetchType: 0
     items:
-    - {fileID: 22100000, guid: 5096a1f7ac2859b4698271e4db7e03c3, type: 2}
+    - {fileID: 22100000, guid: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b1, type: 2}
   damageAnimationEnabled: 0
   damageAnimationDuration: 0.2
 --- !u!82 &82643091493194070

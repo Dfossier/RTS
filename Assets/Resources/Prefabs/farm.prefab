@@ -937,7 +937,7 @@ MonoBehaviour:
     x: 0
     y: 1
   _name: Farm
-  code: farm
+  code: village_farm
   category: civilian_building
   description: Garrison villagers to generate grain. More villagers means more grain.
   icon: {fileID: 0}
